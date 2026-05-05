@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LinkPermit Pro | LM95</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .modal-active { overflow: hidden; }
+    </style>
+</head>
+<body class="text-slate-900 antialiased">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-md hidden flex flex-col items-center justify-center">
+        <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
+        <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Sinkronisasi Data</p>
+    </div>
+
+    <!-- Navigasi Bawah -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[1000] px-4 py-2 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div class="max-w-md mx-auto flex justify-around items-center">
+            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-600">
+                <i class="fas fa-home-alt text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Beranda</span>
+            </button>
+            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 p-2 text-slate-400">
+                <i class="fas fa-user-shield text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Piket</span>
+            </button>
+            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-400">
+                <i class="fas fa-cog text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Admin</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Header Utama -->
+    <header class="sticky top-0 bg-white/80 backdrop-blur-md z-[900] px-6 py-4 border-b border-slate-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-red-700 rounded-lg flex items-center justify-center text-white shadow-lg shadow-red-700/20">
+                    <i class="fas fa-id-card text-xs"></i>
+                </div>
+                <h1 class="text-sm font-black tracking-tighter uppercase">LinkPermit <span class="text-red-700">Pro</span></h1>
+            </div>
+            <div class="text-right">
+                <div id="clockDisplay" class="text-xs font-black">00:00</div>
+                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">LOADING...</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-5 pb-24">
+        
+        <!-- SECTION: LAYANAN -->
+        <div id="sec-layanan" class="animate-slide-up space-y-6">
+            <div class="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-lg font-black leading-tight mb-1">Pengajuan Izin</h2>
+                    <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Realtime Cloud Storage</p>
+                </div>
+                <i class="fas fa-cloud absolute -right-2 -bottom-2 text-6xl text-white/5"></i>
+            </div>
+
+            <form id="izinForm" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all">
+                        <option value="">Memuat data pegawai...</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Kategori</label>
+                        <select id="inputKategori" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none">
+                            <option value="Sekolah">Sekolah</option>
+                            <option value="Pribadi">Pribadi</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Keperluan</label>
+                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                    Kirim Permohonan <i class="fas fa-paper-plane ml-2"></i>
+                </button>
+            </form>
+
+            <div class="space-y-4 pt-4 border-t border-slate-100">
+                <div class="flex justify-between items-end">
+                    <h3 class="font-black text-sm uppercase tracking-tight">Status Pengajuan</h3>
+                    <button onclick="fetchIzin()" class="text-xs text-red-600 font-bold uppercase tracking-widest"><i class="fas fa-sync-alt mr-1"></i> Sync</button>
+                </div>
+                <div id="listAntrean" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- SECTION: PIKET -->
+        <div id="sec-piket" class="hidden animate-slide-up space-y-6">
+            <div id="piketLogin" class="space-y-6 pt-10">
+                <div class="text-center">
+                    <h3 class="text-xl font-black mb-2">Panel Petugas</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Akses Database Pusat</p>
+                </div>
+                <div class="space-y-3 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                    <select id="piketUser" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none">
+                        <option value="">Pilih Petugas...</option>
+                    </select>
+                    <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-2xl tracking-[1em] outline-none">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Login Petugas</button>
+            </div>
+
+            <div id="piketDashboard" class="hidden space-y-4">
+                <div class="flex justify-between items-center bg-slate-900 p-4 rounded-2xl text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-[10px]"><i class="fas fa-user-shield"></i></div>
+                        <span id="petugasAktif" class="text-[10px] font-black uppercase tracking-widest">-</span>
+                    </div>
+                    <button onclick="handleLogout()" class="text-[9px] font-bold text-white/50 uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-lg">Logout</button>
+                </div>
+                <div id="antreanPiket" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- SECTION: ADMIN -->
+        <div id="sec-admin" class="hidden animate-slide-up space-y-6">
+            <div id="adminLogin" class="space-y-6 pt-10">
+                <div class="text-center">
+                    <h3 class="text-xl font-black mb-2">Master Admin</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Cloud</p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                    <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-center outline-none">
+                </div>
+                <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Buka Dashboard</button>
+            </div>
+
+            <div id="adminDashboard" class="hidden space-y-6">
+                <!-- Header Admin -->
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-slate-900 text-white rounded-md flex items-center justify-center text-[10px]"><i class="fas fa-database"></i></div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Supabase Cloud</span>
+                    </div>
+                    <button onclick="handleAdminLogout()" class="text-[9px] font-black text-red-600 uppercase tracking-widest border border-red-100 px-3 py-1 rounded-lg bg-red-50">Logout</button>
+                </div>
+
+                <!-- Navigasi Tab -->
+                <div class="flex gap-2 p-1 bg-slate-100 rounded-xl overflow-x-auto hide-scroll">
+                    <button id="tabBtn-pegawai" onclick="switchAdminTab('pegawai')" class="flex-none px-4 py-3 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Pegawai</button>
+                    <button id="tabBtn-petugas" onclick="switchAdminTab('petugas')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Petugas Piket</button>
+                    <button id="tabBtn-laporan" onclick="switchAdminTab('laporan')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Laporan</button>
+                </div>
+
+                <div id="adminContent" class="space-y-4">
+                    <!-- Dinamis Content -->
+                </div>
+
+                <!-- Pagination Control -->
+                <div id="adminPagination" class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                    <button id="prevPage" onclick="changePage(-1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <div class="text-center">
+                        <span id="pageInfo" class="text-[9px] font-black uppercase tracking-widest text-slate-900">Halaman 1 / 1</span>
+                    </div>
+                    <button id="nextPage" onclick="changePage(1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL FORM -->
+    <div id="modalForm" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up">
+            <h3 id="modalTitle" class="text-lg font-black uppercase tracking-tight">Tambah Data</h3>
+            <div class="space-y-4">
+                <input id="formVal1" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10">
+                <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeForm()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400">Batal</button>
+                <button id="btnSave" class="flex-1 bg-red-700 text-white py-4 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-red-700/20">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FINISH (VERIFIKASI LOKASI GPS & KAMERA) -->
+    <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center scale-95 animate-slide-up">
+            
+            <!-- Tahap 1: Lokasi -->
+            <div id="step-location" class="space-y-4">
+                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-map-marker-alt"></i></div>
+                <h3 class="text-lg font-black mb-1">Verifikasi Lokasi</h3>
+                <p class="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-widest leading-relaxed">Sistem akan mengecek GPS Anda. Pastikan Anda sudah berada di area sekolah.</p>
+                <button onclick="verifyLocation()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all mb-3">
+                    Cek Lokasi
+                </button>
+            </div>
+
+            <!-- Tahap 2: Kamera -->
+            <div id="step-camera" class="hidden space-y-4">
+                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800 mb-2">Ambil Foto Bukti</h3>
+                <div class="relative w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-inner">
+                    <video id="cameraVideo" class="w-full h-full object-cover" autoplay playsinline></video>
+                </div>
+                <button onclick="takePhoto()" class="w-full py-4 mt-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-camera"></i> Jepret Foto
+                </button>
+            </div>
+
+            <!-- Tahap 3: Preview -->
+            <div id="step-preview" class="hidden space-y-4">
+                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800 mb-2">Konfirmasi Foto</h3>
+                <canvas id="photoCanvas" class="hidden"></canvas> 
+                <div class="w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-inner border border-slate-200 bg-slate-100">
+                    <img id="previewImg" class="w-full h-full object-cover" />
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="retakePhoto()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase hover:bg-slate-200 transition-all">Ulangi</button>
+                    <!-- Menggunakan fungsi upload background senyap -->
+                    <button onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Kirim & Selesai</button>
+                </div>
+            </div>
+
+            <button onclick="closeFinishModal()" class="w-full mt-4 text-slate-400 py-2 font-bold text-[10px] uppercase hover:text-slate-600 transition-all">Batal / Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG SUPABASE ---
+        const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
+        const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
+        
+        let supabaseClient = null;
+        if (window.supabase && SB_URL && SB_KEY) {
+            supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+        }
+
+        // --- CONFIG LOKASI SEKOLAH (GEOFENCING) ---
+        // SILAKAN GANTI DENGAN KOORDINAT ASLI SMK LINK AND MATCH
+        const SCHOOL_LAT = -6.35749271145112; 
+        const SCHOOL_LNG = 106.75074803106442;
+        const ALLOWED_RADIUS = 10000; 
+
+        let state = {
+            activeTab: 'layanan',
+            adminActiveTab: 'pegawai',
+            dataIzin: [],
+            listPegawai: [],
+            listPetugas: [],
+            currentUser: null,
+            isAdmin: false,
+            currentPage: 1,
+            itemsPerPage: 10,
+            currentFinishId: null,
+            cameraStream: null
+        };
+
+        // Initialize App
+        async function init() {
+            if (!supabaseClient) {
+                alert("Konfigurasi Supabase belum benar.");
+                return;
+            }
+            showLoading("Memuat data...");
+            await Promise.all([fetchPegawai(), fetchPetugas(), fetchIzin()]);
+            hideLoading();
+            updateTime();
+            setInterval(updateTime, 1000);
+        }
+
+        // --- DATABASE OPERATIONS (SUPABASE) ---
+        
+        async function fetchPegawai() {
+            const { data, error } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
+            if (!error) {
+                state.listPegawai = data || [];
+                syncSelects();
+                if(state.isAdmin && state.adminActiveTab === 'pegawai') renderAdminContent();
+            }
+        }
+
+        async function fetchPetugas() {
+            const { data, error } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
+            if (!error) {
+                state.listPetugas = data || [];
+                syncSelects();
+                if(state.isAdmin && state.adminActiveTab === 'petugas') renderAdminContent();
+            }
+        }
+
+        async function fetchIzin() {
+            const { data, error } = await supabaseClient.from('izin')
+                .select('*')
+                .neq('status', 'Selesai')
+                .order('created_at', { ascending: false });
+            if (!error) {
+                state.dataIzin = data || [];
+                renderUserList();
+                renderPiketAntrean();
+            }
+        }
+
+        async function handleIzinSubmit(e) {
+            e.preventDefault();
+            const idx = document.getElementById('inputNama').value;
+            if (!idx || !state.listPegawai[idx]) return;
+
+            showLoading("Mengirim...");
+            const peg = state.listPegawai[idx];
+            const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
+            
+            const { error } = await supabaseClient.from('izin').insert([{
+                id_izin: reqId,
+                nama: peg.nama,
+                keperluan: document.getElementById('inputKategori').value,
+                tujuan: document.getElementById('inputTujuan').value,
+                waktu_daftar: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}),
+                status: 'Menunggu',
+                tanggal: new Date().toLocaleDateString('id-ID')
+            }]);
+
+            if (!error) {
+                e.target.reset();
+                await fetchIzin();
+            } else {
+                console.error("Error inserting izin:", error);
+                alert("Gagal mengajukan izin. Pastikan tabel izin di Supabase sudah ada.");
+            }
+            hideLoading();
+        }
+
+        async function approveIzin(id) {
+            showLoading("Mengonfirmasi...");
+            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const { error } = await supabaseClient.from('izin')
+                .update({ 
+                    status: 'Keluar', 
+                    petugas_piket: state.currentUser.nama, 
+                    waktu_keluar: jam 
+                })
+                .eq('id_izin', id);
+            
+            if(!error) await fetchIzin();
+            hideLoading();
+        }
+
+        // --- GEOFENCING & KAMERA (FITUR BARU DENGAN UPLOAD SENYAP) ---
+
+        function openFinish(id) { 
+            state.currentFinishId = id; 
+            document.getElementById('modalFinish').classList.replace('hidden', 'flex');
+            document.getElementById('step-location').classList.remove('hidden');
+            document.getElementById('step-camera').classList.add('hidden');
+            document.getElementById('step-preview').classList.add('hidden'); 
+        }
+
+        function verifyLocation() {
+            if (!navigator.geolocation) {
+                alert("Peringatan: Browser Anda tidak mendukung fitur lokasi (GPS).");
+                return;
+            }
+
+            showLoading("Cek Lokasi GPS...");
+            navigator.geolocation.getCurrentPosition((position) => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                const distance = getDistanceFromLatLonInM(SCHOOL_LAT, SCHOOL_LNG, userLat, userLng);
+
+                hideLoading();
+                if (distance <= ALLOWED_RADIUS) {
+                    document.getElementById('step-location').classList.add('hidden');
+                    document.getElementById('step-camera').classList.remove('hidden');
+                    startCamera();
+                } else {
+                    alert(`Gagal! Anda terdeteksi berada ${Math.round(distance)} meter dari sekolah. Anda harus berada di area sekolah (radius ${ALLOWED_RADIUS} meter) untuk melapor.`);
+                }
+            }, (error) => {
+                hideLoading();
+                let msg = "Gagal mengambil lokasi.";
+                if(error.code === 1) msg = "Akses lokasi ditolak. Izinkan browser untuk mengakses lokasi Anda.";
+                else if(error.code === 2) msg = "Sinyal GPS tidak tersedia.";
+                else if(error.code === 3) msg = "Waktu pencarian lokasi habis.";
+                alert(msg);
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        }
+
+        async function startCamera() {
+            try {
+                state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                document.getElementById('cameraVideo').srcObject = state.cameraStream;
+            } catch (e) { 
+                alert("Gagal mengakses kamera: " + e.message); 
+                closeFinishModal();
+            }
+        }
+
+        function stopCamera() {
+            if (state.cameraStream) {
+                state.cameraStream.getTracks().forEach(track => track.stop());
+                state.cameraStream = null;
+            }
+        }
+
+        function takePhoto() {
+            const v = document.getElementById('cameraVideo');
+            const c = document.getElementById('photoCanvas');
+            const ctx = c.getContext('2d');
+            
+            // Aspek Rasio 16:9 Potrait
+            c.width = 720;
+            c.height = 1280;
+            
+            // Render video asli dengan proporsi 16:9 
+            const vRatio = v.videoWidth / v.videoHeight;
+            const cRatio = c.width / c.height;
+            let drawWidth, drawHeight, startX, startY;
+            
+            if (vRatio > cRatio) {
+                drawHeight = c.height;
+                drawWidth = (v.videoWidth * c.height) / v.videoHeight;
+                startX = (c.width - drawWidth) / 2;
+                startY = 0;
+            } else {
+                drawWidth = c.width;
+                drawHeight = (v.videoHeight * c.width) / v.videoWidth;
+                startX = 0;
+                startY = (c.height - drawHeight) / 2;
+            }
+            ctx.drawImage(v, startX, startY, drawWidth, drawHeight);
+            
+            // Konfigurasi Watermark (Hanya 20% di bagian bawah foto)
+            const watermarkHeight = c.height * 0.20;
+            const startYWatermark = c.height - watermarkHeight;
+            
+            // Background Watermark: Terang Semi-Transparan (agar teks terbaca)
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.fillRect(0, startYWatermark, c.width, watermarkHeight);
+            
+            // Konfigurasi Teks
+            const padding = 35;
+            const lh = (watermarkHeight - padding) / 5; // Dibagi 5 baris
+            const fs = Math.floor(lh * 0.8);
+            
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const lines = [
+                "TITLE", // Placeholder baris 1
+                "SMK Link and Match", 
+                `Koordinat: ${SCHOOL_LAT}, ${SCHOOL_LNG}`, 
+                `Tanggal: ${dateStr} | Jam: ${timeStr}`, 
+                "Support by HenSan"
+            ];
+            
+            ctx.textBaseline = "middle";
+            
+            lines.forEach((line, i) => {
+                const y = startYWatermark + padding + (i * lh);
+                ctx.font = `bold ${fs}px 'Plus Jakarta Sans', sans-serif`;
+                
+                if (i === 0) {
+                    // Warna LinkPermit (Hitam Bold)
+                    ctx.fillStyle = "#000000"; 
+                    ctx.fillText("LINKPERMIT ", padding, y);
+                    let tw = ctx.measureText("LINKPERMIT ").width;
+                    
+                    // Warna PRO (Merah Bold)
+                    ctx.fillStyle = "#FF0000"; 
+                    ctx.fillText("PRO", padding + tw, y);
+                } else {
+                    ctx.fillStyle = "#000000"; // Hitam
+                    ctx.fillText(line, padding, y);
+                }
+            });
+            
+            document.getElementById('previewImg').src = c.toDataURL('image/jpeg', 0.8);
+            document.getElementById('step-camera').classList.add('hidden');
+            document.getElementById('step-preview').classList.remove('hidden');
+            stopCamera();
+        }
+
+        function retakePhoto() {
+            document.getElementById('step-preview').classList.add('hidden');
+            document.getElementById('step-camera').classList.remove('hidden');
+            startCamera();
+        }
+
+        // FUNGSI UPLOAD LATAR BELAKANG SENYAP
+        function submitFinish() {
+            const dataUrl = document.getElementById('previewImg').src;
+            const blob = dataURItoBlob(dataUrl);
+            const targetId = state.currentFinishId;
+            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            
+            // 1. Notifikasi Sukses Cepat
+            alert("Berhasil! Kehadiran Anda telah terverifikasi. Foto sedang diunggah secara senyap di latar belakang.");
+            closeFinishModal();
+
+            // 2. Optimistic UI Update (Langsung hilangkan dari tampilan daftar izin aktif)
+            const idx = state.dataIzin.findIndex(i => i.id_izin === targetId);
+            if(idx !== -1) {
+                // Hapus item dari dataIzin agar langsung hilang dari daftar
+                state.dataIzin.splice(idx, 1);
+                renderUserList();
+                renderPiketAntrean();
+            }
+
+            // 3. Proses Latar Belakang (Upload & Update DB)
+            setTimeout(async () => {
+                try {
+                    const fileName = `LP_${targetId}_${Date.now()}.jpg`;
+                    let fileUrl = null;
+                    const { error: upErr } = await supabaseClient.storage.from('foto_izin').upload(fileName, blob);
+                    
+                    if (!upErr) {
+                        const { data } = supabaseClient.storage.from('foto_izin').getPublicUrl(fileName);
+                        fileUrl = data.publicUrl;
+                    }
+
+                    const updateData = { status: 'Selesai', waktu_kembali: jam };
+                    if (fileUrl) updateData.foto_url = fileUrl;
+
+                    await supabaseClient.from('izin').update(updateData).eq('id_izin', targetId);
+                    
+                    // Fetch data diam-diam untuk memastikan sinkron
+                    const { data: latestData } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
+                    if(latestData) state.dataIzin = latestData;
+                    
+                } catch (err) {
+                    console.error("Gagal melakukan upload di latar belakang:", err);
+                }
+            }, 500); // Jalan setengah detik setelah modal ditutup
+        }
+
+        // Fungsi rumus matematika Haversine
+        function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
+            const R = 6371000; 
+            const dLat = deg2rad(lat2-lat1);
+            const dLon = deg2rad(lon2-lon1); 
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            return R * c; 
+        }
+        function deg2rad(deg) { return deg * (Math.PI/180) }
+
+        function dataURItoBlob(uri) {
+            const byteStr = atob(uri.split(',')[1]);
+            const mime = uri.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteStr.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
+            return new Blob([ab], {type: mime});
+        }
+
+        // --- ADMIN OPERATIONS (SUPABASE) ---
+
+        async function saveMasterData(type, v1, v2) {
+            showLoading("Menyimpan...");
+            const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+            const payload = type === 'pegawai' ? { nama: v1, jabatan: v2 } : { nama: v1, pin: v2 };
+            
+            const { error } = await supabaseClient.from(table).insert([payload]);
+            if (!error) {
+                type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                closeForm();
+            } else {
+                console.error(error);
+                alert(`Gagal menyimpan data ${type}.`);
+            }
+            hideLoading();
+        }
+
+        async function deleteMasterData(type, id) {
+            if (!confirm("Hapus data ini secara permanen dari Cloud?")) return;
+            showLoading("Menghapus...");
+            
+            let table = type === 'pegawai' ? 'pegawai' : 'petugas';
+            let idField = 'id';
+            
+            if (type === 'izin') {
+                table = 'izin';
+                idField = 'id_izin';
+            }
+            
+            const { error } = await supabaseClient.from(table).delete().eq(idField, id);
+            if (!error) {
+                if (type === 'pegawai') await fetchPegawai();
+                else if (type === 'petugas') await fetchPetugas();
+                else if (type === 'izin') await renderAdminContent();
+            } else {
+                console.error("Delete Error:", error);
+                alert("Gagal menghapus data.");
+            }
+            hideLoading();
+        }
+
+        async function deleteAllMasterData(type) {
+            const label = type === 'pegawai' ? 'SELURUH DATA PEGAWAI' : 'SELURUH DATA PETUGAS PIKET';
+            if (confirm(`PERINGATAN: Apakah Anda yakin ingin menghapus ${label} dari Cloud Supabase? Tindakan ini tidak dapat dibatalkan.`)) {
+                showLoading("Membersihkan...");
+                const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+                
+                const { error } = await supabaseClient.from(table).delete().gt('id', 0);
+                if (!error) {
+                    state.currentPage = 1;
+                    type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                } else {
+                    console.error("Delete all error:", error);
+                    alert("Gagal menghapus semua data.");
+                }
+                hideLoading();
+            }
+        }
+
+        async function handleCSVUpload(e, type) {
+            const file = e.target.files[0];
+            if (!file) return;
+            showLoading("Mengimpor ke Cloud...");
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const lines = event.target.result.split('\n');
+                const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+                const payloads = [];
+
+                lines.forEach(line => {
+                    const cols = line.split(',').map(c => c.trim());
+                    if (cols[0] && cols[1]) {
+                        if (type === 'pegawai') payloads.push({ nama: cols[0], jabatan: cols[1] });
+                        else payloads.push({ nama: cols[0], pin: cols[1] });
+                    }
+                });
+
+                if (payloads.length > 0) {
+                    const { error } = await supabaseClient.from(table).insert(payloads);
+                    if (!error) {
+                        type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                    } else {
+                        alert("Gagal mengimpor data. Cek format CSV.");
+                        console.error(error);
+                    }
+                }
+                hideLoading();
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+        
+        async function downloadReport() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert("Silakan pilih rentang tanggal mulai dan tanggal akhir terlebih dahulu.");
+                return;
+            }
+
+            showLoading("Menyiapkan Laporan...");
+            
+            try {
+                const endDateFull = new Date(endDate);
+                endDateFull.setHours(23, 59, 59, 999);
+
+                const { data, error } = await supabaseClient.from('izin')
+                    .select('*')
+                    .gte('created_at', new Date(startDate).toISOString())
+                    .lte('created_at', endDateFull.toISOString())
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    alert("Tidak ada data izin yang ditemukan pada periode tanggal tersebut.");
+                    hideLoading();
+                    return;
+                }
+
+                // Format data menjadi CSV ditambahkan URL Foto Bukti
+                const headers = ["ID Izin", "Nama Pegawai", "Keperluan", "Tujuan", "Waktu Daftar", "Waktu Keluar", "Waktu Kembali", "Petugas Piket", "Status", "Tanggal", "Created At", "URL Foto Bukti"];
+                let csvContent = headers.join(",") + "\n";
+                
+                data.forEach(row => {
+                    const rowData = [
+                        `"${row.id_izin || ''}"`,
+                        `"${row.nama || ''}"`,
+                        `"${row.keperluan || ''}"`,
+                        `"${row.tujuan || ''}"`,
+                        `"${row.waktu_daftar || ''}"`,
+                        `"${row.waktu_keluar || ''}"`,
+                        `"${row.waktu_kembali || ''}"`,
+                        `"${row.petugas_piket || ''}"`,
+                        `"${row.status || ''}"`,
+                        `"${row.tanggal || ''}"`,
+                        `"${new Date(row.created_at).toLocaleString('id-ID')}"`,
+                        `"${row.foto_url || 'Tidak Ada Foto'}"`
+                    ];
+                    csvContent += rowData.join(",") + "\n";
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Laporan_Izin_${startDate}_sd_${endDate}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            } catch (err) {
+                console.error(err);
+                alert("Terjadi kesalahan saat mengunduh laporan.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // FITUR BARU: HAPUS DATA LAPORAN BERDASARKAN PERIODE
+        async function deleteReportByPeriod() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert("Silakan pilih rentang tanggal mulai dan tanggal akhir terlebih dahulu sebelum menghapus.");
+                return;
+            }
+
+            if (!confirm(`PERINGATAN BAHAYA!\n\nAnda akan menghapus PERMANEN semua data pengajuan izin dari rentang tanggal ${startDate} hingga ${endDate}.\n\nData yang dihapus dari Supabase tidak dapat dikembalikan. Apakah Anda yakin ingin melanjutkan?`)) {
+                return;
+            }
+
+            showLoading("Menghapus Data Laporan...");
+            
+            try {
+                const endDateFull = new Date(endDate);
+                endDateFull.setHours(23, 59, 59, 999);
+
+                const { error } = await supabaseClient.from('izin')
+                    .delete()
+                    .gte('created_at', new Date(startDate).toISOString())
+                    .lte('created_at', endDateFull.toISOString());
+
+                if (error) throw error;
+
+                alert("Data pada periode tersebut berhasil dihapus dari sistem.");
+                await renderAdminContent();
+                
+            } catch (err) {
+                console.error(err);
+                alert("Terjadi kesalahan saat menghapus data.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- UI & NAV LOGIC ---
+
+        function navTo(sec) {
+            ['layanan', 'piket', 'admin'].forEach(s => {
+                const el = document.getElementById(`sec-${s}`);
+                const nav = document.getElementById(`nav-${s}`);
+                if (el) el.classList.add('hidden');
+                if (nav) nav.classList.replace('text-red-600', 'text-slate-400');
+            });
+            
+            const targetEl = document.getElementById(`sec-${sec}`);
+            const targetNav = document.getElementById(`nav-${sec}`);
+            if (targetEl) targetEl.classList.remove('hidden');
+            if (targetNav) targetNav.classList.replace('text-slate-400', 'text-red-600');
+            
+            state.activeTab = sec;
+            if(sec === 'admin' && state.isAdmin) renderAdminContent();
+        }
+
+        function handleLogout() {
+            state.currentUser = null;
+            document.getElementById('piketPin').value = '';
+            document.getElementById('piketLogin').classList.remove('hidden');
+            document.getElementById('piketDashboard').classList.add('hidden');
+            navTo('layanan');
+        }
+
+        function handleAdminLogout() {
+            state.isAdmin = false;
+            document.getElementById('adminPass').value = '';
+            document.getElementById('adminLogin').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            navTo('layanan');
+        }
+
+        function handleAdminLogin() {
+            if (document.getElementById('adminPass').value === 'lm9595') {
+                state.isAdmin = true;
+                document.getElementById('adminLogin').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                switchAdminTab('pegawai');
+            } else { alert("Password Salah!"); }
+        }
+
+        function switchAdminTab(tab) {
+            state.adminActiveTab = tab;
+            state.currentPage = 1;
+            ['pegawai', 'petugas', 'laporan'].forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                if(t === tab) {
+                    btn.classList.add('bg-slate-900', 'text-white');
+                    btn.classList.remove('text-slate-100', 'text-slate-400');
+                } else {
+                    btn.classList.remove('bg-slate-900', 'text-white');
+                    btn.classList.add('bg-slate-100', 'text-slate-400');
+                }
+            });
+            renderAdminContent();
+        }
+
+        function changePage(dir) {
+            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
+            const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
+            const newPage = state.currentPage + dir;
+            if (newPage >= 1 && newPage <= totalPages) {
+                state.currentPage = newPage;
+                renderAdminContent();
+            }
+        }
+
+        function renderAdminContent() {
+            const container = document.getElementById('adminContent');
+            const paginationEl = document.getElementById('adminPagination');
+
+            if (state.adminActiveTab === 'laporan') {
+                if(paginationEl) paginationEl.style.display = 'none';
+                container.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-5 animate-slide-up">
+                        <div>
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-800">Manajemen Laporan Izin</h3>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Unduh (termasuk foto) atau Hapus Data</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Mulai</label>
+                                <input type="date" id="startDate" class="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 transition-all text-slate-700">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Akhir</label>
+                                <input type="date" id="endDate" class="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 transition-all text-slate-700">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <button onclick="downloadReport()" class="w-full py-4 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-emerald-700">
+                                <i class="fas fa-file-excel text-sm"></i> Unduh File
+                            </button>
+                            <button onclick="deleteReportByPeriod()" class="w-full py-4 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-red-700">
+                                <i class="fas fa-trash-alt text-sm"></i> Hapus Data
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if(paginationEl) paginationEl.style.display = 'flex';
+            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
+            
+            const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
+            if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
+            
+            const start = (state.currentPage - 1) * state.itemsPerPage;
+            const paginatedItems = source.slice(start, start + state.itemsPerPage);
+
+            document.getElementById('pageInfo').textContent = `Halaman ${state.currentPage} / ${totalPages}`;
+            document.getElementById('prevPage').disabled = state.currentPage <= 1;
+            document.getElementById('nextPage').disabled = state.currentPage >= totalPages;
+
+            let html = `
+                <div class="grid grid-cols-2 gap-2 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                    <label class="flex items-center justify-center gap-2 p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl cursor-pointer active:bg-slate-100 transition-colors">
+                        <i class="fas fa-file-csv text-slate-400 text-xs"></i>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-600">Import CSV</span>
+                        <input type="file" class="hidden" onchange="handleCSVUpload(event, '${state.adminActiveTab}')">
+                    </label>
+                    <button onclick="deleteAllMasterData('${state.adminActiveTab}')" class="flex items-center justify-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl active:bg-red-100 transition-colors">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                        <span class="text-[8px] font-black uppercase tracking-widest">Hapus Semua</span>
+                    </button>
+                    <button onclick="openForm('${state.adminActiveTab}')" class="col-span-2 py-3 bg-slate-900 text-white rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md">+ Tambah Manual</button>
+                </div>
+                <div class="space-y-2">
+                    ${paginatedItems.length === 0 ? '<div class="p-10 text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest border border-dashed rounded-xl">Belum ada data</div>' : ''}
+                    ${paginatedItems.map(item => `
+                        <div class="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 animate-slide-up shadow-sm">
+                            <div class="truncate pr-4">
+                                <div class="text-xs font-black uppercase text-slate-900 truncate">${item.nama}</div>
+                                <div class="text-[8px] font-bold text-slate-400 uppercase mt-0.5">
+                                    ${state.adminActiveTab === 'pegawai' ? (item.jabatan || 'Staf') : 'PIN: ' + item.pin}
+                                </div>
+                            </div>
+                            <button onclick="deleteMasterData('${state.adminActiveTab}', ${item.id})" class="w-10 h-10 flex-none bg-red-50 text-red-600 rounded-xl text-[10px] active:bg-red-200 transition-all flex items-center justify-center">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Help UI functions
+        function syncSelects() {
+            const sP = document.getElementById('inputNama');
+            const sT = document.getElementById('piketUser');
+            if (sP) {
+                sP.innerHTML = '<option value="">Pilih Pegawai...</option>';
+                state.listPegawai.forEach((p, i) => { sP.innerHTML += `<option value="${i}">${p.nama}</option>`; });
+            }
+            if (sT) {
+                sT.innerHTML = '<option value="">Pilih Petugas...</option>';
+                state.listPetugas.forEach((p) => { sT.innerHTML += `<option value="${p.nama}">${p.nama}</option>`; });
+            }
+        }
+
+        function renderUserList() {
+            const container = document.getElementById('listAntrean');
+            if(!container) return;
+            const activeData = state.dataIzin.filter(i => i.status !== 'Selesai');
+            container.innerHTML = activeData.length === 0 ? '<div class="p-10 text-center text-[9px] font-black text-slate-300 uppercase border border-dashed rounded-3xl">Kosong</div>' : '';
+            
+            activeData.forEach(item => {
+                let waktuKeluarHtml = '';
+                if (item.status === 'Keluar' && item.waktu_keluar) {
+                    waktuKeluarHtml = `<div class="text-[8px] font-bold text-slate-500 mt-1.5"><i class="fas fa-clock mr-1"></i> Disetujui Keluar: ${item.tanggal} | ${item.waktu_keluar}</div>`;
+                }
+
+                container.innerHTML += `
+                    <div class="p-5 bg-white border border-slate-100 rounded-3xl flex justify-between items-center animate-slide-up shadow-sm">
+                        <div class="truncate pr-4">
+                            <div class="text-xs font-black uppercase truncate">${item.nama}</div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[7px] font-black px-2 py-0.5 bg-slate-100 rounded uppercase text-slate-500">${item.id_izin}</span>
+                                <span class="text-[8px] font-bold text-red-600 uppercase tracking-widest truncate">${item.keperluan}: ${item.tujuan}</span>
+                            </div>
+                            ${waktuKeluarHtml}
+                        </div>
+                        <div>
+                            ${item.status === 'Menunggu' ? 
+                                '<span class="text-[7px] font-black uppercase px-3 py-1.5 bg-amber-50 text-amber-600 rounded-xl">Menunggu</span>' : 
+                                `<button onclick="openFinish('${item.id_izin}')" class="text-[8px] font-black uppercase px-4 py-2 bg-red-700 text-white rounded-xl active:scale-95 transition-all shadow-lg shadow-red-700/20">Lapor</button>`}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderPiketAntrean() {
+            const container = document.getElementById('antreanPiket');
+            if(!container) return;
+            container.innerHTML = '';
+            const waiting = state.dataIzin.filter(i => i.status === 'Menunggu');
+            
+            if(waiting.length === 0){
+                container.innerHTML = '<div class="p-10 text-center text-[9px] font-black text-slate-300 uppercase border border-dashed rounded-3xl">Tidak Ada Antrean</div>';
+            }
+
+            waiting.forEach(item => {
+                container.innerHTML += `
+                    <div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-4 animate-slide-up shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div class="truncate pr-2">
+                                <div class="text-sm font-black uppercase truncate">${item.nama}</div>
+                                <p class="text-[8px] font-bold text-slate-400 uppercase mt-1">Tujuan: ${item.tujuan}</p>
+                            </div>
+                            <span class="text-[9px] font-black text-red-700">${item.id_izin}</span>
+                        </div>
+                        <button onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md active:scale-95 transition-all">Izinkan Keluar</button>
+                    </div>
+                `;
+            });
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('piketUser').value;
+            const pin = document.getElementById('piketPin').value;
+            const match = state.listPetugas.find(p => p.nama === user && p.pin === pin);
+            if (match) {
+                state.currentUser = match;
+                document.getElementById('piketLogin').classList.add('hidden');
+                document.getElementById('piketDashboard').classList.remove('hidden');
+                document.getElementById('petugasAktif').textContent = match.nama;
+                renderPiketAntrean();
+            } else { alert("Login Gagal! Pastikan Nama dan PIN sesuai."); }
+        }
+
+        function openForm(type) {
+            document.getElementById('modalTitle').textContent = `Tambah ${type}`;
+            document.getElementById('formVal1').placeholder = 'Nama Lengkap';
+            document.getElementById('formVal2').placeholder = type === 'pegawai' ? 'Jabatan/Bidang' : 'PIN (4 Digit)';
+            document.getElementById('modalForm').classList.replace('hidden', 'flex');
+            document.getElementById('btnSave').onclick = () => {
+                const v1 = document.getElementById('formVal1').value;
+                const v2 = document.getElementById('formVal2').value;
+                if(v1 && v2) saveMasterData(type, v1, v2);
+            };
+        }
+
+        function closeForm() { 
+            document.getElementById('modalForm').classList.replace('flex', 'hidden'); 
+            document.getElementById('formVal1').value = '';
+            document.getElementById('formVal2').value = '';
+        }
+        
+        function closeFinishModal() {
+            document.getElementById('modalFinish').classList.replace('flex', 'hidden');
+            stopCamera();
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const cd = document.getElementById('clockDisplay');
+            const dd = document.getElementById('dateDisplay');
+            if(cd) cd.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            if(dd) dd.textContent = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+        }
+
+        function showLoading(txt) { 
+            const el = document.getElementById('loadingText');
+            if (el) el.textContent = txt; 
+            document.getElementById('loadingOverlay').classList.remove('hidden'); 
+        }
+        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+        // Start Script
+        window.onload = init;
+        document.getElementById('izinForm').onsubmit = handleIzinSubmit;
+
+    </script>
+</body>
+</html>
