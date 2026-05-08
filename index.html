@@ -214,34 +214,34 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="col-span-2">
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
-                        <select id="editKategori" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                        <select id="editKategori" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                             <option value="Dinas/Sekolah">Dinas/Sekolah</option>
                             <option value="Pribadi">Pribadi</option>
                         </select>
                     </div>
                     <div class="col-span-2">
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Keperluan / Tujuan</label>
-                        <input id="editTujuan" type="text" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                        <input id="editTujuan" type="text" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                     <div class="col-span-2">
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Pengajuan</label>
-                        <input id="editTanggal" type="text" placeholder="DD/MM/YYYY" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                        <input id="editTanggal" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Keluar</label>
-                        <input id="editTanggalKeluar" type="text" placeholder="DD/MM/YYYY" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                        <input id="editTanggalKeluar" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Keluar</label>
-                        <input id="editWaktuKeluar" type="time" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                        <input id="editWaktuKeluar" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="14:30 (24 Jam)" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Kembali</label>
-                        <input id="editTanggalKembali" type="text" placeholder="DD/MM/YYYY" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                        <input id="editTanggalKembali" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Kembali</label>
-                        <input id="editWaktuKembali" type="time" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                        <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45 (24 Jam)" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                 </div>
             </div>
@@ -328,7 +328,45 @@
             currentEditIzinId: null // State untuk tracking ID yang sedang diedit
         };
 
-        // --- HELPER FORMAT 24 JAM ---
+        // --- HELPER FORMAT 24 JAM & DATE INPUT ---
+
+        // Fungsi Auto-Format Input Waktu saat mengetik (menjadi 24H HH:MM)
+        function formatTimeInput(e) {
+            let val = e.target.value.replace(/[^0-9]/g, '');
+            if (val.length >= 3) {
+                let h = parseInt(val.substring(0, 2));
+                if (h > 23) val = '23' + val.substring(2);
+                
+                if (val.length >= 4) {
+                    let m = parseInt(val.substring(2, 4));
+                    if (m > 59) val = val.substring(0, 2) + '59';
+                }
+                val = val.substring(0, 2) + ':' + val.substring(2, 4);
+            }
+            e.target.value = val;
+        }
+
+        // Helper untuk input date HTML kalender (DD/MM/YYYY menjadi YYYY-MM-DD)
+        function toDateInputFormat(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            if (dateStr.includes('-') && dateStr.length === 10) return dateStr;
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return '';
+        }
+
+        // Helper untuk kembali ke format database Supabase (YYYY-MM-DD menjadi DD/MM/YYYY)
+        function toDDMMYYYY(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
         // Menjamin format jam selalu menjadi HH:mm atau HH:mm:ss dengan mode 24 jam (misal 06:00 PM -> 18:00)
         function formatTo24Hour(timeStr) {
             if (!timeStr || timeStr === '-') return '';
@@ -831,7 +869,7 @@
             reader.readAsText(file);
         }
         
-        // FUNGSI EDIT DATA IZIN (BARU)
+        // FUNGSI EDIT DATA IZIN (BARU & DIPERBARUI KALENDER + 24H TEXT INPUT)
         function openEditIzin(id) {
             const item = state.tempLaporanData.find(i => i.id_izin === id);
             if(!item) return;
@@ -840,15 +878,16 @@
             document.getElementById('editKategori').value = item.keperluan || 'Dinas/Sekolah';
             document.getElementById('editTujuan').value = item.tujuan || '';
             
-            // Konversi format waktu menjadi HH:mm dengan mode 24 Jam yang difilter dan dipotong 5 karakter awal
+            // Set Date Inputs using helper (merubah DD/MM/YYYY ke YYYY-MM-DD agar masuk ke kalender)
+            document.getElementById('editTanggal').value = toDateInputFormat(item.tanggal);
+            document.getElementById('editTanggalKeluar').value = toDateInputFormat(item.tanggal_keluar || item.tanggal);
+            document.getElementById('editTanggalKembali').value = toDateInputFormat(item.tanggal_kembali || item.tanggal);
+
+            // Konversi format waktu menjadi string HH:mm untuk input text 24 Jam
             let wK = formatTo24Hour(item.waktu_keluar);
             let wKm = formatTo24Hour(item.waktu_kembali);
             document.getElementById('editWaktuKeluar').value = wK.length >= 5 ? wK.substring(0,5) : '';
             document.getElementById('editWaktuKembali').value = wKm.length >= 5 ? wKm.substring(0,5) : '';
-            
-            document.getElementById('editTanggal').value = item.tanggal || '';
-            document.getElementById('editTanggalKeluar').value = item.tanggal_keluar || item.tanggal || '';
-            document.getElementById('editTanggalKembali').value = item.tanggal_kembali || item.tanggal || '';
 
             document.getElementById('modalEditIzin').classList.replace('hidden', 'flex');
         }
@@ -867,9 +906,10 @@
                 tujuan: document.getElementById('editTujuan').value,
                 waktu_keluar: document.getElementById('editWaktuKeluar').value || '-',
                 waktu_kembali: document.getElementById('editWaktuKembali').value || '-',
-                tanggal: document.getElementById('editTanggal').value,
-                tanggal_keluar: document.getElementById('editTanggalKeluar').value,
-                tanggal_kembali: document.getElementById('editTanggalKembali').value
+                // Convert back from YYYY-MM-DD kalender ke DD/MM/YYYY database
+                tanggal: toDDMMYYYY(document.getElementById('editTanggal').value),
+                tanggal_keluar: toDDMMYYYY(document.getElementById('editTanggalKeluar').value),
+                tanggal_kembali: toDDMMYYYY(document.getElementById('editTanggalKembali').value)
             };
 
             const { error } = await supabaseClient.from('izin').update(payload).eq('id_izin', state.currentEditIzinId);
