@@ -959,7 +959,8 @@
                 }
 
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4'); // Portrait layout
+                // PDF diubah kembali ke Landscape ('l') untuk mengakomodasi kolom tambahan
+                const doc = new jsPDF('l', 'mm', 'a4'); 
 
                 // Kop Laporan
                 doc.setFont("helvetica", "bold");
@@ -970,7 +971,7 @@
                 doc.setFontSize(10);
                 doc.text(`Periode: ${startDate} s/d ${endDate}`, 14, 22);
 
-                const tableColumn = ["ID Izin", "Nama Pegawai", "Tanggal", "Keluar", "Kembali", "Durasi", "Keterangan", "FOTO"];
+                const tableColumn = ["ID Izin", "Nama Pegawai", "Kategori", "Tanggal Pengajuan", "Keluar", "Kembali", "Durasi", "Keterangan", "FOTO"];
                 const tableRows = [];
                 const imagesData = {}; // Untuk menampung base64 foto
                 
@@ -991,7 +992,7 @@
                     let tglK = row.tanggal_keluar || row.tanggal || '-';
                     let tglKm = row.tanggal_kembali || row.tanggal || '-';
                     
-                    // Hitung durasi dalam menit
+                    // Hitung durasi
                     let durasi = "-";
                     if (out24 !== '-' && in24 !== '-') {
                         const [kh, km] = out24.split(':').map(Number);
@@ -1000,7 +1001,18 @@
                             let startMins = kh * 60 + km;
                             let endMins = eh * 60 + em;
                             if (endMins < startMins) endMins += 24 * 60; // Jika lewat tengah malam
-                            durasi = `${endMins - startMins} Menit`;
+                            
+                            let totalMins = endMins - startMins;
+                            let jam = Math.floor(totalMins / 60);
+                            let sisaMenit = totalMins % 60;
+                            
+                            if (jam > 0 && sisaMenit > 0) {
+                                durasi = `${jam} Jam ${sisaMenit} Mnt`;
+                            } else if (jam > 0) {
+                                durasi = `${jam} Jam`;
+                            } else {
+                                durasi = `${sisaMenit} Menit`;
+                            }
                         }
                     }
 
@@ -1029,6 +1041,7 @@
                     const rowData = [
                         row.id_izin || '',
                         row.nama || '',
+                        row.keperluan || '-',
                         row.tanggal || '',
                         `${tglK}\n${out24}`,
                         `${tglKm}\n${in24}`,
@@ -1068,19 +1081,19 @@
                     startY: 28,
                     margin: { bottom: 15 }, // Memaksa margin bawah agar tabel putus tepat di 11 baris
                     rowPageBreak: 'avoid',  // Memastikan baris (dan foto) tidak terpotong di batas halaman
-                    styles: { fontSize: 7, valign: 'middle', cellPadding: 1.5 },
+                    styles: { fontSize: 8, valign: 'middle', cellPadding: 2 }, // Menggunakan font lebih besar di landscape
                     columnStyles: {
-                        6: { textColor: [220, 38, 38], fontStyle: 'bold' }, // Kolom Keterangan (Merah)
-                        7: { cellWidth: 15, minCellHeight: 22 } // Ukuran sel foto disesuaikan
+                        7: { textColor: [220, 38, 38], fontStyle: 'bold' }, // Kolom Keterangan (Merah) di index 7
+                        8: { cellWidth: 18, minCellHeight: 25 } // Ukuran sel foto disesuaikan untuk landscape
                     },
                     didDrawCell: function(dataInfo) {
                         // Hook ini berjalan setiap kali sel tabel selesai digambar
-                        if (dataInfo.column.index === 7 && dataInfo.cell.section === 'body') {
+                        if (dataInfo.column.index === 8 && dataInfo.cell.section === 'body') {
                             const rowIndex = dataInfo.row.index;
                             if (imagesData[rowIndex]) {
-                                // Dimensi disesuaikan untuk portrait PDF
-                                const dimW = 10; 
-                                const dimH = 17.7; 
+                                // Dimensi disesuaikan untuk landscape PDF
+                                const dimW = 12; 
+                                const dimH = 21.3; 
                                 // Kalkulasi posisi (X, Y) agar foto pas berada di tengah sel tabel
                                 const x = dataInfo.cell.x + (dataInfo.cell.width - dimW) / 2;
                                 const y = dataInfo.cell.y + (dataInfo.cell.height - dimH) / 2;
@@ -1149,12 +1162,12 @@
                 currentY += 5;
 
                 // Cek jika ruang tersisa kurang, pindah ke halaman baru sebelum tabel Belum Kembali
-                if (currentY > 250) {
+                if (currentY > 160) { // Angka batas untuk landscape lebih pendek
                     doc.addPage();
                     currentY = 20;
                 }
 
-                // Tabel Rekapitulasi Pemohon Belum Kembali (Baru)
+                // Tabel Rekapitulasi Pemohon Belum Kembali
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(12);
                 doc.setTextColor(220, 38, 38); // Merah
