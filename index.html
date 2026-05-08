@@ -206,6 +206,52 @@
         </div>
     </div>
 
+    <!-- MODAL EDIT IZIN -->
+    <div id="modalEditIzin" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-4 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto hide-scroll">
+            <h3 class="text-lg font-black uppercase tracking-tight mb-2">Edit Data Izin</h3>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
+                        <select id="editKategori" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                            <option value="Dinas/Sekolah">Dinas/Sekolah</option>
+                            <option value="Pribadi">Pribadi</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Keperluan / Tujuan</label>
+                        <input id="editTujuan" type="text" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Pengajuan</label>
+                        <input id="editTanggal" type="text" placeholder="DD/MM/YYYY" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Keluar</label>
+                        <input id="editTanggalKeluar" type="text" placeholder="DD/MM/YYYY" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Keluar</label>
+                        <input id="editWaktuKeluar" type="time" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Kembali</label>
+                        <input id="editTanggalKembali" type="text" placeholder="DD/MM/YYYY" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Kembali</label>
+                        <input id="editWaktuKembali" type="time" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10">
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeEditIzin()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
+                <button onclick="saveEditIzin()" class="flex-1 bg-blue-600 text-white py-4 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Update</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL FINISH (VERIFIKASI LOKASI GPS & KAMERA) -->
     <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center scale-95 animate-slide-up">
@@ -277,8 +323,36 @@
             itemsPerPage: 10,
             currentFinishId: null,
             cameraStream: null,
-            selectedAdminItems: [] // State untuk menyimpan ID item yang dicentang di Admin
+            selectedAdminItems: [], // State untuk menyimpan ID item yang dicentang di Admin
+            tempLaporanData: [], // State untuk menyimpan data laporan sementara untuk fitur edit
+            currentEditIzinId: null // State untuk tracking ID yang sedang diedit
         };
+
+        // --- HELPER FORMAT 24 JAM ---
+        // Menjamin format jam selalu menjadi HH:mm atau HH:mm:ss dengan mode 24 jam (misal 06:00 PM -> 18:00)
+        function formatTo24Hour(timeStr) {
+            if (!timeStr || timeStr === '-') return '';
+            let str = timeStr.toString().toLowerCase().trim();
+            let isPM = str.includes('pm');
+            let isAM = str.includes('am');
+            // Menghilangkan alfabet, mengganti titik menjadi titik dua, dan memecah
+            let parts = str.replace(/[a-z]/g, '').trim().replace(/\./g, ':').split(':');
+            
+            let h = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10);
+            let s = parts.length > 2 ? parseInt(parts[2], 10) : null;
+            
+            if (isNaN(h)) return timeStr; // Jika gagal di-parsing, kembalikan string awal
+            if (isNaN(m)) m = 0;
+            
+            // Logika konversi PM / AM
+            if (isPM && h < 12) h += 12;
+            if (isAM && h === 12) h = 0;
+            
+            let res = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            if (s !== null && !isNaN(s)) res += `:${s.toString().padStart(2, '0')}`;
+            return res;
+        }
 
         // Initialize App
         async function init() {
@@ -297,8 +371,10 @@
         function isTerlambat(item) {
             if (!item.waktu_keluar || item.waktu_keluar === '-') return false;
             
-            // FIX: Ganti titik dengan titik dua sebelum di-split agar tidak error di HP tertentu
-            let [kH, kM] = item.waktu_keluar.replace('.', ':').split(':').map(Number);
+            // Format waktu menjadi standar 24 jam sebelum dipecah
+            let parsedK = formatTo24Hour(item.waktu_keluar);
+            if (!parsedK.includes(':')) return false;
+            let [kH, kM] = parsedK.split(':').map(Number);
             if (isNaN(kH)) return false;
 
             let start = item.created_at ? new Date(item.created_at) : new Date();
@@ -308,11 +384,13 @@
             
             // Jika sudah selesai, pakai waktu kembali untuk mengecek
             if (item.status === 'Selesai' && item.waktu_kembali) {
-                // FIX: Ganti titik dengan titik dua
-                let [eH, eM] = item.waktu_kembali.replace('.', ':').split(':').map(Number);
-                if (!isNaN(eH)) {
-                    end.setHours(eH, eM, 0, 0);
-                    if (end < start) end.setDate(end.getDate() + 1); // Asumsi lewat tengah malam
+                let parsedE = formatTo24Hour(item.waktu_kembali);
+                if (parsedE.includes(':')) {
+                    let [eH, eM] = parsedE.split(':').map(Number);
+                    if (!isNaN(eH)) {
+                        end.setHours(eH, eM, 0, 0);
+                        if (end < start) end.setDate(end.getDate() + 1); // Asumsi lewat tengah malam
+                    }
                 }
             } else {
                 // Jika belum selesai, pakai waktu saat ini
@@ -380,12 +458,16 @@
             const peg = state.listPegawai[idx];
             const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
             
+            // Format waktu menjadi 24 jam
+            const rawWaktu = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false});
+            const fmtWaktu = formatTo24Hour(rawWaktu);
+
             const { error } = await supabaseClient.from('izin').insert([{
                 id_izin: reqId,
                 nama: peg.nama,
                 keperluan: document.getElementById('inputKategori').value,
                 tujuan: document.getElementById('inputTujuan').value,
-                waktu_daftar: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}),
+                waktu_daftar: fmtWaktu,
                 status: 'Menunggu',
                 tanggal: new Date().toLocaleDateString('id-ID')
             }]);
@@ -402,7 +484,9 @@
 
         async function approveIzin(id) {
             showLoading("Mengonfirmasi...");
-            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const rawWaktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const jam = formatTo24Hour(rawWaktu);
+
             const { error } = await supabaseClient.from('izin')
                 .update({ 
                     status: 'Keluar', 
@@ -514,7 +598,10 @@
             
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            // Mengamankan format jam watermark ke mode 24 Jam
+            const rawTimeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            const timeStr = formatTo24Hour(rawTimeStr);
             
             const lines = [
                 "TITLE", // Placeholder baris 1
@@ -562,7 +649,10 @@
             const dataUrl = document.getElementById('previewImg').src;
             const blob = dataURItoBlob(dataUrl);
             const targetId = state.currentFinishId;
-            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            
+            // Format waktu menjadi 24 jam
+            const rawWaktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const jam = formatTo24Hour(rawWaktu);
             
             // 1. Notifikasi Sukses Cepat
             alert("Berhasil! Kehadiran Anda telah terverifikasi. Foto sedang diunggah secara senyap di latar belakang.");
@@ -741,6 +831,64 @@
             reader.readAsText(file);
         }
         
+        // FUNGSI EDIT DATA IZIN (BARU)
+        function openEditIzin(id) {
+            const item = state.tempLaporanData.find(i => i.id_izin === id);
+            if(!item) return;
+
+            state.currentEditIzinId = id;
+            document.getElementById('editKategori').value = item.keperluan || 'Dinas/Sekolah';
+            document.getElementById('editTujuan').value = item.tujuan || '';
+            
+            // Konversi format waktu menjadi HH:mm dengan mode 24 Jam yang difilter dan dipotong 5 karakter awal
+            let wK = formatTo24Hour(item.waktu_keluar);
+            let wKm = formatTo24Hour(item.waktu_kembali);
+            document.getElementById('editWaktuKeluar').value = wK.length >= 5 ? wK.substring(0,5) : '';
+            document.getElementById('editWaktuKembali').value = wKm.length >= 5 ? wKm.substring(0,5) : '';
+            
+            document.getElementById('editTanggal').value = item.tanggal || '';
+            document.getElementById('editTanggalKeluar').value = item.tanggal_keluar || item.tanggal || '';
+            document.getElementById('editTanggalKembali').value = item.tanggal_kembali || item.tanggal || '';
+
+            document.getElementById('modalEditIzin').classList.replace('hidden', 'flex');
+        }
+
+        function closeEditIzin() {
+            document.getElementById('modalEditIzin').classList.replace('flex', 'hidden');
+            state.currentEditIzinId = null;
+        }
+
+        async function saveEditIzin() {
+            if(!state.currentEditIzinId) return;
+
+            showLoading("Menyimpan Perubahan...");
+            const payload = {
+                keperluan: document.getElementById('editKategori').value,
+                tujuan: document.getElementById('editTujuan').value,
+                waktu_keluar: document.getElementById('editWaktuKeluar').value || '-',
+                waktu_kembali: document.getElementById('editWaktuKembali').value || '-',
+                tanggal: document.getElementById('editTanggal').value,
+                tanggal_keluar: document.getElementById('editTanggalKeluar').value,
+                tanggal_kembali: document.getElementById('editTanggalKembali').value
+            };
+
+            const { error } = await supabaseClient.from('izin').update(payload).eq('id_izin', state.currentEditIzinId);
+            
+            if (!error) {
+                closeEditIzin();
+                await renderAdminContent(); // Refresh the list
+            } else {
+                console.error("Update Error:", error);
+                // Memberikan peringatan khusus jika kolom baru belum ditambahkan di Supabase
+                if (error.code === 'PGRST204' || error.message.includes('column')) {
+                    alert("GAGAL MENYIMPAN: Pastikan Anda telah membuat kolom 'tanggal_keluar' dan 'tanggal_kembali' di tabel 'izin' Supabase Anda.");
+                } else {
+                    alert("Gagal memperbarui data.");
+                }
+            }
+            hideLoading();
+        }
+
         async function downloadReport() {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
@@ -770,7 +918,6 @@
                     return;
                 }
 
-                // FIX: Inisialisasi jsPDF diubah menjadi 'p' (Portrait)
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'mm', 'a4'); // Portrait layout
 
@@ -798,12 +945,17 @@
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
                     
+                    // Pastikan output format adalah 24 jam dengan menggunakan fungsi helper
+                    let out24 = formatTo24Hour(row.waktu_keluar) || '-';
+                    let in24 = formatTo24Hour(row.waktu_kembali) || '-';
+                    let tglK = row.tanggal_keluar || row.tanggal || '-';
+                    let tglKm = row.tanggal_kembali || row.tanggal || '-';
+                    
                     // Hitung durasi dalam menit
                     let durasi = "-";
-                    if (row.waktu_keluar && row.waktu_kembali && row.waktu_keluar !== '-' && row.waktu_kembali !== '-') {
-                        // FIX: Cegah NaN Menit akibat format titik/titik dua browser
-                        const [kh, km] = row.waktu_keluar.replace('.', ':').split(':').map(Number);
-                        const [eh, em] = row.waktu_kembali.replace('.', ':').split(':').map(Number);
+                    if (out24 !== '-' && in24 !== '-') {
+                        const [kh, km] = out24.split(':').map(Number);
+                        const [eh, em] = in24.split(':').map(Number);
                         if (!isNaN(kh) && !isNaN(km) && !isNaN(eh) && !isNaN(em)) {
                             let startMins = kh * 60 + km;
                             let endMins = eh * 60 + em;
@@ -830,7 +982,7 @@
                         summaryBelumKembali.push([
                             row.nama || 'Anonim',
                             row.keperluan || '-',
-                            `${row.tanggal || '-'} | ${row.waktu_keluar || '-'}`
+                            `${tglK} | ${out24}`
                         ]);
                     }
 
@@ -838,8 +990,8 @@
                         row.id_izin || '',
                         row.nama || '',
                         row.tanggal || '',
-                        row.waktu_keluar || '-',
-                        row.waktu_kembali || '-',
+                        `${tglK}\n${out24}`,
+                        `${tglKm}\n${in24}`,
                         durasi,
                         keterangan,
                         "" // Dibiarkan kosong, nanti diisi gambar oleh autoTable
@@ -909,7 +1061,7 @@
                 doc.setTextColor(0, 0, 0);
                 doc.text("REKAPITULASI KETERLAMBATAN IZIN KELUAR", 14, 20);
 
-                const downloadTime = new Date().toLocaleString('id-ID');
+                const downloadTime = new Date().toLocaleString('id-ID', { hour12: false });
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(9);
                 doc.text(`Waktu Unduh Laporan: ${downloadTime}`, 14, 26);
@@ -1145,6 +1297,9 @@
                 const { data } = await supabaseClient.from('izin').select('*').eq('status', 'Selesai').order('created_at', {ascending: false}).limit(30);
                 hideLoading();
 
+                // Simpan data di state sementara untuk digunakan oleh Modal Edit
+                state.tempLaporanData = data || [];
+
                 let laporanHtml = '';
                 if(data && data.length > 0) {
                     laporanHtml = data.map(i => {
@@ -1158,12 +1313,13 @@
                                 <img src="${i.foto_url}" class="w-10 h-10 rounded-lg object-cover bg-slate-100" onerror="this.src='https://via.placeholder.com/100?text=No+Img'"/>
                                 <div class="flex-1">
                                     <div class="text-[10px] font-black uppercase ${nameCls}">${i.nama}</div>
-                                    <div class="text-[7px] font-bold text-slate-400 uppercase">${i.tanggal} | ${i.waktu_keluar} - ${i.waktu_kembali}</div>
+                                    <div class="text-[7px] font-bold text-slate-400 uppercase">${i.tanggal} | ${formatTo24Hour(i.waktu_keluar) || '-'} - ${formatTo24Hour(i.waktu_kembali) || '-'}</div>
                                     ${lateBadge}
                                 </div>
                                 <div class="flex gap-2">
-                                    <a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg active:scale-95 transition-all"><i class="fas fa-external-link-alt text-xs"></i></a>
-                                    <button onclick="deleteMasterData('izin', '${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 rounded-lg active:scale-95 transition-all"><i class="fas fa-trash text-xs"></i></button>
+                                    <a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg active:scale-95 transition-all" title="Lihat Foto"><i class="fas fa-external-link-alt text-xs"></i></a>
+                                    <button onclick="openEditIzin('${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg active:scale-95 transition-all" title="Edit Data"><i class="fas fa-edit text-xs"></i></button>
+                                    <button onclick="deleteMasterData('izin', '${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 rounded-lg active:scale-95 transition-all" title="Hapus Data"><i class="fas fa-trash text-xs"></i></button>
                                 </div>
                             </div>
                         `;
@@ -1301,7 +1457,7 @@
                 const shadowCls = late ? 'shadow-red-200/50' : 'shadow-sm';
                 
                 if (item.status === 'Keluar' && item.waktu_keluar) {
-                    waktuKeluarHtml = `<div class="text-[8px] font-bold ${late ? 'text-red-500' : 'text-slate-500'} mt-1.5"><i class="fas fa-clock mr-1"></i> Keluar: ${item.tanggal} | ${item.waktu_keluar}</div>`;
+                    waktuKeluarHtml = `<div class="text-[8px] font-bold ${late ? 'text-red-500' : 'text-slate-500'} mt-1.5"><i class="fas fa-clock mr-1"></i> Keluar: ${item.tanggal_keluar || item.tanggal} | ${formatTo24Hour(item.waktu_keluar)}</div>`;
                 }
 
                 // Kotak Peringatan Berkedip Khusus Terlambat
@@ -1401,7 +1557,11 @@
             const now = new Date();
             const cd = document.getElementById('clockDisplay');
             const dd = document.getElementById('dateDisplay');
-            if(cd) cd.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            
+            // Format Display Jam Utama juga dipaksa ke mode 24 Jam menggunakan helper
+            const rawTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            if(cd) cd.textContent = formatTo24Hour(rawTime);
+            
             if(dd) dd.textContent = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
         }
 
