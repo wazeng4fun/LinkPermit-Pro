@@ -207,4 +207,196 @@
         <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-4 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto hide-scroll">
             <h3 class="text-lg font-black uppercase tracking-tight mb-2">Edit Data Izin</h3>
             <div class="space-y-3">
-                <div class="grid grid-
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
+                        <select id="editKategori" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                            <option value="Dinas/Sekolah">Dinas/Sekolah</option>
+                            <option value="Pribadi">Pribadi</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Keperluan / Tujuan</label>
+                        <input id="editTujuan" type="text" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Pengajuan</label>
+                        <input id="editTanggal" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tgl Keluar</label>
+                        <input id="editTanggalKeluar" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tgl Kembali</label>
+                        <input id="editTanggalKembali" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Jam Keluar (24H)</label>
+                        <input id="editJamKeluar" type="time" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Jam Kembali (24H)</label>
+                        <input id="editJamKembali" type="time" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Status</label>
+                        <select id="editStatus" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                            <option value="Menunggu">Menunggu</option>
+                            <option value="Di Luar">Di Luar</option>
+                            <option value="Selesai">Selesai</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-4 border-t border-slate-100">
+                <button onclick="closeEditIzin()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400">Batal</button>
+                <button id="btnUpdateIzin" class="flex-1 bg-slate-900 text-white py-4 rounded-xl text-[10px] font-black uppercase shadow-lg">Perbarui</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Masukkan logika Supabase, navigasi, jam, dan kamera Anda di sini.
+        // Bagian ini sengaja dibiarkan ringkas agar Anda tetap bisa memakai script 
+        // JavaScript utama yang sudah Anda miliki (termasuk Supabase URL/Key).
+        
+        // Pendaftaran PWA (Service Worker Base)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker terdaftar!', reg))
+                    .catch(err => console.log('Pendaftaran Service Worker gagal:', err));
+            });
+        }
+        
+        function navTo(section) {
+            document.getElementById('sec-layanan').classList.add('hidden');
+            document.getElementById('sec-piket').classList.add('hidden');
+            document.getElementById('sec-admin').classList.add('hidden');
+            
+            document.getElementById('nav-layanan').classList.replace('text-red-600', 'text-slate-400');
+            document.getElementById('nav-piket').classList.replace('text-red-600', 'text-slate-400');
+            document.getElementById('nav-admin').classList.replace('text-red-600', 'text-slate-400');
+            
+            document.getElementById('sec-' + section).classList.remove('hidden');
+            document.getElementById('nav-' + section).classList.replace('text-slate-400', 'text-red-600');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+            const dateString = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('clockDisplay').textContent = timeString;
+            document.getElementById('dateDisplay').textContent = dateString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+
+    <script>
+        // 1. Simpan nama pemohon di HP saat form disubmit
+        const formPWA = document.getElementById('izinForm');
+        if (formPWA) {
+            formPWA.addEventListener('submit', () => {
+                const namaInput = document.getElementById('inputNama');
+                if (namaInput && namaInput.value) {
+                    localStorage.setItem('local_pemohon_pwa', namaInput.value);
+                }
+                // Minta izin notifikasi saat tombol kirim ditekan
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    Notification.requestPermission();
+                }
+            });
+        }
+
+        // 2. Alarm Pengecekan Waktu (Jalan otomatis setiap 1 Menit)
+        setInterval(checkNotificationSchedules, 60000);
+
+        async function checkNotificationSchedules() {
+            // Berhenti jika browser tidak dukung notif atau belum diizinkan
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            
+            // Berhenti jika ini adalah HP admin/petugas (belum pernah mengajukan izin)
+            const myName = localStorage.getItem('local_pemohon_pwa');
+            if (!myName) return; 
+
+            // Pastikan supabase client sudah diinisialisasi oleh script utama Anda.
+            // Jika supabase belum ada, fungsi ini akan berhenti dengan sendirinya tanpa merusak UI.
+            if (typeof supabase === 'undefined') return;
+
+            try {
+                // Ambil data izin yang masih "Di Luar" khusus untuk orang di HP ini
+                const { data, error } = await supabase
+                    .from('izin')
+                    .select('*')
+                    .eq('nama', myName)
+                    .eq('status', 'Di Luar');
+                    
+                if (error || !data || data.length === 0) return; // Tidak ada izin aktif
+
+                const now = new Date();
+                const ticket = data[0]; // Cek tiket terbaru
+                
+                // Variabel Waktu Keberangkatan (Sesuai format DB)
+                const tglKeluarStr = ticket.tanggal_keluar + 'T' + (ticket.waktu_keluar || '00:00');
+                const waktuKeluar = new Date(tglKeluarStr);
+                
+                // ==========================================
+                // SKENARIO 1: KATEGORI PRIBADI (Sisa 20 Menit)
+                // ==========================================
+                if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('pribadi')) {
+                    if (ticket.waktu_kembali) {
+                        const batasWaktu = new Date(ticket.tanggal_keluar + 'T' + ticket.waktu_kembali);
+                        const sisaMenit = Math.floor((batasWaktu - now) / 60000); // Konversi milidetik ke menit
+                        
+                        // Jika sisa waktu <= 20 menit dan belum pernah dikirim
+                        if (sisaMenit <= 20 && sisaMenit > 0 && !localStorage.getItem(`notif_pribadi_${ticket.id}`)) {
+                            kirimNotifikasi("Peringatan: Waktu izin keluar Anda hampir habis! Harap segera kembali.");
+                            localStorage.setItem(`notif_pribadi_${ticket.id}`, 'sent');
+                        }
+                    }
+                }
+                
+                // ==========================================
+                // SKENARIO 2: KATEGORI DINAS (17:30 & 24 Jam)
+                // ==========================================
+                else if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('dinas')) {
+                    
+                    // Trigger A: Pukul 17:30 WIB
+                    if (now.getHours() === 17 && now.getMinutes() >= 30 && !localStorage.getItem(`notif_1730_${ticket.id}`)) {
+                        kirimNotifikasi("Jam Operasional Sekolah akan segera berakhir! Jangan lupa lapor kembali.");
+                        localStorage.setItem(`notif_1730_${ticket.id}`, 'sent');
+                    }
+                    
+                    // Trigger B: 24 Jam (1.440 Menit dari jam keberangkatan)
+                    const selisihMenit = Math.floor((now - waktuKeluar) / 60000);
+                    if (selisihMenit >= 1440 && !localStorage.getItem(`notif_24j_${ticket.id}`)) {
+                        kirimNotifikasi("Harap selesaikan izin keluar!");
+                        localStorage.setItem(`notif_24j_${ticket.id}`, 'sent');
+                    }
+                }
+                
+            } catch (err) {
+                console.log("PWA Background Checker Error:", err);
+            }
+        }
+
+        // 3. Jembatan Pengiriman Pesan ke Service Worker
+        function kirimNotifikasi(pesan) {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification('LinkPermit Pro', {
+                        body: pesan,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+                        badge: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+                        vibrate: [200, 100, 200, 100, 200, 100, 200], // Pola getar SOS
+                        tag: 'peringatan-izin',
+                        renotify: true
+                    });
+                });
+            }
+        }
+    </script>
+</body>
+</html>
