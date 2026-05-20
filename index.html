@@ -341,85 +341,64 @@
             });
         }
 
-        // 2. Alarm Pengecekan Waktu (Jalan otomatis setiap 1 Menit)
-        setInterval(checkNotificationSchedules, 60000);
+// Alarm Pengecekan Waktu (Jalan otomatis setiap 1 Menit)
+// VERSI AMAN: Hanya mengecek waktu lokal, TIDAK melakukan query ke Supabase
+setInterval(checkNotificationSchedules, 60000);
 
-        async function checkNotificationSchedules() {
-            // Berhenti jika browser tidak dukung notif atau belum diizinkan
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+function checkNotificationSchedules() {
+    // Berhenti jika browser tidak dukung notif atau belum diizinkan
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    
+    // Cari data izin aktif pengguna di memori state lokal (yang sudah di-download saat awal buka aplikasi)
+    const myName = localStorage.getItem('local_pemohon_pwa');
+    if (!myName || state.dataIzin.length === 0) return; 
+
+    // Cari tiket aktif orang ini dari state lokal, bukan fetch dari internet
+    const ticket = state.dataIzin.find(i => i.nama === myName && i.status === 'Keluar');
+    if (!ticket) return;
+
+    try {
+        const now = new Date();
+        
+        let tglKeluarStr = ticket.tanggal_keluar || ticket.tanggal;
+        if (tglKeluarStr && tglKeluarStr.includes('/')) {
+            const p = tglKeluarStr.split('/');
+            if (p.length === 3) tglKeluarStr = `${p[2]}-${p[1]}-${p[0]}`; 
+        }
+        const waktuK = ticket.waktu_keluar || '00:00';
+        const waktuKeluar = new Date(`${tglKeluarStr}T${waktuK}`);
+        
+        // SKENARIO 1: KATEGORI PRIBADI (Sisa 20 Menit)
+        if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('pribadi')) {
+            let batasMenitTotal = 70;
+            if (waktuKeluar.getHours() === 11 || waktuKeluar.getHours() === 12) batasMenitTotal = 130; 
             
-            // Cek nama pemohon yang tersimpan di HP ini
-            const myName = localStorage.getItem('local_pemohon_pwa');
-            if (!myName || !supabaseClient) return; 
-
-            try {
-                // Ambil data izin terbaru untuk orang di HP ini yang berstatus Keluar (Di Luar)
-                const { data, error } = await supabaseClient
-                    .from('izin')
-                    .select('*')
-                    .eq('nama', myName)
-                    .eq('status', 'Keluar')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                    
-                if (error || !data || data.length === 0) return; 
-
-                const now = new Date();
-                const ticket = data[0]; 
-                
-                // Variabel Waktu Keberangkatan
-                let tglKeluarStr = ticket.tanggal_keluar || ticket.tanggal;
-                if (tglKeluarStr && tglKeluarStr.includes('/')) {
-                    const p = tglKeluarStr.split('/');
-                    if (p.length === 3) tglKeluarStr = `${p[2]}-${p[1]}-${p[0]}`; // DD/MM/YYYY ke YYYY-MM-DD
-                }
-                const waktuK = ticket.waktu_keluar || '00:00';
-                const waktuKeluar = new Date(`${tglKeluarStr}T${waktuK}`);
-                
-                // SKENARIO 1: KATEGORI PRIBADI (Sisa 20 Menit)
-                if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('pribadi')) {
-                    // Batas standar jika diatur, misal 130 menit atau 70 menit 
-                    // Kita asumsikan batas max ada di kode perhitungan awal, 
-                    // atau jika Anda ingin notif sederhana 20 menit sebelum waktu fix:
-                    // Di sini kita cek logika jika kita tahu kapan harus kembali
-                    
-                    // Kita butuh variabel batas menit. 
-                    // Kita gunakan aturan isTerlambat (130 mnt jam 11, 70 mnt lainnya, dll)
-                    let batasMenitTotal = 70;
-                    if (waktuKeluar.getHours() === 11) batasMenitTotal = 130;
-                    else if (waktuKeluar.getHours() === 12) batasMenitTotal = 130; 
-                    
-                    const batasWaktu = new Date(waktuKeluar.getTime() + batasMenitTotal * 60000);
-                    const sisaMenit = Math.floor((batasWaktu - now) / 60000);
-                    
-                    if (sisaMenit <= 20 && sisaMenit > 0 && !localStorage.getItem(`notif_pribadi_${ticket.id_izin}`)) {
-                        kirimNotifikasi("Peringatan: Waktu izin keluar Anda hampir habis! Harap segera kembali.");
-                        localStorage.setItem(`notif_pribadi_${ticket.id_izin}`, 'sent');
-                    }
-                }
-                
-                // SKENARIO 2: KATEGORI DINAS (17:30 & 24 Jam)
-                else if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('dinas')) {
-                    
-                    // Trigger A: Pukul 17:30 WIB
-                    if (now.getHours() === 17 && now.getMinutes() >= 30 && !localStorage.getItem(`notif_1730_${ticket.id_izin}`)) {
-                        kirimNotifikasi("Jam Operasional Sekolah akan segera berakhir! Jangan lupa lapor kembali.");
-                        localStorage.setItem(`notif_1730_${ticket.id_izin}`, 'sent');
-                    }
-                    
-                    // Trigger B: 24 Jam (1.440 Menit dari jam keberangkatan)
-                    const selisihMenit = Math.floor((now - waktuKeluar) / 60000);
-                    if (selisihMenit >= 1440 && !localStorage.getItem(`notif_24j_${ticket.id_izin}`)) {
-                        kirimNotifikasi("Harap selesaikan izin keluar!");
-                        localStorage.setItem(`notif_24j_${ticket.id_izin}`, 'sent');
-                    }
-                }
-                
-            } catch (err) {
-                console.log("PWA Background Checker Error:", err);
+            const batasWaktu = new Date(waktuKeluar.getTime() + batasMenitTotal * 60000);
+            const sisaMenit = Math.floor((batasWaktu - now) / 60000);
+            
+            if (sisaMenit <= 20 && sisaMenit > 0 && !localStorage.getItem(`notif_pribadi_${ticket.id_izin}`)) {
+                kirimNotifikasi("Peringatan: Waktu izin keluar Anda hampir habis! Harap segera kembali.");
+                localStorage.setItem(`notif_pribadi_${ticket.id_izin}`, 'sent');
             }
         }
-
+        
+        // SKENARIO 2: KATEGORI DINAS (17:30 & 24 Jam)
+        else if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('dinas')) {
+            if (now.getHours() === 17 && now.getMinutes() >= 30 && !localStorage.getItem(`notif_1730_${ticket.id_izin}`)) {
+                kirimNotifikasi("Jam Operasional Sekolah akan segera berakhir! Jangan lupa lapor kembali.");
+                localStorage.setItem(`notif_1730_${ticket.id_izin}`, 'sent');
+            }
+            
+            const selisihMenit = Math.floor((now - waktuKeluar) / 60000);
+            if (selisihMenit >= 1440 && !localStorage.getItem(`notif_24j_${ticket.id_izin}`)) {
+                kirimNotifikasi("Harap selesaikan izin keluar!");
+                localStorage.setItem(`notif_24j_${ticket.id_izin}`, 'sent');
+            }
+        }
+    } catch (err) {
+        console.log("PWA Background Checker Error:", err);
+    }
+}
         function kirimNotifikasi(pesan) {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(function(registration) {
