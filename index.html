@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LinkPermit Pro | Supabase</title>
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Library Supabase CDN -->
@@ -82,21 +87,21 @@
             <form id="izinForm" class="space-y-4">
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
-                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all">
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all text-slate-700">
                         <option value="">Memuat data pegawai...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Kategori</label>
-                        <select id="inputKategori" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none">
+                        <select id="inputKategori" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
                             <option value="Dinas/Sekolah">Dinas/Sekolah</option>
                             <option value="Pribadi">Pribadi</option>
                         </select>
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Keperluan</label>
-                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none">
+                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
@@ -121,10 +126,10 @@
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Akses Database Pusat</p>
                 </div>
                 <div class="space-y-3 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <select id="piketUser" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none">
+                    <select id="piketUser" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none text-slate-700">
                         <option value="">Pilih Petugas...</option>
                     </select>
-                    <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-2xl tracking-[1em] outline-none">
+                    <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-2xl tracking-[1em] outline-none text-slate-700">
                 </div>
                 <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Login Petugas</button>
             </div>
@@ -149,7 +154,7 @@
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Cloud</p>
                 </div>
                 <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-center outline-none">
+                    <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-center outline-none text-slate-700">
                 </div>
                 <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Buka Dashboard</button>
             </div>
@@ -196,8 +201,8 @@
         <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up">
             <h3 id="modalTitle" class="text-lg font-black uppercase tracking-tight">Tambah Data</h3>
             <div class="space-y-4">
-                <input id="formVal1" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10">
-                <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10">
+                <input id="formVal1" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
+                <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
             </div>
             <div class="flex gap-3">
                 <button onclick="closeForm()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400">Batal</button>
@@ -206,7 +211,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT IZIN -->
+    <!-- MODAL EDIT DATA IZIN -->
     <div id="modalEditIzin" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-4 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto hide-scroll">
             <h3 class="text-lg font-black uppercase tracking-tight mb-2">Edit Data Izin</h3>
@@ -233,7 +238,7 @@
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Keluar</label>
-                        <input id="editWaktuKeluar" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="14:30 (24 Jam)" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                        <input id="editWaktuKeluar" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="14:30" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Kembali</label>
@@ -241,7 +246,7 @@
                     </div>
                     <div>
                         <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Kembali</label>
-                        <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45 (24 Jam)" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                        <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
                     </div>
                 </div>
             </div>
@@ -252,41 +257,31 @@
         </div>
     </div>
 
-    <!-- MODAL FINISH (VERIFIKASI LOKASI GPS & KAMERA) -->
+    <!-- MODAL PENYEDERHANAAN: LANGSUNG KAMERA TANPA LOKASI/GPS -->
     <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center scale-95 animate-slide-up">
             
-            <!-- Tahap 1: Lokasi -->
-            <div id="step-location" class="space-y-4">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-map-marker-alt"></i></div>
-                <h3 class="text-lg font-black mb-1">Verifikasi Lokasi</h3>
-                <p class="text-[10px] font-bold text-slate-400 mb-6 uppercase tracking-widest leading-relaxed">Sistem akan mengecek GPS Anda. Pastikan Anda sudah berada di area sekolah.</p>
-                <button onclick="verifyLocation()" class="w-full py-4 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all mb-3">
-                    Cek Lokasi
-                </button>
-            </div>
-
-            <!-- Tahap 2: Kamera -->
-            <div id="step-camera" class="hidden space-y-4">
-                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800 mb-2">Ambil Foto Bukti</h3>
+            <!-- Tahap 1: Kamera Utama -->
+            <div id="step-camera" class="space-y-4">
+                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Ambil Foto Bukti</h3>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Silakan jepret foto wajah/bukti kehadiran langsung untuk melapor kepulangan.</p>
                 <div class="relative w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-inner">
                     <video id="cameraVideo" class="w-full h-full object-cover" autoplay playsinline></video>
                 </div>
-                <button onclick="takePhoto()" class="w-full py-4 mt-2 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                <button onclick="takePhoto()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
                     <i class="fas fa-camera"></i> Jepret Foto
                 </button>
             </div>
 
-            <!-- Tahap 3: Preview -->
+            <!-- Tahap 2: Preview Hasil Foto -->
             <div id="step-preview" class="hidden space-y-4">
-                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800 mb-2">Konfirmasi Foto</h3>
+                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Konfirmasi Foto</h3>
                 <canvas id="photoCanvas" class="hidden"></canvas> 
                 <div class="w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-inner border border-slate-200 bg-slate-100">
                     <img id="previewImg" class="w-full h-full object-cover" />
                 </div>
                 <div class="flex gap-2 mt-2">
                     <button onclick="retakePhoto()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase hover:bg-slate-200 transition-all">Ulangi</button>
-                    <!-- Menggunakan fungsi upload background senyap -->
                     <button onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Kirim & Selesai</button>
                 </div>
             </div>
@@ -305,12 +300,6 @@
             supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
         }
 
-        // --- CONFIG LOKASI SEKOLAH (GEOFENCING) ---
-        // SILAKAN GANTI DENGAN KOORDINAT ASLI SMK LINK AND MATCH
-        const SCHOOL_LAT = -6.35749271145112; 
-        const SCHOOL_LNG = 106.75074803106442;
-        const ALLOWED_RADIUS = 150; 
-
         let state = {
             activeTab: 'layanan',
             adminActiveTab: 'pegawai',
@@ -323,73 +312,38 @@
             itemsPerPage: 10,
             currentFinishId: null,
             cameraStream: null,
-            selectedAdminItems: [], // State untuk menyimpan ID item yang dicentang di Admin
-            tempLaporanData: [], // State untuk menyimpan data laporan sementara untuk fitur edit
-            currentEditIzinId: null // State untuk tracking ID yang sedang diedit
+            selectedAdminItems: [], // State menyimpan ID centang (Gmail Style)
+            tempLaporanData: [],
+            currentEditIzinId: null
         };
 
-        // --- HELPER FORMAT 24 JAM & DATE INPUT ---
-
-        // Fungsi Auto-Format Input Waktu saat mengetik (menjadi 24H HH:MM)
-        function formatTimeInput(e) {
-            let val = e.target.value.replace(/[^0-9]/g, '');
-            if (val.length >= 3) {
-                let h = parseInt(val.substring(0, 2));
-                if (h > 23) val = '23' + val.substring(2);
-                
-                if (val.length >= 4) {
-                    let m = parseInt(val.substring(2, 4));
-                    if (m > 59) val = val.substring(0, 2) + '59';
-                }
-                val = val.substring(0, 2) + ':' + val.substring(2, 4);
-            }
-            e.target.value = val;
+        // --- REGISTRASI SERVICE WORKER (PWA) & IZIN NOTIFIKASI ---
+        // Mengamankan pendaftaran agar tidak mencoba mendaftar di protokol yang tidak didukung (seperti blob: atau file:)
+        if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then((reg) => {
+                    console.log('SW: Registrasi berhasil dengan cakupan:', reg.scope);
+                    requestNotificationPermission();
+                })
+                .catch((err) => {
+                    console.error('SW: Registrasi gagal:', err);
+                });
+            });
+        } else {
+            console.log('SW: Registrasi dilewati karena protokol URL saat ini tidak didukung oleh Service Worker (misalnya preview blob/local file).');
         }
 
-        // Helper untuk input date HTML kalender (DD/MM/YYYY menjadi YYYY-MM-DD)
-        function toDateInputFormat(dateStr) {
-            if (!dateStr || dateStr === '-') return '';
-            if (dateStr.includes('-') && dateStr.length === 10) return dateStr;
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then((permission) => {
+                    if (permission === 'granted') {
+                        console.log('Notifikasi: Izin diberikan oleh pengguna.');
+                    } else if (permission === 'denied') {
+                        console.warn('Notifikasi: Izin ditolak oleh pengguna.');
+                    }
+                });
             }
-            return '';
-        }
-
-        // Helper untuk kembali ke format database Supabase (YYYY-MM-DD menjadi DD/MM/YYYY)
-        function toDDMMYYYY(dateStr) {
-            if (!dateStr || dateStr === '-') return '';
-            const parts = dateStr.split('-');
-            if (parts.length === 3) {
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            return dateStr;
-        }
-
-        // Menjamin format jam selalu menjadi HH:mm atau HH:mm:ss dengan mode 24 jam (misal 06:00 PM -> 18:00)
-        function formatTo24Hour(timeStr) {
-            if (!timeStr || timeStr === '-') return '';
-            let str = timeStr.toString().toLowerCase().trim();
-            let isPM = str.includes('pm');
-            let isAM = str.includes('am');
-            // Menghilangkan alfabet, mengganti titik menjadi titik dua, dan memecah
-            let parts = str.replace(/[a-z]/g, '').trim().replace(/\./g, ':').split(':');
-            
-            let h = parseInt(parts[0], 10);
-            let m = parseInt(parts[1], 10);
-            let s = parts.length > 2 ? parseInt(parts[2], 10) : null;
-            
-            if (isNaN(h)) return timeStr; // Jika gagal di-parsing, kembalikan string awal
-            if (isNaN(m)) m = 0;
-            
-            // Logika konversi PM / AM
-            if (isPM && h < 12) h += 12;
-            if (isAM && h === 12) h = 0;
-            
-            let res = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-            if (s !== null && !isNaN(s)) res += `:${s.toString().padStart(2, '0')}`;
-            return res;
         }
 
         // Initialize App
@@ -405,11 +359,67 @@
             setInterval(updateTime, 1000);
         }
 
+        // --- HELPER FORMAT JAM 24 JAM ---
+        function formatTo24Hour(timeStr) {
+            if (!timeStr || timeStr === '-') return '';
+            let str = timeStr.toString().toLowerCase().trim();
+            let isPM = str.includes('pm');
+            let isAM = str.includes('am');
+            let parts = str.replace(/[a-z]/g, '').trim().replace(/\./g, ':').split(':');
+            
+            let h = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10);
+            let s = parts.length > 2 ? parseInt(parts[2], 10) : null;
+            
+            if (isNaN(h)) return timeStr;
+            if (isNaN(m)) m = 0;
+            
+            if (isPM && h < 12) h += 12;
+            if (isAM && h === 12) h = 0;
+            
+            let res = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            if (s !== null && !isNaN(s)) res += `:${s.toString().padStart(2, '0')}`;
+            return res;
+        }
+
+        // --- HELPER FORMAT KALENDER ---
+        function toDateInputFormat(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            if (dateStr.includes('-') && dateStr.length === 10) return dateStr;
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return '';
+        }
+
+        function toDDMMYYYY(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function formatTimeInput(e) {
+            let val = e.target.value.replace(/[^0-9]/g, '');
+            if (val.length >= 3) {
+                let h = parseInt(val.substring(0, 2));
+                if (h > 23) val = '23' + val.substring(2);
+                if (val.length >= 4) {
+                    let m = parseInt(val.substring(2, 4));
+                    if (m > 59) val = val.substring(0, 2) + '59';
+                }
+                val = val.substring(0, 2) + ':' + val.substring(2, 4);
+            }
+            e.target.value = val;
+        }
+
         // --- FUNGSI DETEKSI WAKTU TERLAMBAT ---
         function isTerlambat(item) {
             if (!item.waktu_keluar || item.waktu_keluar === '-') return false;
             
-            // Format waktu menjadi standar 24 jam sebelum dipecah
             let parsedK = formatTo24Hour(item.waktu_keluar);
             if (!parsedK.includes(':')) return false;
             let [kH, kM] = parsedK.split(':').map(Number);
@@ -420,18 +430,16 @@
 
             let end = item.created_at ? new Date(item.created_at) : new Date();
             
-            // Jika sudah selesai, pakai waktu kembali untuk mengecek
             if (item.status === 'Selesai' && item.waktu_kembali) {
                 let parsedE = formatTo24Hour(item.waktu_kembali);
                 if (parsedE.includes(':')) {
                     let [eH, eM] = parsedE.split(':').map(Number);
                     if (!isNaN(eH)) {
                         end.setHours(eH, eM, 0, 0);
-                        if (end < start) end.setDate(end.getDate() + 1); // Asumsi lewat tengah malam
+                        if (end < start) end.setDate(end.getDate() + 1);
                     }
                 }
             } else {
-                // Jika belum selesai, pakai waktu saat ini
                 end = new Date();
             }
 
@@ -439,10 +447,8 @@
             const isPribadi = item.keperluan === 'Pribadi';
 
             if (!isPribadi) {
-                // Kategori Sekolah/Dinas: > 24 Jam
-                return diffMins > 1440;
+                return diffMins > 1440; // Dinas/Sekolah: > 24 Jam
             } else {
-                // Kategori Pribadi
                 if (kH === 11) {
                     return diffMins > 130;
                 } else if (kH === 12) {
@@ -456,9 +462,8 @@
         }
 
         // --- DATABASE OPERATIONS (SUPABASE) ---
-        
         async function fetchPegawai() {
-            const { data, error } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
+            const { data, error = null } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
             if (!error) {
                 state.listPegawai = data || [];
                 syncSelects();
@@ -467,7 +472,7 @@
         }
 
         async function fetchPetugas() {
-            const { data, error } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
+            const { data, error = null } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
             if (!error) {
                 state.listPetugas = data || [];
                 syncSelects();
@@ -476,7 +481,7 @@
         }
 
         async function fetchIzin() {
-            const { data, error } = await supabaseClient.from('izin')
+            const { data, error = null } = await supabaseClient.from('izin')
                 .select('*')
                 .neq('status', 'Selesai')
                 .order('created_at', { ascending: false });
@@ -495,12 +500,9 @@
             showLoading("Mengirim...");
             const peg = state.listPegawai[idx];
             const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
-            
-            // Format waktu menjadi 24 jam
-            const rawWaktu = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false});
-            const fmtWaktu = formatTo24Hour(rawWaktu);
+            const fmtWaktu = formatTo24Hour(new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}));
 
-            const { error } = await supabaseClient.from('izin').insert([{
+            const { error = null } = await supabaseClient.from('izin').insert([{
                 id_izin: reqId,
                 nama: peg.nama,
                 keperluan: document.getElementById('inputKategori').value,
@@ -514,22 +516,21 @@
                 e.target.reset();
                 await fetchIzin();
             } else {
-                console.error("Error inserting izin:", error);
-                alert("Gagal mengajukan izin. Pastikan tabel izin di Supabase sudah ada.");
+                alert("Gagal mengajukan izin.");
             }
             hideLoading();
         }
 
         async function approveIzin(id) {
             showLoading("Mengonfirmasi...");
-            const rawWaktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-            const jam = formatTo24Hour(rawWaktu);
-
-            const { error } = await supabaseClient.from('izin')
+            const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
+            const tgl = new Date().toLocaleDateString('id-ID');
+            const { error = null } = await supabaseClient.from('izin')
                 .update({ 
                     status: 'Keluar', 
                     petugas_piket: state.currentUser.nama, 
-                    waktu_keluar: jam 
+                    waktu_keluar: jam,
+                    tanggal_keluar: tgl
                 })
                 .eq('id_izin', id);
             
@@ -537,44 +538,13 @@
             hideLoading();
         }
 
-        // --- GEOFENCING & KAMERA (FITUR BARU DENGAN UPLOAD SENYAP) ---
-
+        // --- SISTEM FINISH SIMPEL TANPA GPS (LANGSUNG FOTO) ---
         function openFinish(id) { 
             state.currentFinishId = id; 
             document.getElementById('modalFinish').classList.replace('hidden', 'flex');
-            document.getElementById('step-location').classList.remove('hidden');
-            document.getElementById('step-camera').classList.add('hidden');
+            document.getElementById('step-camera').classList.remove('hidden');
             document.getElementById('step-preview').classList.add('hidden'); 
-        }
-
-        function verifyLocation() {
-            if (!navigator.geolocation) {
-                alert("Peringatan: Browser Anda tidak mendukung fitur lokasi (GPS).");
-                return;
-            }
-
-            showLoading("Cek Lokasi GPS...");
-            navigator.geolocation.getCurrentPosition((position) => {
-                const userLat = position.coords.latitude;
-                const userLng = position.coords.longitude;
-                const distance = getDistanceFromLatLonInM(SCHOOL_LAT, SCHOOL_LNG, userLat, userLng);
-
-                hideLoading();
-                if (distance <= ALLOWED_RADIUS) {
-                    document.getElementById('step-location').classList.add('hidden');
-                    document.getElementById('step-camera').classList.remove('hidden');
-                    startCamera();
-                } else {
-                    alert(`Gagal! Anda terdeteksi berada ${Math.round(distance)} meter dari sekolah. Anda harus berada di area sekolah (radius ${ALLOWED_RADIUS} meter) untuk melapor.`);
-                }
-            }, (error) => {
-                hideLoading();
-                let msg = "Gagal mengambil lokasi.";
-                if(error.code === 1) msg = "Akses lokasi ditolak. Izinkan browser untuk mengakses lokasi Anda.";
-                else if(error.code === 2) msg = "Sinyal GPS tidak tersedia.";
-                else if(error.code === 3) msg = "Waktu pencarian lokasi habis.";
-                alert(msg);
-            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+            startCamera();
         }
 
         async function startCamera() {
@@ -599,11 +569,9 @@
             const c = document.getElementById('photoCanvas');
             const ctx = c.getContext('2d');
             
-            // Aspek Rasio 16:9 Potrait
             c.width = 720;
             c.height = 1280;
             
-            // Render video asli dengan proporsi 16:9 
             const vRatio = v.videoWidth / v.videoHeight;
             const cRatio = c.width / c.height;
             let drawWidth, drawHeight, startX, startY;
@@ -621,30 +589,24 @@
             }
             ctx.drawImage(v, startX, startY, drawWidth, drawHeight);
             
-            // Konfigurasi Watermark (Hanya 20% di bagian bawah foto)
+            // Watermark (20% di bagian bawah foto)
             const watermarkHeight = c.height * 0.20;
             const startYWatermark = c.height - watermarkHeight;
             
-            // Background Watermark: Terang Semi-Transparan (agar teks terbaca)
             ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
             ctx.fillRect(0, startYWatermark, c.width, watermarkHeight);
             
-            // Konfigurasi Teks
             const padding = 35;
-            const lh = (watermarkHeight - padding) / 5; // Dibagi 5 baris
+            const lh = (watermarkHeight - padding) / 5;
             const fs = Math.floor(lh * 0.8);
             
             const now = new Date();
             const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
-            
-            // Mengamankan format jam watermark ke mode 24 Jam
-            const rawTimeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-            const timeStr = formatTo24Hour(rawTimeStr);
+            const timeStr = formatTo24Hour(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
             
             const lines = [
-                "TITLE", // Placeholder baris 1
+                "TITLE",
                 "SMK Link and Match", 
-                `Koordinat: ${SCHOOL_LAT}, ${SCHOOL_LNG}`, 
                 `Tanggal: ${dateStr} | Jam: ${timeStr}`, 
                 "Support by HenSan"
             ];
@@ -656,16 +618,13 @@
                 ctx.font = `bold ${fs}px 'Plus Jakarta Sans', sans-serif`;
                 
                 if (i === 0) {
-                    // Warna LinkPermit (Hitam Bold)
                     ctx.fillStyle = "#000000"; 
                     ctx.fillText("LINKPERMIT ", padding, y);
                     let tw = ctx.measureText("LINKPERMIT ").width;
-                    
-                    // Warna PRO (Merah Bold)
                     ctx.fillStyle = "#FF0000"; 
                     ctx.fillText("PRO", padding + tw, y);
                 } else {
-                    ctx.fillStyle = "#000000"; // Hitam
+                    ctx.fillStyle = "#000000";
                     ctx.fillText(line, padding, y);
                 }
             });
@@ -682,68 +641,47 @@
             startCamera();
         }
 
-        // FUNGSI UPLOAD LATAR BELAKANG SENYAP
         function submitFinish() {
             const dataUrl = document.getElementById('previewImg').src;
             const blob = dataURItoBlob(dataUrl);
             const targetId = state.currentFinishId;
+            const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
+            const tgl = new Date().toLocaleDateString('id-ID');
             
-            // Format waktu menjadi 24 jam
-            const rawWaktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-            const jam = formatTo24Hour(rawWaktu);
-            
-            // 1. Notifikasi Sukses Cepat
-            alert("Berhasil! Kehadiran Anda telah terverifikasi. Foto sedang diunggah secara senyap di latar belakang.");
+            alert("Berhasil! Kehadiran terverifikasi. Foto sedang diunggah secara senyap.");
             closeFinishModal();
 
-            // 2. Optimistic UI Update (Langsung hilangkan dari tampilan daftar izin aktif)
             const idx = state.dataIzin.findIndex(i => i.id_izin === targetId);
             if(idx !== -1) {
-                // Hapus item dari dataIzin agar langsung hilang dari daftar
                 state.dataIzin.splice(idx, 1);
                 renderUserList();
                 renderPiketAntrean();
             }
 
-            // 3. Proses Latar Belakang (Upload & Update DB)
             setTimeout(async () => {
                 try {
                     const fileName = `LP_${targetId}_${Date.now()}.jpg`;
                     let fileUrl = null;
-                    const { error: upErr } = await supabaseClient.storage.from('foto_izin').upload(fileName, blob);
+                    const { error: upErr = null } = await supabaseClient.storage.from('foto_izin').upload(fileName, blob);
                     
                     if (!upErr) {
                         const { data } = supabaseClient.storage.from('foto_izin').getPublicUrl(fileName);
                         fileUrl = data.publicUrl;
                     }
 
-                    const updateData = { status: 'Selesai', waktu_kembali: jam };
+                    const updateData = { status: 'Selesai', waktu_kembali: jam, tanggal_kembali: tgl };
                     if (fileUrl) updateData.foto_url = fileUrl;
 
                     await supabaseClient.from('izin').update(updateData).eq('id_izin', targetId);
                     
-                    // Fetch data diam-diam untuk memastikan sinkron
                     const { data: latestData } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
                     if(latestData) state.dataIzin = latestData;
                     
                 } catch (err) {
-                    console.error("Gagal melakukan upload di latar belakang:", err);
+                    console.error("Upload error:", err);
                 }
-            }, 500); // Jalan setengah detik setelah modal ditutup
+            }, 500);
         }
-
-        // Fungsi rumus matematika Haversine
-        function getDistanceFromLatLonInM(lat1, lon1, lat2, lon2) {
-            const R = 6371000; 
-            const dLat = deg2rad(lat2-lat1);
-            const dLon = deg2rad(lon2-lon1); 
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-            return R * c; 
-        }
-        function deg2rad(deg) { return deg * (Math.PI/180) }
 
         function dataURItoBlob(uri) {
             const byteStr = atob(uri.split(',')[1]);
@@ -754,25 +692,22 @@
             return new Blob([ab], {type: mime});
         }
 
-        // --- ADMIN OPERATIONS (SUPABASE) ---
-
+        // --- ADMIN OPERATIONS (GMAIL STYLE SELECT & MANAGE) ---
         async function saveMasterData(type, v1, v2) {
             showLoading("Menyimpan...");
             const table = type === 'pegawai' ? 'pegawai' : 'petugas';
             const payload = type === 'pegawai' ? { nama: v1, jabatan: v2 } : { nama: v1, pin: v2 };
             
-            const { error } = await supabaseClient.from(table).insert([payload]);
+            const { error = null } = await supabaseClient.from(table).insert([payload]);
             if (!error) {
                 type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
                 closeForm();
             } else {
-                console.error(error);
                 alert(`Gagal menyimpan data ${type}.`);
             }
             hideLoading();
         }
 
-        // Fungsi Delete Individual (Khusus untuk Laporan Izin)
         async function deleteMasterData(type, id) {
             if (!confirm("Hapus data ini secara permanen dari Cloud?")) return;
             showLoading("Menghapus...");
@@ -785,52 +720,47 @@
                 idField = 'id_izin';
             }
             
-            const { error } = await supabaseClient.from(table).delete().eq(idField, id);
+            const { error = null } = await supabaseClient.from(table).delete().eq(idField, id);
             if (!error) {
                 if (type === 'pegawai') await fetchPegawai();
                 else if (type === 'petugas') await fetchPetugas();
                 else if (type === 'izin') await renderAdminContent();
             } else {
-                console.error("Delete Error:", error);
                 alert("Gagal menghapus data.");
             }
             hideLoading();
         }
 
-        // FITUR BARU: HAPUS BANYAK DATA SEKALIGUS (BULK DELETE ALÀ GMAIL)
         async function deleteSelectedMasterData(type) {
             if (state.selectedAdminItems.length === 0) return;
-            if (!confirm(`Anda akan menghapus ${state.selectedAdminItems.length} data terpilih secara permanen dari Cloud. Lanjutkan?`)) return;
+            if (!confirm(`Anda akan menghapus ${state.selectedAdminItems.length} data terpilih secara permanen. Lanjutkan?`)) return;
             
-            showLoading("Menghapus Data Terpilih...");
+            showLoading("Menghapus...");
             const table = type === 'pegawai' ? 'pegawai' : 'petugas';
             
-            const { error } = await supabaseClient.from(table).delete().in('id', state.selectedAdminItems);
-            
+            const { error = null } = await supabaseClient.from(table).delete().in('id', state.selectedAdminItems);
             if (!error) {
-                state.selectedAdminItems = []; // Reset pilihan
+                state.selectedAdminItems = [];
                 type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
             } else {
-                console.error("Delete Bulk Error:", error);
-                alert("Gagal menghapus beberapa data.");
+                alert("Gagal menghapus data.");
             }
             hideLoading();
         }
 
         async function deleteAllMasterData(type) {
             const label = type === 'pegawai' ? 'SELURUH DATA PEGAWAI' : 'SELURUH DATA PETUGAS PIKET';
-            if (confirm(`PERINGATAN: Apakah Anda yakin ingin menghapus ${label} dari Cloud Supabase? Tindakan ini tidak dapat dibatalkan.`)) {
+            if (confirm(`PERINGATAN: Apakah Anda yakin ingin menghapus ${label}?`)) {
                 showLoading("Membersihkan...");
                 const table = type === 'pegawai' ? 'pegawai' : 'petugas';
                 
-                const { error } = await supabaseClient.from(table).delete().gt('id', 0);
+                const { error = null } = await supabaseClient.from(table).delete().gt('id', 0);
                 if (!error) {
                     state.currentPage = 1;
-                    state.selectedAdminItems = []; // Reset pilihan
+                    state.selectedAdminItems = [];
                     type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
                 } else {
-                    console.error("Delete all error:", error);
-                    alert("Gagal menghapus semua data.");
+                    alert("Gagal menghapus.");
                 }
                 hideLoading();
             }
@@ -855,7 +785,7 @@
                 });
 
                 if (payloads.length > 0) {
-                    const { error } = await supabaseClient.from(table).insert(payloads);
+                    const { error = null } = await supabaseClient.from(table).insert(payloads);
                     if (!error) {
                         type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
                     } else {
@@ -869,7 +799,7 @@
             reader.readAsText(file);
         }
         
-        // FUNGSI EDIT DATA IZIN (BARU & DIPERBARUI KALENDER + 24H TEXT INPUT)
+        // --- EDIT DATA IZIN (MODAL) ---
         function openEditIzin(id) {
             const item = state.tempLaporanData.find(i => i.id_izin === id);
             if(!item) return;
@@ -878,12 +808,10 @@
             document.getElementById('editKategori').value = item.keperluan || 'Dinas/Sekolah';
             document.getElementById('editTujuan').value = item.tujuan || '';
             
-            // Set Date Inputs using helper (merubah DD/MM/YYYY ke YYYY-MM-DD agar masuk ke kalender)
             document.getElementById('editTanggal').value = toDateInputFormat(item.tanggal);
             document.getElementById('editTanggalKeluar').value = toDateInputFormat(item.tanggal_keluar || item.tanggal);
             document.getElementById('editTanggalKembali').value = toDateInputFormat(item.tanggal_kembali || item.tanggal);
 
-            // Konversi format waktu menjadi string HH:mm untuk input text 24 Jam
             let wK = formatTo24Hour(item.waktu_keluar);
             let wKm = formatTo24Hour(item.waktu_kembali);
             document.getElementById('editWaktuKeluar').value = wK.length >= 5 ? wK.substring(0,5) : '';
@@ -906,35 +834,29 @@
                 tujuan: document.getElementById('editTujuan').value,
                 waktu_keluar: document.getElementById('editWaktuKeluar').value || '-',
                 waktu_kembali: document.getElementById('editWaktuKembali').value || '-',
-                // Convert back from YYYY-MM-DD kalender ke DD/MM/YYYY database
                 tanggal: toDDMMYYYY(document.getElementById('editTanggal').value),
                 tanggal_keluar: toDDMMYYYY(document.getElementById('editTanggalKeluar').value),
                 tanggal_kembali: toDDMMYYYY(document.getElementById('editTanggalKembali').value)
             };
 
-            const { error } = await supabaseClient.from('izin').update(payload).eq('id_izin', state.currentEditIzinId);
+            const { error = null } = await supabaseClient.from('izin').update(payload).eq('id_izin', state.currentEditIzinId);
             
             if (!error) {
                 closeEditIzin();
-                await renderAdminContent(); // Refresh the list
+                await renderAdminContent();
             } else {
-                console.error("Update Error:", error);
-                // Memberikan peringatan khusus jika kolom baru belum ditambahkan di Supabase
-                if (error.code === 'PGRST204' || error.message.includes('column')) {
-                    alert("GAGAL MENYIMPAN: Pastikan Anda telah membuat kolom 'tanggal_keluar' dan 'tanggal_kembali' di tabel 'izin' Supabase Anda.");
-                } else {
-                    alert("Gagal memperbarui data.");
-                }
+                alert("Gagal memperbarui data. Cek penamaan kolom.");
             }
             hideLoading();
         }
 
+        // --- DOWNLOAD LANDSCAPE REPORT PDF ---
         async function downloadReport() {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
 
             if (!startDate || !endDate) {
-                alert("Silakan pilih rentang tanggal mulai dan tanggal akhir terlebih dahulu.");
+                alert("Silakan pilih rentang tanggal mulai dan tanggal akhir.");
                 return;
             }
 
@@ -944,7 +866,7 @@
                 const endDateFull = new Date(endDate);
                 endDateFull.setHours(23, 59, 59, 999);
 
-                const { data, error } = await supabaseClient.from('izin')
+                const { data, error = null } = await supabaseClient.from('izin')
                     .select('*')
                     .gte('created_at', new Date(startDate).toISOString())
                     .lte('created_at', endDateFull.toISOString())
@@ -953,16 +875,14 @@
                 if (error) throw error;
 
                 if (!data || data.length === 0) {
-                    alert("Tidak ada data izin yang ditemukan pada periode tanggal tersebut.");
+                    alert("Tidak ada data izin yang ditemukan.");
                     hideLoading();
                     return;
                 }
 
                 const { jsPDF } = window.jspdf;
-                // PDF diubah kembali ke Landscape ('l') untuk mengakomodasi kolom tambahan
-                const doc = new jsPDF('l', 'mm', 'a4'); 
+                const doc = new jsPDF('l', 'mm', 'a4'); // Landscape layout
 
-                // Kop Laporan
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(14);
                 doc.text("LAPORAN PENGAJUAN IZIN KELUAR - SMK LINK AND MATCH", 14, 15);
@@ -973,26 +893,19 @@
 
                 const tableColumn = ["ID Izin", "Nama Pegawai", "Kategori", "Tanggal Pengajuan", "Keluar", "Kembali", "Durasi", "Keterangan", "FOTO"];
                 const tableRows = [];
-                const imagesData = {}; // Untuk menampung base64 foto
+                const imagesData = {};
                 
-                // Variabel untuk menampung rekapan keterlambatan
-                let summaryLate = {
-                    "Dinas/Sekolah": {},
-                    "Pribadi": {}
-                };
-
-                let summaryBelumKembali = []; // Variabel untuk menampung yang belum kembali
+                let summaryLate = { "Dinas/Sekolah": {}, "Pribadi": {} };
+                let summaryBelumKembali = [];
                 
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
                     
-                    // Pastikan output format adalah 24 jam dengan menggunakan fungsi helper
                     let out24 = formatTo24Hour(row.waktu_keluar) || '-';
                     let in24 = formatTo24Hour(row.waktu_kembali) || '-';
                     let tglK = row.tanggal_keluar || row.tanggal || '-';
                     let tglKm = row.tanggal_kembali || row.tanggal || '-';
                     
-                    // Hitung durasi
                     let durasi = "-";
                     if (out24 !== '-' && in24 !== '-') {
                         const [kh, km] = out24.split(':').map(Number);
@@ -1000,7 +913,7 @@
                         if (!isNaN(kh) && !isNaN(km) && !isNaN(eh) && !isNaN(em)) {
                             let startMins = kh * 60 + km;
                             let endMins = eh * 60 + em;
-                            if (endMins < startMins) endMins += 24 * 60; // Jika lewat tengah malam
+                            if (endMins < startMins) endMins += 24 * 60;
                             
                             let totalMins = endMins - startMins;
                             let jam = Math.floor(totalMins / 60);
@@ -1016,11 +929,9 @@
                         }
                     }
 
-                    // Tentukan keterangan (Hanya diisi jika terlambat)
                     const isLate = isTerlambat(row);
                     const keterangan = isLate ? "MELEBIHI IZIN KELUAR" : "";
 
-                    // Track rekapitulasi keterlambatan
                     if (isLate) {
                         let cat = row.keperluan === 'Pribadi' ? 'Pribadi' : 'Dinas/Sekolah';
                         let empName = row.nama || 'Anonim';
@@ -1029,7 +940,6 @@
                         summaryLate[cat][empName].push(empDate);
                     }
 
-                    // Track rekapitulasi belum kembali saat laporan diunduh
                     if (row.status === 'Keluar') {
                         summaryBelumKembali.push([
                             row.nama || 'Anonim',
@@ -1047,15 +957,14 @@
                         `${tglKm}\n${in24}`,
                         durasi,
                         keterangan,
-                        "" // Dibiarkan kosong, nanti diisi gambar oleh autoTable
+                        ""
                     ];
                     tableRows.push(rowData);
 
-                    // Konversi URL foto Supabase ke Base64 (Syarat wajib untuk PDF jsPDF)
                     if (row.foto_url && row.foto_url !== 'Tidak Ada Foto' && row.foto_url.startsWith('http')) {
                         try {
                             const img = new Image();
-                            img.crossOrigin = "Anonymous"; // Hindari error CORS
+                            img.crossOrigin = "Anonymous";
                             img.src = row.foto_url;
                             await new Promise((resolve) => {
                                 img.onload = () => {
@@ -1064,50 +973,43 @@
                                     canvas.height = img.height;
                                     const ctx = canvas.getContext('2d');
                                     ctx.drawImage(img, 0, 0);
-                                    // Kompres sedikit agar file PDF tidak terlalu berat
                                     imagesData[i] = canvas.toDataURL('image/jpeg', 0.6); 
                                     resolve();
                                 };
                                 img.onerror = () => resolve();
                             });
-                        } catch(e) { console.warn("Failed to load image for PDF", e); }
+                        } catch(e) { console.warn("Image load failed", e); }
                     }
                 }
 
-                // Gambar Tabel Utama ke dalam PDF
                 doc.autoTable({
                     head: [tableColumn],
                     body: tableRows,
                     startY: 28,
-                    margin: { bottom: 15 }, // Memaksa margin bawah agar tabel putus tepat di 11 baris
-                    rowPageBreak: 'avoid',  // Memastikan baris (dan foto) tidak terpotong di batas halaman
-                    styles: { fontSize: 8, valign: 'middle', cellPadding: 2 }, // Menggunakan font lebih besar di landscape
+                    margin: { bottom: 15 },
+                    rowPageBreak: 'avoid',
+                    styles: { fontSize: 8, valign: 'middle', cellPadding: 2 },
                     columnStyles: {
-                        7: { textColor: [220, 38, 38], fontStyle: 'bold' }, // Kolom Keterangan (Merah) di index 7
-                        8: { cellWidth: 18, minCellHeight: 25 } // Ukuran sel foto disesuaikan untuk landscape
+                        7: { textColor: [220, 38, 38], fontStyle: 'bold' },
+                        8: { cellWidth: 18, minCellHeight: 25 }
                     },
                     didDrawCell: function(dataInfo) {
-                        // Hook ini berjalan setiap kali sel tabel selesai digambar
                         if (dataInfo.column.index === 8 && dataInfo.cell.section === 'body') {
                             const rowIndex = dataInfo.row.index;
                             if (imagesData[rowIndex]) {
-                                // Dimensi disesuaikan untuk landscape PDF
                                 const dimW = 12; 
                                 const dimH = 21.3; 
-                                // Kalkulasi posisi (X, Y) agar foto pas berada di tengah sel tabel
                                 const x = dataInfo.cell.x + (dataInfo.cell.width - dimW) / 2;
                                 const y = dataInfo.cell.y + (dataInfo.cell.height - dimH) / 2;
-                                
                                 doc.addImage(imagesData[rowIndex], 'JPEG', x, y, dimW, dimH);
                             } else {
-                                // Jika tidak ada foto
                                 doc.text("-", dataInfo.cell.x + dataInfo.cell.width / 2, dataInfo.cell.y + dataInfo.cell.height / 2, { align: 'center' });
                             }
                         }
                     }
                 });
 
-                // --- HALAMAN BARU: REKAPITULASI KETERLAMBATAN ---
+                // Halaman Baru: Rekapitulasi
                 doc.addPage();
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(14);
@@ -1124,7 +1026,7 @@
                 ['Dinas/Sekolah', 'Pribadi'].forEach(kategori => {
                     doc.setFont("helvetica", "bold");
                     doc.setFontSize(11);
-                    doc.setTextColor(30, 58, 138); // Indigo 900
+                    doc.setTextColor(30, 58, 138);
                     doc.text(`KATEGORI: ${kategori.toUpperCase()}`, 14, currentY);
                     currentY += 8;
 
@@ -1133,7 +1035,7 @@
                     if (names.length === 0) {
                         doc.setFont("helvetica", "italic");
                         doc.setFontSize(9);
-                        doc.setTextColor(100, 116, 139); // Slate 500
+                        doc.setTextColor(100, 116, 139);
                         doc.text("Tidak ada data keterlambatan pada kategori ini.", 14, currentY);
                         currentY += 12;
                     } else {
@@ -1143,7 +1045,7 @@
                             summaryRows.push([
                                 name,
                                 `${dates.length} Kali`,
-                                dates.join(', ') // Menggabungkan tanggal dengan koma
+                                dates.join(', ')
                             ]);
                         });
 
@@ -1152,7 +1054,7 @@
                             body: summaryRows,
                             startY: currentY,
                             styles: { fontSize: 9 },
-                            headStyles: { fillColor: [220, 38, 38] }, // Header merah untuk peringatan
+                            headStyles: { fillColor: [220, 38, 38] },
                             margin: { left: 14 }
                         });
                         currentY = doc.lastAutoTable.finalY + 15;
@@ -1160,24 +1062,21 @@
                 });
 
                 currentY += 5;
-
-                // Cek jika ruang tersisa kurang, pindah ke halaman baru sebelum tabel Belum Kembali
-                if (currentY > 160) { // Angka batas untuk landscape lebih pendek
+                if (currentY > 160) {
                     doc.addPage();
                     currentY = 20;
                 }
 
-                // Tabel Rekapitulasi Pemohon Belum Kembali
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(12);
-                doc.setTextColor(220, 38, 38); // Merah
+                doc.setTextColor(220, 38, 38);
                 doc.text("STATUS BELUM KEMBALI (SAAT LAPORAN DIUNDUH)", 14, currentY);
                 currentY += 8;
 
                 if (summaryBelumKembali.length === 0) {
                     doc.setFont("helvetica", "italic");
                     doc.setFontSize(9);
-                    doc.setTextColor(100, 116, 139); // Slate 500
+                    doc.setTextColor(100, 116, 139);
                     doc.text("Semua pemohon pada periode ini telah lapor kembali.", 14, currentY);
                 } else {
                     doc.autoTable({
@@ -1185,62 +1084,52 @@
                         body: summaryBelumKembali,
                         startY: currentY,
                         styles: { fontSize: 9 },
-                        headStyles: { fillColor: [245, 158, 11] }, // Oranye
+                        headStyles: { fillColor: [245, 158, 11] },
                         margin: { left: 14 }
                     });
                 }
 
-                // Eksekusi Unduh File PDF
                 doc.save(`Laporan_Izin_${startDate}_sd_${endDate}.pdf`);
                 
             } catch (err) {
-                console.error(err);
                 alert("Terjadi kesalahan saat mengunduh laporan PDF.");
             } finally {
                 hideLoading();
             }
         }
 
-        // HAPUS DATA LAPORAN BERDASARKAN PERIODE
         async function deleteReportByPeriod() {
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
 
             if (!startDate || !endDate) {
-                alert("Silakan pilih rentang tanggal mulai dan tanggal akhir terlebih dahulu sebelum menghapus.");
+                alert("Silakan pilih rentang tanggal.");
                 return;
             }
 
-            if (!confirm(`PERINGATAN BAHAYA!\n\nAnda akan menghapus PERMANEN semua data pengajuan izin dari rentang tanggal ${startDate} hingga ${endDate}.\n\nData yang dihapus dari Supabase tidak dapat dikembalikan. Apakah Anda yakin ingin melanjutkan?`)) {
-                return;
-            }
+            if (!confirm(`Hapus PERMANEN data pengajuan izin dari tanggal ${startDate} hingga ${endDate}?`)) return;
 
             showLoading("Menghapus Data Laporan...");
-            
             try {
                 const endDateFull = new Date(endDate);
                 endDateFull.setHours(23, 59, 59, 999);
 
-                const { error } = await supabaseClient.from('izin')
+                const { error = null } = await supabaseClient.from('izin')
                     .delete()
                     .gte('created_at', new Date(startDate).toISOString())
                     .lte('created_at', endDateFull.toISOString());
 
                 if (error) throw error;
-
-                alert("Data pada periode tersebut berhasil dihapus dari sistem.");
+                alert("Data berhasil dihapus dari sistem.");
                 await renderAdminContent();
-                
             } catch (err) {
-                console.error(err);
-                alert("Terjadi kesalahan saat menghapus data.");
+                alert("Gagal menghapus data.");
             } finally {
                 hideLoading();
             }
         }
 
-        // --- UI & NAV LOGIC ---
-
+        // --- UI & NAVIGATION LOGIC ---
         function navTo(sec) {
             ['layanan', 'piket', 'admin'].forEach(s => {
                 const el = document.getElementById(`sec-${s}`);
@@ -1271,7 +1160,7 @@
             document.getElementById('adminPass').value = '';
             document.getElementById('adminLogin').classList.remove('hidden');
             document.getElementById('adminDashboard').classList.add('hidden');
-            state.selectedAdminItems = []; // Reset pilihan saat logout
+            state.selectedAdminItems = [];
             navTo('layanan');
         }
 
@@ -1284,10 +1173,11 @@
             } else { alert("Password Salah!"); }
         }
 
+        // --- SWITCH ADMIN TABS ---
         function switchAdminTab(tab) {
             state.adminActiveTab = tab;
             state.currentPage = 1;
-            state.selectedAdminItems = []; // Reset centang saat pindah tab
+            state.selectedAdminItems = [];
             ['pegawai', 'petugas', 'laporan'].forEach(t => {
                 const btn = document.getElementById(`tabBtn-${t}`);
                 if(t === tab) {
@@ -1307,12 +1197,11 @@
             const newPage = state.currentPage + dir;
             if (newPage >= 1 && newPage <= totalPages) {
                 state.currentPage = newPage;
-                state.selectedAdminItems = []; // Reset centang saat pindah halaman
+                state.selectedAdminItems = [];
                 renderAdminContent();
             }
         }
 
-        // FUNGSI GMAIL STYLE CHECKBOX (TOGGLE)
         function toggleSelection(id) {
             const index = state.selectedAdminItems.indexOf(id);
             if (index > -1) {
@@ -1320,16 +1209,14 @@
             } else {
                 state.selectedAdminItems.push(id);
             }
-            renderAdminContent(); // Render ulang untuk memunculkan/menyembunyikan tombol delete
+            renderAdminContent();
         }
 
         function toggleAllSelection(idsArray) {
             const allSelected = idsArray.every(id => state.selectedAdminItems.includes(id));
             if (allSelected) {
-                // Hapus semua id di halaman ini dari daftar terpilih
                 state.selectedAdminItems = state.selectedAdminItems.filter(id => !idsArray.includes(id));
             } else {
-                // Tambahkan semua id di halaman ini yang belum terpilih
                 idsArray.forEach(id => {
                     if (!state.selectedAdminItems.includes(id)) state.selectedAdminItems.push(id);
                 });
@@ -1341,16 +1228,13 @@
             const container = document.getElementById('adminContent');
             const paginationEl = document.getElementById('adminPagination');
 
-            // --- RENDER TAB LAPORAN (TIDAK ADA PERUBAHAN GMAIL STYLE DISINI) ---
             if (state.adminActiveTab === 'laporan') {
                 if(paginationEl) paginationEl.style.display = 'none';
                 
-                // Fetch laporan dari DB
                 showLoading("Laporan...");
                 const { data } = await supabaseClient.from('izin').select('*').eq('status', 'Selesai').order('created_at', {ascending: false}).limit(30);
                 hideLoading();
 
-                // Simpan data di state sementara untuk digunakan oleh Modal Edit
                 state.tempLaporanData = data || [];
 
                 let laporanHtml = '';
@@ -1414,7 +1298,6 @@
                 return;
             }
 
-            // --- RENDER TAB PEGAWAI & PETUGAS (GMAIL STYLE TERAPLIKASI DISINI) ---
             if(paginationEl) paginationEl.style.display = 'flex';
             const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
             
@@ -1424,7 +1307,6 @@
             const start = (state.currentPage - 1) * state.itemsPerPage;
             const paginatedItems = source.slice(start, start + state.itemsPerPage);
             
-            // Dapatkan ID item di halaman ini untuk fitur "Check All"
             const currentIds = paginatedItems.map(i => i.id);
             const allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
 
@@ -1432,7 +1314,6 @@
             document.getElementById('prevPage').disabled = state.currentPage <= 1;
             document.getElementById('nextPage').disabled = state.currentPage >= totalPages;
 
-            // Tombol Delete Muncul jika ada yang dicentang
             let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `
                 <button onclick="deleteSelectedMasterData('${state.adminActiveTab}')" class="w-full mb-3 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 hover:bg-red-700">
                     <i class="fas fa-trash"></i> Hapus ${state.selectedAdminItems.length} Data Terpilih
@@ -1457,7 +1338,7 @@
 
                 <div class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
                     <div class="flex items-center p-4 bg-slate-50 border-b border-slate-100">
-                        <input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer">
+                        <input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded border-slate-300 cursor-pointer">
                         <span class="text-[9px] font-bold text-slate-500 uppercase ml-4 tracking-widest">Pilih Semua di Halaman Ini</span>
                     </div>
                     <div class="divide-y divide-slate-50">
@@ -1467,7 +1348,7 @@
                                 <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer">
                                 <div class="ml-4 truncate">
                                     <div class="text-xs font-black uppercase text-slate-900 truncate">${item.nama}</div>
-                                    <div class="text-[8px] font-bold text-slate-400 uppercase mt-0.5">
+                                    <div class="text-[8px] font-bold text-slate-400 uppercase mt-0.5 font-semibold">
                                         ${state.adminActiveTab === 'pegawai' ? (item.jabatan || 'Staf') : 'PIN: ' + item.pin}
                                     </div>
                                 </div>
@@ -1501,11 +1382,7 @@
             
             activeData.forEach(item => {
                 let waktuKeluarHtml = '';
-                
-                // Cek Keterlambatan
                 const late = item.status === 'Keluar' && isTerlambat(item);
-                
-                // Modifikasi Styling Kartu jika terlambat
                 const borderCls = late ? 'border-red-400 bg-red-50' : 'border-slate-100 bg-white';
                 const shadowCls = late ? 'shadow-red-200/50' : 'shadow-sm';
                 
@@ -1513,7 +1390,6 @@
                     waktuKeluarHtml = `<div class="text-[8px] font-bold ${late ? 'text-red-500' : 'text-slate-500'} mt-1.5"><i class="fas fa-clock mr-1"></i> Keluar: ${item.tanggal_keluar || item.tanggal} | ${formatTo24Hour(item.waktu_keluar)}</div>`;
                 }
 
-                // Kotak Peringatan Berkedip Khusus Terlambat
                 const warningBox = late ? `
                     <div class="mt-3 p-2 bg-red-100 border border-red-200 rounded-xl flex items-start gap-2 animate-pulse">
                         <i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i>
@@ -1602,8 +1478,8 @@
         }
         
         function closeFinishModal() {
-            document.getElementById('modalFinish').classList.replace('flex', 'hidden');
             stopCamera();
+            document.getElementById('modalFinish').classList.replace('flex', 'hidden');
         }
 
         function updateTime() {
@@ -1611,10 +1487,8 @@
             const cd = document.getElementById('clockDisplay');
             const dd = document.getElementById('dateDisplay');
             
-            // Format Display Jam Utama juga dipaksa ke mode 24 Jam menggunakan helper
             const rawTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
             if(cd) cd.textContent = formatTo24Hour(rawTime);
-            
             if(dd) dd.textContent = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
         }
 
@@ -1625,10 +1499,8 @@
         }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
 
-        // Start Script
         window.onload = init;
         document.getElementById('izinForm').onsubmit = handleIzinSubmit;
-
     </script>
 </body>
 </html>
