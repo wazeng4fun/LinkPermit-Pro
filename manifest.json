@@ -1,20 +1,24 @@
 {
   "name": "LinkPermit Pro",
   "short_name": "LinkPermit",
-  "start_url": "index.html",
+  "description": "Sistem Izin Keluar Masuk SMK Link and Match",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "theme_color": "#b91c1c",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "[https://cdn-icons-png.flaticon.com/512/1162/1162456.png](https://cdn-icons-png.flaticon.com/512/1162/1162456.png)",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "[https://cdn-icons-png.flaticon.com/512/1162/1162456.png](https://cdn-icons-png.flaticon.com/512/1162/1162456.png)",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
