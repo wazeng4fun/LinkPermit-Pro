@@ -400,19 +400,23 @@ function checkNotificationSchedules() {
     }
 }
         function kirimNotifikasi(pesan) {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.ready.then(function(registration) {
-                    registration.showNotification('LinkPermit Pro', {
-                        body: pesan,
-                        icon: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
-                        badge: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
-                        vibrate: [200, 100, 200, 100, 200, 100, 200], 
-                        tag: 'peringatan-izin',
-                        renotify: true
-                    });
-                });
-            }
+            if (Notification.permission === "granted") {
+                const notif = new Notification("LinkPermit Pro", {
+                body: pesan,
+                icon: "logo-192.png", // pastikan file ini ada
+                vibrate: [200, 100, 200], // HP akan bergetar
+                tag: 'peringatan-izin' // agar notifikasi tidak bertumpuk banyak
+            });
+
+            notif.onclick = () => {
+            window.focus();
+            notif.close();
+            };
+        } else {
+            requestNotificationPermission();
+            alert(pesan);
         }
+    }
 
         // Initialize App
         async function init() {
