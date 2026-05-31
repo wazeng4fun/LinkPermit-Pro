@@ -106,7 +106,7 @@
                     <i class="fas fa-cloud absolute -right-2 -bottom-2 text-6xl text-white/5"></i>
                 </div>
 
-                <form id="izinForm" class="space-y-4">
+                <form id="izinForm" onsubmit="handleIzinSubmit(event)" class="space-y-4">
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
                         <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all text-slate-700">
@@ -154,7 +154,7 @@
                 </div>
 
                 <!-- Form Login Piket -->
-                <form id="piketLoginForm" class="space-y-6 pt-6">
+                <form id="piketLoginForm" onsubmit="event.preventDefault(); handleLogin();" class="space-y-6 pt-6">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-slate-900 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-xl shadow-slate-900/20"><i class="fas fa-user-shield"></i></div>
                         <h3 class="text-xl font-black mb-2">Panel Petugas</h3>
@@ -204,7 +204,7 @@
             <!-- LOGIN MASTER ADMIN -->
             <div id="sec-admin" class="hidden animate-slide-up space-y-6">
                 <!-- Form Login Admin -->
-                <form id="adminLoginForm" class="space-y-6 pt-10">
+                <form id="adminLoginForm" onsubmit="event.preventDefault(); handleAdminLogin();" class="space-y-6 pt-10">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-red-700 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-xl shadow-red-700/20"><i class="fas fa-cog"></i></div>
                         <h3 class="text-xl font-black mb-2">Master Admin</h3>
@@ -782,6 +782,30 @@
             renderAdminContent();
         }
 
+        // --- FITUR UNDUH TEMPLATE CSV ---
+        function downloadCSVTemplate(type) {
+            let csvContent = "\uFEFF"; 
+            if (type === 'pegawai') {
+                csvContent += "Nama Lengkap,Jabatan / Bidang,Nomor HP\n";
+                csvContent += "Andi Hermawan,Guru Kejuruan,081234567890\n";
+                csvContent += "Siti Aminah,Staff Tata Usaha,087788990011\n";
+            } else {
+                csvContent += "Nama Lengkap,PIN (4 Digit),Nomor HP\n";
+                csvContent += "Fajar Ramadhan,2580,085299887766\n";
+                csvContent += "Rendi Saputra,1470,089911223344\n";
+            }
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Template_Import_${type === 'pegawai' ? 'Pegawai' : 'Petugas'}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Template CSV ${type === 'pegawai' ? 'Pegawai' : 'Petugas'} berhasil diunduh!`, "success");
+        }
+
         // --- RENDER DESKTOP ADMIN CONTENT (TABLES WITH SCROLL) ---
         async function renderAdminContent() {
             const container = document.getElementById('desktopAdminContent');
@@ -1109,10 +1133,10 @@
         function handleLogin() {
             const user = document.getElementById('piketUser').value, pin = document.getElementById('piketPin').value;
             const match = state.listPetugas.find(p => p.nama === user && p.pin === pin);
-            if (match) { state.currentUser = match; document.getElementById('piketLogin').classList.add('hidden'); document.getElementById('piketDashboard').classList.remove('hidden'); document.getElementById('petugasAktif').textContent = match.nama; showToast("Petugas aktif!", "success"); renderPiketAntrean(); } 
+            if (match) { state.currentUser = match; document.getElementById('piketLoginForm').classList.add('hidden'); document.getElementById('piketDashboard').classList.remove('hidden'); document.getElementById('petugasAktif').textContent = match.nama; showToast("Petugas aktif!", "success"); renderPiketAntrean(); } 
             else showToast("PIN salah.", "error");
         }
-        function handleLogout() { state.currentUser = null; document.getElementById('piketPin').value = ''; document.getElementById('piketLogin').classList.remove('hidden'); document.getElementById('piketDashboard').classList.add('hidden'); navTo('layanan'); }
+        function handleLogout() { state.currentUser = null; document.getElementById('piketPin').value = ''; document.getElementById('piketLoginForm').classList.remove('hidden'); document.getElementById('piketDashboard').classList.add('hidden'); navTo('layanan'); }
 
         async function approveIzin(id) {
             showLoading("Mengonfirmasi...");
@@ -1550,6 +1574,9 @@
             hideLoading(); updateTime(); setInterval(updateTime, 1000);
         }
         window.onload = init;
+        
+        // Form Edit Laporan Izin Handling
+        document.getElementById('editIzinForm').onsubmit = (e) => { e.preventDefault(); saveEditIzin(); };
     </script>
 </body>
 </html>
