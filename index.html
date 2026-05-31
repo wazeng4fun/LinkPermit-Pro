@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LinkPermit Pro - Full Restored</title>
+    <title>LinkPermit Pro - Stable Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,41 +16,48 @@
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .hide-scroll::-webkit-scrollbar { display: none; }
+        
+        /* Solusi Anti-Freeze untuk Elemen yang di Toggle */
+        .is-hidden { display: none !important; }
     </style>
 </head>
 <body class="text-slate-900 antialiased">
 
-    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 hidden flex flex-col items-center justify-center">
+    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 is-hidden flex-col items-center justify-center">
         <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
-        <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Sinkronisasi Sistem</p>
+        <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Memproses...</p>
     </div>
 
-    <div id="authOverlay" class="fixed inset-0 z-[2000] bg-white hidden overflow-y-auto p-8 animate-slide-up">
+    <div id="authOverlay" class="fixed inset-0 z-[2000] bg-white is-hidden overflow-y-auto p-8 animate-slide-up">
         <div class="max-w-md mx-auto">
             <button onclick="closeAuth()" class="mb-8 text-slate-400"><i class="fas fa-arrow-left text-xl"></i></button>
             <div class="text-center mb-8">
-                <h2 id="authTitle" class="text-2xl font-black uppercase italic tracking-tighter">Akses <span class="text-red-700">Sistem</span></h2>
+                <h2 class="text-2xl font-black uppercase italic tracking-tighter">Akses <span class="text-red-700">Sistem</span></h2>
             </div>
             <div id="authTabs" class="flex bg-slate-100 p-1 rounded-2xl mb-8">
                 <button id="tabLogin" onclick="toggleAuthTab('login')" class="flex-1 py-3 text-[10px] font-black uppercase rounded-xl bg-white shadow-sm">Login</button>
                 <button id="tabDaftar" onclick="toggleAuthTab('daftar')" class="flex-1 py-3 text-[10px] font-black uppercase text-slate-400">Daftar</button>
             </div>
-            <div id="boxLogin" class="space-y-4">
-                <select id="loginNama" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none text-slate-700"></select>
-                <input type="password" id="loginPass" placeholder="Password PIN" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
+            
+            <div id="boxLogin" class="space-y-4 block">
+                <select id="loginNama" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none"></select>
+                <input type="password" id="loginPass" placeholder="Password PIN" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
                 <button onclick="handleLoginPiket()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl">Masuk Petugas</button>
                 <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-red-700 mt-4 underline">Login Master Admin</button>
             </div>
-            <div id="boxDaftar" class="hidden space-y-4">
-                <select id="regNama" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none text-slate-700"></select>
-                <input type="email" id="regEmail" placeholder="Email Aktif" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
-                <input type="password" id="regPass" placeholder="Buat Password" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
+            
+            <div id="boxDaftar" class="is-hidden space-y-4">
+                <select id="regNama" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none"></select>
+                <input type="email" id="regEmail" placeholder="Email Aktif" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
+                <input type="password" id="regPass" placeholder="Buat Password" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
                 <button onclick="handleRegisterPiket()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl">Ajukan Akun</button>
             </div>
-            <div id="boxAdmin" class="hidden space-y-4">
-                <input type="email" id="adminEmail" placeholder="Email Master Admin" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
-                <input type="password" id="adminPass" placeholder="Password Master Admin" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
+            
+            <div id="boxAdmin" class="is-hidden space-y-4">
+                <input type="email" id="adminEmail" placeholder="Email Master Admin" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
+                <input type="password" id="adminPass" placeholder="Password Master Admin" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
                 <button onclick="handleLoginAdmin()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl">Buka Dashboard Admin</button>
+                <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-slate-400 mt-4">Batal</button>
             </div>
         </div>
     </div>
@@ -61,7 +68,10 @@
                 <div class="w-8 h-8 bg-red-700 rounded-lg flex items-center justify-center text-white shadow-lg">
                     <i class="fas fa-id-card text-xs"></i>
                 </div>
-                <h1 class="text-sm font-black tracking-tighter uppercase">LinkPermit <span class="text-red-700">Pro</span></h1>
+                <div>
+                    <h1 class="text-sm font-black tracking-tighter uppercase">LinkPermit <span class="text-red-700">Pro</span></h1>
+                    <p id="userStatus" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Guest Mode</p>
+                </div>
             </div>
             <div class="text-right">
                 <div id="clockDisplay" class="text-xs font-black text-slate-800">00:00</div>
@@ -83,7 +93,7 @@
             <form id="izinForm" class="space-y-4">
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
-                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none focus:ring-2 ring-red-600/10 text-slate-700"></select>
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
@@ -110,7 +120,7 @@
             </div>
         </div>
 
-        <div id="sec-piket" class="hidden animate-slide-up space-y-4">
+        <div id="sec-piket" class="is-hidden animate-slide-up space-y-4">
             <div class="bg-slate-900 p-5 rounded-3xl text-white flex justify-between items-center mb-6">
                 <div>
                     <p class="text-[8px] font-black text-slate-400 uppercase">Petugas Aktif</p>
@@ -121,10 +131,10 @@
             <div id="listOperasional" class="space-y-3"></div>
         </div>
 
-        <div id="sec-admin" class="hidden animate-slide-up space-y-6">
+        <div id="sec-admin" class="is-hidden animate-slide-up space-y-6">
             <div class="flex justify-between items-center px-1">
                 <h2 class="text-sm font-black uppercase italic">Master <span class="text-red-700">Admin</span></h2>
-                <button onclick="exportToPDF()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-emerald-600/20"><i class="fas fa-file-export mr-1"></i> PDF Report</button>
+                <button onclick="exportToPDF()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-lg"><i class="fas fa-file-export mr-1"></i> Cetak PDF</button>
             </div>
 
             <div class="flex p-1 bg-slate-100 rounded-2xl gap-1 overflow-x-auto hide-scroll">
@@ -134,7 +144,7 @@
                 <button onclick="switchAdminTab('history')" id="tab-history" class="flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase text-slate-400 transition-all">History</button>
             </div>
 
-            <div id="adminContainer" class="animate-slide-up"></div>
+            <div id="adminContainer" class="animate-slide-up space-y-2"></div>
         </div>
     </main>
 
@@ -152,237 +162,17 @@
         </div>
     </nav>
 
-    <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-6">
+    <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/90 backdrop-blur-md is-hidden items-center justify-center p-6">
         <div class="bg-white p-6 rounded-[2.5rem] w-full max-w-sm space-y-5 text-center">
             <div id="camView">
                 <h3 class="text-sm font-black uppercase mb-4">Bukti Kedatangan</h3>
                 <div class="relative aspect-[3/4] bg-black rounded-3xl overflow-hidden mb-4">
                     <video id="video" class="w-full h-full object-cover" autoplay playsinline></video>
-                    <canvas id="canvas" class="hidden"></canvas>
+                    <canvas id="canvas" class="is-hidden"></canvas>
                 </div>
                 <button onclick="takeSnapshot()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase">Ambil Foto</button>
             </div>
-            <div id="previewView" class="hidden">
+            <div id="previewView" class="is-hidden">
                 <img id="photoPreview" class="w-full aspect-[3/4] object-cover rounded-3xl mb-4">
-                <button onclick="submitFinish()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase">Kirim Laporan</button>
-            </div>
-            <button onclick="closeModal()" class="text-[9px] font-black text-slate-400 uppercase pt-2">Batal</button>
-        </div>
-    </div>
-
-    <script>
-        const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
-        const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
-
-        let currentSession = null;
-        let activeAdminTab = 'pendaftar';
-        let stream = null;
-        let activeIzinId = null;
-
-        async function init() {
-            updateTime(); setInterval(updateTime, 1000);
-            await fetchPegawai();
-            await fetchIzin();
-        }
-
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('clockDisplay').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
-            document.getElementById('dateDisplay').innerText = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
-        }
-
-        function navTo(sec) {
-            if (sec === 'layanan') { renderSec(sec); return; }
-            if (!currentSession) { showAuth(); } 
-            else {
-                if (sec === 'admin' && currentSession.role !== 'admin') { alert("Hanya Admin Utama!"); return; }
-                renderSec(sec);
-            }
-        }
-
-        function renderSec(sec) {
-            ['layanan', 'piket', 'admin'].forEach(s => {
-                document.getElementById(`sec-${s}`).classList.add('hidden');
-                document.getElementById(`nav-${s}`).classList.replace('text-red-700', 'text-slate-300');
-            });
-            document.getElementById(`sec-${sec}`).classList.remove('hidden');
-            document.getElementById(`nav-${sec}`).classList.replace('text-slate-300', 'text-red-700');
-            if (sec === 'piket') fetchOperasional();
-            if (sec === 'admin') switchAdminTab('pendaftar');
-        }
-
-        function showAuth() { document.getElementById('authOverlay').classList.remove('hidden'); fetchMasterList(); }
-        function closeAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
-        function toggleAuthTab(t) {
-            const isLogin = t === 'login';
-            document.getElementById('boxLogin').classList.toggle('hidden', !isLogin);
-            document.getElementById('boxDaftar').classList.toggle('hidden', isLogin);
-            document.getElementById('tabLogin').classList.toggle('bg-white', isLogin);
-            document.getElementById('tabDaftar').classList.toggle('bg-white', !isLogin);
-        }
-        function switchAdminUI() {
-            document.getElementById('boxAdmin').classList.toggle('hidden');
-            document.getElementById('boxLogin').classList.toggle('hidden');
-            document.getElementById('authTabs').classList.toggle('hidden');
-        }
-
-        async function fetchMasterList() {
-            const { data } = await supabase.from('master_piket').select('nama_piket').order('nama_piket');
-            const sels = [document.getElementById('loginNama'), document.getElementById('regNama')];
-            sels.forEach(s => {
-                s.innerHTML = '<option value="">Pilih Petugas...</option>';
-                data?.forEach(p => s.innerHTML += `<option value="${p.nama_piket}">${p.nama_piket}</option>`);
-            });
-        }
-
-        async function handleLoginPiket() {
-            const n = document.getElementById('loginNama').value;
-            const p = document.getElementById('loginPass').value;
-            const { data } = await supabase.from('users_piket').select('*').eq('nama_piket', n).eq('password', p).single();
-            if (data?.is_approved) {
-                currentSession = { ...data, role: 'piket' };
-                document.getElementById('petugasAktif').innerText = data.nama_piket;
-                closeAuth(); navTo('piket');
-            } else alert("Gagal Login.");
-        }
-
-        async function handleLoginAdmin() {
-            const e = document.getElementById('adminEmail').value;
-            const p = document.getElementById('adminPass').value;
-            const { data, error } = await supabase.auth.signInWithPassword({ email: e, password: p });
-            if (data.user) {
-                currentSession = { role: 'admin' };
-                closeAuth(); navTo('admin');
-            } else alert(error.message);
-        }
-
-        async function switchAdminTab(t) {
-            activeAdminTab = t;
-            ['pendaftar', 'pegawai', 'master', 'history'].forEach(b => {
-                const el = document.getElementById(`tab-${b}`);
-                el.classList.toggle('bg-white', b === t);
-                el.classList.toggle('text-slate-400', b !== t);
-            });
-            renderAdminContent();
-        }
-
-        async function renderAdminContent() {
-            const container = document.getElementById('adminContainer');
-            container.innerHTML = '<p class="text-center py-10 font-bold text-[9px] text-slate-300">Memuat...</p>';
-
-            if(activeAdminTab === 'pendaftar') {
-                const { data } = await supabase.from('users_piket').select('*').eq('is_approved', false);
-                container.innerHTML = data?.length ? '' : '<p class="text-center py-10 text-[9px] text-slate-400 italic">Kosong.</p>';
-                data?.forEach(u => {
-                    container.innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center mb-2">
-                        <span class="text-xs font-black">${u.nama_piket}</span>
-                        <button onclick="approveUser('${u.id}')" class="bg-red-700 text-white px-4 py-2 rounded-xl text-[8px] font-black uppercase">Approve</button>
-                    </div>`;
-                });
-            } else if(activeAdminTab === 'pegawai') {
-                const { data } = await supabase.from('data_pegawai').select('*').order('nama');
-                container.innerHTML = `<div class="flex gap-2 mb-4"><input type="text" id="addN" placeholder="Nama..." class="flex-1 p-4 bg-white border rounded-2xl text-xs font-bold"><button onclick="addPegawai()" class="bg-slate-900 text-white px-6 rounded-2xl text-xs">+</button></div>`;
-                data?.forEach(p => {
-                    container.innerHTML += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl border mb-2"><span class="text-xs font-bold">${p.nama}</span><button onclick="delPegawai(${p.id})" class="text-red-500"><i class="fas fa-trash"></i></button></div>`;
-                });
-            } else if(activeAdminTab === 'master') {
-                const { data } = await supabase.from('master_piket').select('*').order('nama_piket');
-                container.innerHTML = `<div class="flex gap-2 mb-4"><input type="text" id="addM" placeholder="Petugas..." class="flex-1 p-4 bg-white border rounded-2xl text-xs font-bold"><button onclick="addMaster()" class="bg-slate-900 text-white px-6 rounded-2xl text-xs">+</button></div>`;
-                data?.forEach(p => {
-                    container.innerHTML += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl border mb-2"><span class="text-xs font-bold">${p.nama_piket}</span><button onclick="delMaster(${p.id})" class="text-red-500"><i class="fas fa-trash"></i></button></div>`;
-                });
-            } else if(activeAdminTab === 'history') {
-                const { data } = await supabase.from('izin_keluar').select('*').order('created_at', { ascending: false }).limit(20);
-                container.innerHTML = '';
-                data?.forEach(i => {
-                    container.innerHTML += `<div class="bg-white p-4 rounded-2xl border mb-2"><p class="text-xs font-black">${i.nama}</p><p class="text-[9px] text-slate-400">${i.keperluan} (${i.waktu_keluar || '-'} s/d ${i.waktu_kembali || '-'})</p></div>`;
-                });
-            }
-        }
-
-        // Operasional CRUD Admin
-        async function approveUser(id) { await supabase.from('users_piket').update({ is_approved: true }).eq('id', id); renderAdminContent(); }
-        async function addPegawai() { const n = document.getElementById('addN').value; if(n) await supabase.from('data_pegawai').insert([{nama:n}]); renderAdminContent(); }
-        async function delPegawai(id) { if(confirm('Hapus?')) await supabase.from('data_pegawai').delete().eq('id', id); renderAdminContent(); }
-        async function addMaster() { const n = document.getElementById('addM').value; if(n) await supabase.from('master_piket').insert([{nama_piket:n}]); renderAdminContent(); }
-        async function delMaster(id) { if(confirm('Hapus?')) await supabase.from('master_piket').delete().eq('id', id); renderAdminContent(); }
-
-        // Beranda & Piket
-        async function fetchPegawai() {
-            const { data } = await supabase.from('data_pegawai').select('nama').order('nama');
-            const s = document.getElementById('inputNama');
-            s.innerHTML = '<option value="">Pilih Nama...</option>';
-            data?.forEach(p => s.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
-        }
-        async function fetchIzin() {
-            const { data } = await supabase.from('izin_keluar').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
-            const list = document.getElementById('listAntrean');
-            list.innerHTML = '';
-            data?.forEach(i => {
-                list.innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center"><span class="text-xs font-black">${i.nama}</span><span class="text-[8px] font-black uppercase text-red-600">${i.status}</span></div>`;
-            });
-        }
-        async function fetchOperasional() {
-            const { data } = await supabase.from('izin_keluar').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
-            const list = document.getElementById('listOperasional');
-            list.innerHTML = '';
-            data?.forEach(i => {
-                list.innerHTML += `<div class="bg-white p-5 rounded-3xl border mb-2 space-y-3">
-                    <div class="flex justify-between font-black text-sm"><span>${i.nama}</span><span class="text-[9px]">${i.status}</span></div>
-                    ${i.status === 'Pending' ? 
-                        `<button onclick="approveExit('${i.id}')" class="w-full bg-red-700 text-white py-3 rounded-2xl text-[9px] font-black">IZINKAN KELUAR</button>` :
-                        `<button onclick="openCam('${i.id}')" class="w-full bg-emerald-600 text-white py-3 rounded-2xl text-[9px] font-black">LAPOR KEMBALI</button>`
-                    }
-                </div>`;
-            });
-        }
-
-        async function approveExit(id) {
-            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            await supabase.from('izin_keluar').update({ status: 'Keluar', waktu_keluar: jam, disetujui_oleh: currentSession.nama_piket }).eq('id', id);
-            fetchOperasional();
-        }
-
-        async function openCam(id) {
-            activeIzinId = id;
-            document.getElementById('modalFinish').classList.remove('hidden');
-            document.getElementById('modalFinish').classList.add('flex');
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-            document.getElementById('video').srcObject = stream;
-        }
-
-        function takeSnapshot() {
-            const v = document.getElementById('video');
-            const c = document.getElementById('canvas');
-            c.width = v.videoWidth; c.height = v.videoHeight;
-            c.getContext('2d').drawImage(v, 0, 0);
-            document.getElementById('photoPreview').src = c.toDataURL('image/jpeg');
-            document.getElementById('camView').classList.add('hidden');
-            document.getElementById('previewView').classList.remove('hidden');
-        }
-
-        async function submitFinish() {
-            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            await supabase.from('izin_keluar').update({ status: 'Selesai', waktu_kembali: jam }).eq('id', activeIzinId);
-            closeModal(); fetchOperasional();
-        }
-
-        function closeModal() {
-            if(stream) stream.getTracks().forEach(t => t.stop());
-            document.getElementById('modalFinish').classList.add('hidden');
-        }
-
-        document.getElementById('izinForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const n = document.getElementById('inputNama').value;
-            const k = document.getElementById('inputKategori').value;
-            const t = document.getElementById('inputTujuan').value;
-            await supabase.from('izin_keluar').insert([{ nama: n, kategori: k, keperluan: t, status: 'Pending' }]);
-            alert("Terkirim!"); document.getElementById('inputTujuan').value = ''; fetchIzin();
-        };
-
-        window.onload = init;
-    </script>
-</body>
-</html>
+                <button onclick="submitFinish()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase mb-2">Simpan Laporan</button>
+                <button onclick="retakePhoto()" class="w-full bg-slate-100 text-slate-600 py-3 rounded-2xl font-
