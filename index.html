@@ -295,15 +295,17 @@
     <!-- ========================================== -->
     <!-- MODALS (Form Master/Shift, Jadwal, Kamera) -->
     <!-- ========================================== -->
+    
+    <!-- Modal Input Master Data (Pegawai, Petugas, Shift) -->
     <div id="modalForm" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up shadow-2xl">
-            <!-- Modal Form Wrapper -->
-            <form id="masterDataForm" class="space-y-6">
+            <!-- Menggunakan fungsi terpisah handleMasterDataSubmit untuk menghindari stale closure -->
+            <form id="masterDataForm" onsubmit="handleMasterDataSubmit(event)" class="space-y-6">
                 <h3 id="modalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Tambah Data</h3>
                 <div class="space-y-5">
                     <div class="space-y-1.5">
                         <label id="labelVal1" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Lengkap</label>
-                        <input id="formVal1" type="text" placeholder="Masukkan Teks" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700" required>
+                        <input id="formVal1" type="text" placeholder="Masukkan Teks" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700">
                     </div>
                     <div class="space-y-1.5 relative" id="containerVal2">
                         <label id="labelVal2" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">PIN / Jabatan</label>
@@ -382,7 +384,7 @@
     <!-- Modal Edit Izin -->
     <div id="modalEditIzin" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto custom-scroll shadow-2xl">
-            <form id="editIzinForm" class="space-y-5">
+            <form id="editIzinForm" onsubmit="handleEditIzinSubmit(event)" class="space-y-5">
                 <h3 class="text-xl font-black uppercase tracking-tight text-slate-900 border-b border-slate-100 pb-4">Edit Data Izin</h3>
                 <div class="space-y-4 pt-2">
                     <div class="grid grid-cols-2 gap-4">
@@ -479,6 +481,63 @@
         };
 
         let editState = { isEditing: false, editingType: null, editingId: null };
+
+        // --- 2. PWA SERVICE WORKER & NOTIFIKASI LATAR BELAKANG ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then((reg) => {
+                    if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                        Notification.requestPermission();
+                    }
+                }).catch((err) => console.log('SW Error:', err));
+            });
+        }
+
+        setInterval(checkNotificationSchedules, 60000);
+
+        function checkNotificationSchedules() {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const myName = localStorage.getItem('local_pemohon_pwa');
+            if (!myName || state.dataIzin.length === 0) return; 
+
+            const ticket = state.dataIzin.find(i => i.nama === myName && i.status === 'Keluar');
+            if (!ticket) return;
+
+            try {
+                const now = new Date();
+                let tglK = ticket.tanggal_keluar || ticket.tanggal;
+                if (tglK && tglK.includes('/')) {
+                    const p = tglK.split('/');
+                    if (p.length === 3) tglK = `${p[2]}-${p[1]}-${p[0]}`; 
+                }
+                const wK = ticket.waktu_keluar || '00:00';
+                const waktuKeluar = new Date(`${tglK}T${wK}`);
+                
+                if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('pribadi')) {
+                    let bM = (waktuKeluar.getHours() === 11 || waktuKeluar.getHours() === 12) ? 130 : 70; 
+                    const batasWaktu = new Date(waktuKeluar.getTime() + bM * 60000);
+                    const sisaMenit = Math.floor((batasWaktu - now) / 60000);
+                    
+                    if (sisaMenit <= 20 && sisaMenit > 0 && !localStorage.getItem(`notif_pribadi_${ticket.id_izin}`)) {
+                        kirimNotifikasi(`Peringatan: Waktu izin keluar Anda tersisa ${sisaMenit} menit lagi!`);
+                        localStorage.setItem(`notif_pribadi_${ticket.id_izin}`, 'sent');
+                    }
+                } else if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('dinas')) {
+                    if (now.getHours() === 17 && now.getMinutes() >= 30 && !localStorage.getItem(`notif_1730_${ticket.id_izin}`)) {
+                        kirimNotifikasi("Jam Operasional hampir berakhir! Segera lapor kembali.");
+                        localStorage.setItem(`notif_1730_${ticket.id_izin}`, 'sent');
+                    }
+                }
+            } catch (err) { console.log(err); }
+        }
+
+        function kirimNotifikasi(pesan) {
+            if (Notification.permission === "granted") {
+                const notif = new Notification("LinkPermit Pro", { body: pesan, icon: "https://cdn-icons-png.flaticon.com/512/1162/1162456.png", vibrate: [200, 100, 200] });
+                notif.onclick = () => { window.focus(); notif.close(); };
+            }
+        }
+
 
         // --- CUSTOM TOAST & CONFIRM MODAL SYSTEM ---
         function showToast(msg, type = 'info') {
@@ -895,7 +954,8 @@
                 const source = state.listJadwal;
                 const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
                 const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
-                const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
+                const currentIds = paginatedItems.map(i => i.id.toString());
+                const allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
                 let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button type="button" onclick="deleteSelectedMasterData('jadwal_piket')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-1"></i> Hapus ${state.selectedAdminItems.length} Data</button>` : '';
 
                 // Generate Data Tabel Jadwal
@@ -903,16 +963,17 @@
                 if (paginatedItems.length > 0) {
                     jadwalHtml = paginatedItems.map(item => {
                         const shiftName = item.nama_shift ? `<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-black tracking-widest">${item.nama_shift}</span>` : '';
+                        const isSelected = state.selectedAdminItems.includes(item.id.toString());
                         return `
-                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/30' : ''}">
-                            <td class="p-3 w-10 text-center"><input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></td>
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${isSelected ? 'bg-blue-50/30' : ''}">
+                            <td class="p-3 w-10 text-center"><input type="checkbox" onchange="toggleSelection('${item.id}')" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></td>
                             <td class="p-3 text-xs font-black uppercase text-slate-900">${item.nama_petugas}</td>
                             <td class="p-3 text-xs font-bold text-slate-600">${item.hari}</td>
                             <td class="p-3 text-xs font-bold text-slate-600">${shiftName} <span class="bg-slate-100 px-2 py-1 rounded tracking-wider ml-1 text-[10px]">${item.jam_mulai} - ${item.jam_selesai}</span></td>
                             <td class="p-3">
                                 <div class="flex items-center gap-1.5">
-                                    <button type="button" onclick="openModalJadwal(true, ${item.id})" class="w-7 h-7 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-[10px]"></i></button>
-                                    <button type="button" onclick="deleteMasterData('jadwal_piket', ${item.id})" class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-[10px]"></i></button>
+                                    <button type="button" onclick="openModalJadwal(true, '${item.id}')" class="w-7 h-7 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-[10px]"></i></button>
+                                    <button type="button" onclick="deleteMasterData('jadwal_piket', '${item.id}')" class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-[10px]"></i></button>
                                 </div>
                             </td>
                         </tr>`;
@@ -928,8 +989,8 @@
                         <td class="p-3 text-[10px] font-bold text-slate-600">${s.jam_mulai} - ${s.jam_selesai}</td>
                         <td class="p-3">
                             <div class="flex items-center gap-1.5 justify-end">
-                                <button type="button" onclick="openForm('shift', true, ${s.id})" class="w-7 h-7 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-md transition-all" title="Edit"><i class="fas fa-edit text-[10px]"></i></button>
-                                <button type="button" onclick="deleteMasterData('shift_piket', ${s.id})" class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-all" title="Hapus"><i class="fas fa-trash text-[10px]"></i></button>
+                                <button type="button" onclick="openForm('shift', true, '${s.id}')" class="w-7 h-7 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-md transition-all" title="Edit"><i class="fas fa-edit text-[10px]"></i></button>
+                                <button type="button" onclick="deleteMasterData('shift_piket', '${s.id}')" class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-all" title="Hapus"><i class="fas fa-trash text-[10px]"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -1004,7 +1065,8 @@
             const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
             const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
             const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
-            const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
+            const currentIds = paginatedItems.map(i => i.id.toString());
+            const allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
 
             let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button type="button" onclick="deleteSelectedMasterData('${state.adminActiveTab}')" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-2"></i> Hapus ${state.selectedAdminItems.length} Terpilih</button>` : '';
 
@@ -1022,10 +1084,11 @@
                         }
                     }
 
+                    const isSelected = state.selectedAdminItems.includes(item.id.toString());
                     return `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/30' : ''}">
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${isSelected ? 'bg-blue-50/30' : ''}">
                         <td class="p-4 w-12 text-center">
-                            <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer">
+                            <input type="checkbox" onchange="toggleSelection('${item.id}')" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer">
                         </td>
                         <td class="p-4 text-xs font-black uppercase text-slate-900">${item.nama}</td>
                         <td class="p-4 text-xs font-bold text-slate-600">
@@ -1034,8 +1097,8 @@
                         </td>
                         <td class="p-4">
                             <div class="flex items-center gap-2">
-                                <button type="button" onclick="openForm('${state.adminActiveTab}', true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
-                                <button type="button" onclick="deleteMasterData('${state.adminActiveTab}', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
+                                <button type="button" onclick="openForm('${state.adminActiveTab}', true, '${item.id}')" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
+                                <button type="button" onclick="deleteMasterData('${state.adminActiveTab}', '${item.id}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
                             </div>
                         </td>
                     </tr>`;
@@ -1094,23 +1157,31 @@
             if (newPage >= 1 && newPage <= totalPages) { state.currentPage = newPage; state.selectedAdminItems = []; renderAdminContent(); }
         }
 
-        function toggleSelection(id) {
+        function toggleSelection(rawId) {
+            const id = rawId.toString();
             const index = state.selectedAdminItems.indexOf(id);
             if (index > -1) state.selectedAdminItems.splice(index, 1); else state.selectedAdminItems.push(id);
             renderAdminContent();
         }
 
         function toggleAllSelection(idsArray) {
-            const allSelected = idsArray.every(id => state.selectedAdminItems.includes(id));
-            if (allSelected) state.selectedAdminItems = state.selectedAdminItems.filter(id => !idsArray.includes(id));
-            else idsArray.forEach(id => { if (!state.selectedAdminItems.includes(id)) state.selectedAdminItems.push(id); });
+            const strIds = idsArray.map(id => id.toString());
+            const allSelected = strIds.every(id => state.selectedAdminItems.includes(id));
+            if (allSelected) state.selectedAdminItems = state.selectedAdminItems.filter(id => !strIds.includes(id));
+            else strIds.forEach(id => { if (!state.selectedAdminItems.includes(id)) state.selectedAdminItems.push(id); });
             renderAdminContent();
         }
 
         async function handleIzinSubmit(e) {
             e.preventDefault(); const idx = document.getElementById('inputNama').value; if (!idx || !state.listPegawai[idx]) return;
             showLoading("Mengirim...");
-            const peg = state.listPegawai[idx], reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
+            const peg = state.listPegawai[idx];
+            
+            // PWA Notification Permission
+            localStorage.setItem('local_pemohon_pwa', peg.nama);
+            if ('Notification' in window && Notification.permission !== 'granted') Notification.requestPermission();
+
+            const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
             const fmtWaktu = formatTo24Hour(new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}));
             const { error } = await supabaseClient.from('izin').insert([{ id_izin: reqId, nama: peg.nama, keperluan: document.getElementById('inputKategori').value, tujuan: document.getElementById('inputTujuan').value, waktu_daftar: fmtWaktu, status: 'Menunggu', tanggal: new Date().toLocaleDateString('id-ID') }]);
             if (!error) { document.getElementById('inputTujuan').value = ""; await fetchIzin(); showToast("Permohonan diajukan!", "success"); } else showToast("Gagal mengajukan izin.", "error"); 
@@ -1272,7 +1343,7 @@
                 v2.required = false;
                 
                 if (isEdit) {
-                    const i = state.listShift.find(s => s.id === id);
+                    const i = state.listShift.find(s => s.id == id);
                     if (i) { v1.value = i.nama_shift; document.getElementById('formValTime1').value = i.jam_mulai; document.getElementById('formValTime2').value = i.jam_selesai; }
                 } else {
                     v1.value = ''; document.getElementById('formValTime1').value = '08:00'; document.getElementById('formValTime2').value = '15:00';
@@ -1281,36 +1352,43 @@
                 mTitle.textContent = isEdit ? 'Edit Data Pegawai' : 'Tambah Data Pegawai';
                 document.getElementById('labelVal1').textContent = 'Nama Lengkap'; document.getElementById('labelVal2').textContent = 'Jabatan / Bidang'; btnGen.classList.add('hidden');
                 v1.required = true; v2.required = true; document.getElementById('formValTime1').required = false; document.getElementById('formValTime2').required = false;
-                if (isEdit) { const i = state.listPegawai.find(p => p.id === id); if (i) { v1.value = i.nama; v2.value = i.jabatan || ''; let cleanHp = i.no_hp || ''; if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3); vHP.value = cleanHp; } } 
+                if (isEdit) { const i = state.listPegawai.find(p => p.id == id); if (i) { v1.value = i.nama; v2.value = i.jabatan || ''; let cleanHp = i.no_hp || ''; if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3); vHP.value = cleanHp; } } 
                 else { v1.value = ''; v2.value = ''; vHP.value = ''; }
             } else if (type === 'petugas') {
                 mTitle.textContent = isEdit ? 'Edit Data Petugas' : 'Tambah Data Petugas';
                 document.getElementById('labelVal1').textContent = 'Nama Lengkap'; document.getElementById('labelVal2').textContent = 'PIN (4 Digit)'; btnGen.classList.remove('hidden');
                 v1.required = true; v2.required = true; document.getElementById('formValTime1').required = false; document.getElementById('formValTime2').required = false;
-                if (isEdit) { const i = state.listPetugas.find(p => p.id === id); if (i) { v1.value = i.nama; v2.value = i.pin || ''; let cleanHp = i.no_hp || ''; if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3); vHP.value = cleanHp; } } 
+                if (isEdit) { const i = state.listPetugas.find(p => p.id == id); if (i) { v1.value = i.nama; v2.value = i.pin || ''; let cleanHp = i.no_hp || ''; if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3); vHP.value = cleanHp; } } 
                 else { v1.value = ''; generateRandomPin(); vHP.value = ''; }
             }
             
             const modal = document.getElementById('modalForm'); modal.classList.remove('hidden'); modal.classList.add('flex');
-            
-            // Logic Penanganan Submit yang terisolasi sempurna (no stale closure)
-            document.getElementById('masterDataForm').onsubmit = (e) => {
-                e.preventDefault();
-                
-                if (editState.editingType === 'shift') {
-                    const nm = v1.value.trim(), jm1 = document.getElementById('formValTime1').value, jm2 = document.getElementById('formValTime2').value;
-                    if(!nm || !jm1 || !jm2) return showToast("Isi semua data shift", "error");
-                    saveShiftData(nm, jm1, jm2, editState.isEditing, editState.editingId);
-                    return;
-                }
+        }
 
-                const nama = v1.value.trim(), spec = v2.value.trim();
-                let rawHP = vHP.value.trim(); let formattedHP = '';
-                if (rawHP) { if (rawHP.startsWith('0')) formattedHP = '+62' + rawHP.substring(1); else if (rawHP.startsWith('62')) formattedHP = '+62' + rawHP.substring(2); else formattedHP = '+62' + rawHP; }
-                
-                if(nama && spec) saveMasterData(editState.editingType, nama, spec, formattedHP, editState.isEditing, editState.editingId);
-                else showToast("Harap isi semua kolom wajib (Nama & Jabatan/PIN).", "error");
-            };
+        // Logic Penanganan Submit yang terisolasi sempurna
+        function handleMasterDataSubmit(e) {
+            e.preventDefault();
+            const type = editState.editingType;
+            const isEdit = editState.isEditing;
+            const id = editState.editingId;
+
+            const v1 = document.getElementById('formVal1');
+            const v2 = document.getElementById('formVal2');
+            const vHP = document.getElementById('formValHP');
+            
+            if (type === 'shift') {
+                const nm = v1.value.trim(), jm1 = document.getElementById('formValTime1').value, jm2 = document.getElementById('formValTime2').value;
+                if(!nm || !jm1 || !jm2) return showToast("Isi semua data shift", "error");
+                saveShiftData(nm, jm1, jm2, isEdit, id);
+                return;
+            }
+
+            const nama = v1.value.trim(), spec = v2.value.trim();
+            let rawHP = vHP.value.trim(); let formattedHP = '';
+            if (rawHP) { if (rawHP.startsWith('0')) formattedHP = '+62' + rawHP.substring(1); else if (rawHP.startsWith('62')) formattedHP = '+62' + rawHP.substring(2); else formattedHP = '+62' + rawHP; }
+            
+            if(nama && spec) saveMasterData(type, nama, spec, formattedHP, isEdit, id);
+            else showToast("Harap isi semua kolom wajib (Nama & Jabatan/PIN).", "error");
         }
         
         function closeForm() { const m = document.getElementById('modalForm'); m.classList.add('hidden'); m.classList.remove('flex'); document.getElementById('masterDataForm').reset(); }
@@ -1339,6 +1417,11 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             state.currentEditIzinId = null; 
+        }
+
+        function handleEditIzinSubmit(e) {
+            e.preventDefault();
+            saveEditIzin();
         }
 
         async function saveEditIzin() {
@@ -1444,7 +1527,7 @@
                 singleContainer.classList.remove('hidden');
                 multiContainer.classList.add('hidden');
                 
-                const i = state.listJadwal.find(j => j.id === id);
+                const i = state.listJadwal.find(j => j.id == id);
                 if (i) {
                     vPetugasSingle.value = i.nama_petugas;
                     document.getElementById('jadwalHariSelect').value = i.hari;
@@ -1496,7 +1579,7 @@
 
         function closeModalJadwal() { const m = document.getElementById('modalJadwal'); m.classList.add('hidden'); m.classList.remove('flex'); document.getElementById('jadwalForm').reset(); }
 
-        async function deleteMasterData(type, id) { showConfirm("Hapus data ini?", async () => { showLoading("Menghapus..."); const t = type === 'izin' ? 'izin' : type, f = type === 'izin' ? 'id_izin' : 'id'; const {error} = await supabaseClient.from(t).delete().eq(f, id); if(!error) { if(type==='pegawai') await fetchPegawai(); else if(type==='petugas') await fetchPetugas(); else if(type==='shift_piket') await fetchShift(); else if(type==='jadwal_piket') await fetchJadwal(); else await renderAdminContent(); showToast("Dihapus", "success"); } hideLoading(); }); }
+        async function deleteMasterData(type, rawId) { showConfirm("Hapus data ini?", async () => { showLoading("Menghapus..."); const t = type === 'izin' ? 'izin' : type, f = type === 'izin' ? 'id_izin' : 'id'; const {error} = await supabaseClient.from(t).delete().eq(f, rawId); if(!error) { if(type==='pegawai') await fetchPegawai(); else if(type==='petugas') await fetchPetugas(); else if(type==='shift_piket') await fetchShift(); else if(type==='jadwal_piket') await fetchJadwal(); else await renderAdminContent(); showToast("Dihapus", "success"); } hideLoading(); }); }
         async function deleteSelectedMasterData(type) { if(state.selectedAdminItems.length===0) return; showConfirm(`Hapus ${state.selectedAdminItems.length} data?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().in('id', state.selectedAdminItems); if(!error){ state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : (type === 'shift_piket' ? await fetchShift() : await fetchJadwal())); showToast("Berhasil dihapus", "success"); } hideLoading(); }); }
         async function deleteAllMasterData(type) { showConfirm(`Kosongkan semua data ${type}?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().gt('id', 0); if(!error){ state.currentPage=1; state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : (type === 'shift_piket' ? await fetchShift() : await fetchJadwal())); showToast("Berhasil dikosongkan", "success"); } hideLoading(); }); }
         
@@ -1574,9 +1657,6 @@
             hideLoading(); updateTime(); setInterval(updateTime, 1000);
         }
         window.onload = init;
-        
-        // Form Edit Laporan Izin Handling
-        document.getElementById('editIzinForm').onsubmit = (e) => { e.preventDefault(); saveEditIzin(); };
     </script>
 </body>
 </html>
