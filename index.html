@@ -97,12 +97,24 @@
         <main class="flex-1 max-w-md mx-auto w-full p-5 pb-24 shrink-0">
             <!-- PENGGUNA UMUM -->
             <div id="sec-layanan" class="animate-slide-up space-y-6">
+                
                 <div class="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-xl">
                     <div class="relative z-10">
                         <h2 class="text-lg font-black leading-tight mb-1">Pengajuan Izin</h2>
                         <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Realtime Cloud Storage</p>
                     </div>
                     <i class="fas fa-cloud absolute -right-2 -bottom-2 text-6xl text-white/5"></i>
+                </div>
+
+                <!-- Bagian Informasi Petugas Piket Hari Ini (Terintegrasi WA) -->
+                <div id="petugasHariIniContainer" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hidden animate-slide-up">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex justify-between items-center">
+                        <span>Petugas Piket (<span id="hariIniLabel" class="text-slate-600">Senin</span>)</span>
+                        <i class="fas fa-info-circle"></i>
+                    </h3>
+                    <div id="listPetugasHariIni" class="space-y-2">
+                        <!-- Data petugas dirender dari JS -->
+                    </div>
                 </div>
 
                 <form id="izinForm" class="space-y-4">
@@ -171,7 +183,7 @@
                 </div>
             </div>
 
-            <!-- LOGIN MASTER ADMIN (Desktop View disembunyikan di sini, ini hanya form login) -->
+            <!-- LOGIN MASTER ADMIN -->
             <div id="sec-admin" class="hidden animate-slide-up space-y-6">
                 <div id="adminLogin" class="space-y-6 pt-10">
                     <div class="text-center">
@@ -222,6 +234,10 @@
                 <button id="deskTab-petugas" onclick="switchAdminTab('petugas')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-user-shield w-5 text-center text-lg"></i> Petugas Piket
                 </button>
+                <!-- Tombol Menu Baru: Jadwal Piket -->
+                <button id="deskTab-jadwal" onclick="switchAdminTab('jadwal')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
+                    <i class="fas fa-calendar-alt w-5 text-center text-lg"></i> Jadwal Piket
+                </button>
                 <button id="deskTab-laporan" onclick="switchAdminTab('laporan')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-file-pdf w-5 text-center text-lg"></i> Rekap Laporan
                 </button>
@@ -260,7 +276,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODALS (Form, Edit Izin, Camera, dll.)     -->
+    <!-- MODALS (Form, Jadwal, Edit Izin, Camera)   -->
     <!-- ========================================== -->
     <div id="modalForm" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up shadow-2xl">
@@ -279,7 +295,6 @@
                         </button>
                     </div>
                 </div>
-                <!-- Tambahan Form Input Nomor HP (Otomatis +62) -->
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nomor HP</label>
                     <div class="relative flex items-center">
@@ -292,6 +307,64 @@
             <div class="flex gap-3 pt-4 border-t border-slate-100">
                 <button onclick="closeForm()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
                 <button id="btnSave" class="flex-1 bg-red-700 hover:bg-red-800 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-red-700/20 transition-all">Simpan Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Jadwal Piket Baru -->
+    <div id="modalJadwal" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up shadow-2xl">
+            <h3 id="modalJadwalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Atur Jadwal Piket</h3>
+            <div class="space-y-4">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Petugas</label>
+                    <select id="jadwalPetugasSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                
+                <div class="space-y-2">
+                    <label id="jadwalHariLabel" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Hari (Bisa Lebih Dari Satu)</label>
+                    
+                    <!-- Multi Select untuk Mode Tambah -->
+                    <div class="grid grid-cols-3 gap-2" id="jadwalHariMulti">
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Senin" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Senin</span></label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Selasa" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Selasa</span></label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Rabu" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Rabu</span></label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Kamis" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Kamis</span></label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Jumat" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Jumat</span></label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Sabtu" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Sabtu</span></label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Minggu" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Minggu</span></label>
+                    </div>
+
+                    <!-- Single Select untuk Mode Edit -->
+                    <div id="jadwalHariSingle" class="hidden">
+                        <select id="jadwalHariSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700">
+                            <option value="Senin">Senin</option>
+                            <option value="Selasa">Selasa</option>
+                            <option value="Rabu">Rabu</option>
+                            <option value="Kamis">Kamis</option>
+                            <option value="Jumat">Jumat</option>
+                            <option value="Sabtu">Sabtu</option>
+                            <option value="Minggu">Minggu</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Jam Mulai</label>
+                        <input type="time" id="jadwalMulai" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 text-slate-700">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Jam Selesai</label>
+                        <input type="time" id="jadwalSelesai" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 text-slate-700">
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-4 border-t border-slate-100">
+                <button onclick="closeModalJadwal()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
+                <button id="btnSaveJadwal" class="flex-1 bg-red-700 hover:bg-red-800 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-red-700/20 transition-all">Simpan Jadwal</button>
             </div>
         </div>
     </div>
@@ -387,7 +460,7 @@
         let state = {
             activeTab: 'layanan',
             adminActiveTab: 'pegawai',
-            dataIzin: [], listPegawai: [], listPetugas: [],
+            dataIzin: [], listPegawai: [], listPetugas: [], listJadwal: [],
             currentUser: null, isAdmin: false, currentPage: 1, itemsPerPage: 10,
             currentFinishId: null, cameraStream: null, selectedAdminItems: [], 
             tempLaporanData: [], currentEditIzinId: null
@@ -457,14 +530,9 @@
             e.target.value = val;
         }
 
-        // Membatasi dan membersihkan input nomor HP
         function formatHPInput(el) {
             let val = el.value.replace(/[^0-9]/g, '');
-            if (val.startsWith('62')) {
-                val = val.substring(2);
-            } else if (val.startsWith('0')) {
-                val = val.substring(1);
-            }
+            if (val.startsWith('62')) { val = val.substring(2); } else if (val.startsWith('0')) { val = val.substring(1); }
             el.value = val;
         }
 
@@ -503,12 +571,58 @@
 
         async function fetchPetugas() {
             const { data, error } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
-            if (!error) { state.listPetugas = data || []; syncSelects(); if(state.isAdmin && state.adminActiveTab === 'petugas') renderAdminContent(); }
+            if (!error) { state.listPetugas = data || []; syncSelects(); if(state.isAdmin && state.adminActiveTab === 'petugas') renderAdminContent(); renderPetugasHariIni(); }
+        }
+
+        async function fetchJadwal() {
+            // Urutkan jadwal otomatis dari A ke Z berdasarkan nama_petugas
+            const { data, error } = await supabaseClient.from('jadwal_piket').select('*').order('nama_petugas', { ascending: true });
+            if (!error) { 
+                state.listJadwal = data || []; 
+                if(state.isAdmin && state.adminActiveTab === 'jadwal') renderAdminContent(); 
+                renderPetugasHariIni();
+            }
         }
 
         async function fetchIzin() {
             const { data, error } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
             if (!error) { state.dataIzin = data || []; renderUserList(); renderPiketAntrean(); }
+        }
+
+        // --- RENDER PETUGAS HARI INI (BERANDA) ---
+        function renderPetugasHariIni() {
+            const container = document.getElementById('petugasHariIniContainer');
+            const list = document.getElementById('listPetugasHariIni');
+            const hariMasehi = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const today = hariMasehi[new Date().getDay()];
+            
+            const lbl = document.getElementById('hariIniLabel');
+            if(lbl) lbl.textContent = today;
+
+            const todaysJadwal = state.listJadwal.filter(j => j.hari === today);
+            
+            if (todaysJadwal.length > 0) {
+                container.classList.remove('hidden');
+                list.innerHTML = todaysJadwal.map(j => {
+                    const petugas = state.listPetugas.find(p => p.nama === j.nama_petugas);
+                    const hp = petugas && petugas.no_hp ? petugas.no_hp.replace(/\D/g, '') : '';
+                    const waLink = hp ? `<a href="https://wa.me/${hp}" target="_blank" class="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 hover:scale-110 shadow-sm transition-all"><i class="fab fa-whatsapp text-lg"></i></a>` : '';
+
+                    return `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm"><i class="fas fa-user-shield text-sm"></i></div>
+                            <div>
+                                <p class="text-xs font-black uppercase text-slate-800">${j.nama_petugas}</p>
+                                <p class="text-[9px] font-bold text-slate-500 mt-0.5"><i class="fas fa-clock mr-1 text-slate-400"></i> ${j.jam_mulai} - ${j.jam_selesai}</p>
+                            </div>
+                        </div>
+                        ${waLink}
+                    </div>`;
+                }).join('');
+            } else {
+                container.classList.add('hidden');
+            }
         }
 
         // --- ADMIN VIEW & AUTH LOGIC ---
@@ -552,13 +666,13 @@
         function switchAdminTab(tab) {
             state.adminActiveTab = tab; state.currentPage = 1; state.selectedAdminItems = [];
             
-            ['pegawai', 'petugas', 'laporan'].forEach(t => {
+            ['pegawai', 'petugas', 'jadwal', 'laporan'].forEach(t => {
                 const btn = document.getElementById(`deskTab-${t}`);
                 if(t === tab) { btn.classList.add('bg-white/10', 'text-white'); btn.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); } 
                 else { btn.classList.remove('bg-white/10', 'text-white'); btn.classList.add('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); }
             });
 
-            const titles = { 'pegawai': 'Manajemen Pegawai', 'petugas': 'Petugas Piket', 'laporan': 'Rekap Laporan Izin' };
+            const titles = { 'pegawai': 'Manajemen Pegawai', 'petugas': 'Petugas Piket', 'jadwal': 'Jadwal Piket', 'laporan': 'Rekap Laporan Izin' };
             document.getElementById('adminPageTitle').textContent = titles[tab];
 
             renderAdminContent();
@@ -566,7 +680,7 @@
 
         // --- FITUR UNDUH TEMPLATE CSV ---
         function downloadCSVTemplate(type) {
-            let csvContent = "\uFEFF"; // Byte Order Mark (BOM) untuk kompatibilitas Excel Bahasa Indonesia
+            let csvContent = "\uFEFF"; 
             if (type === 'pegawai') {
                 csvContent += "Nama Lengkap,Jabatan / Bidang,Nomor HP\n";
                 csvContent += "Andi Hermawan,Guru Kejuruan,081234567890\n";
@@ -669,6 +783,74 @@
                 return;
             }
 
+            // --- TABEL JADWAL PIKET DESKTOP ---
+            if (state.adminActiveTab === 'jadwal') {
+                const source = state.listJadwal;
+                state.itemsPerPage = 15;
+                const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
+                const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
+                const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
+                let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button onclick="deleteSelectedMasterData('jadwal_piket')" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-2"></i> Hapus ${state.selectedAdminItems.length} Terpilih</button>` : '';
+
+                let tbodyHtml = '';
+                if (paginatedItems.length > 0) {
+                    tbodyHtml = paginatedItems.map(item => {
+                        return `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/30' : ''}">
+                            <td class="p-4 w-12 text-center">
+                                <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer">
+                            </td>
+                            <td class="p-4 text-xs font-black uppercase text-slate-900">${item.nama_petugas}</td>
+                            <td class="p-4 text-xs font-bold text-slate-600">${item.hari}</td>
+                            <td class="p-4 text-xs font-bold text-slate-600"><span class="bg-slate-100 px-2 py-1 rounded tracking-wider">${item.jam_mulai} - ${item.jam_selesai}</span></td>
+                            <td class="p-4">
+                                <div class="flex items-center gap-2">
+                                    <button onclick="openModalJadwal(true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
+                                    <button onclick="deleteMasterData('jadwal_piket', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    }).join('');
+                } else {
+                    tbodyHtml = '<tr><td colspan="5" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada data jadwal. Silakan tambah jadwal baru.</td></tr>';
+                }
+
+                container.innerHTML = `
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-3">
+                            <button onclick="deleteAllMasterData('jadwal_piket')" class="px-5 py-3 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all"><i class="fas fa-trash-alt mr-2"></i> Kosongkan Semua</button>
+                            ${bulkDeleteBtn}
+                        </div>
+                        <button onclick="openModalJadwal(false)" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all"><i class="fas fa-plus mr-2"></i> Atur Jadwal Baru</button>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="p-4 w-12 text-center"><input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></th>
+                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Nama Petugas</th>
+                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Hari</th>
+                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Jam Piket</th>
+                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest w-24">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tbodyHtml}</tbody>
+                        </table>
+                        
+                        <!-- Pagination Desktop -->
+                        <div class="mt-auto border-t border-slate-100 bg-slate-50 p-4 flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Jadwal: ${source.length}</span>
+                            <div class="flex items-center gap-4">
+                                <button onclick="changePage(-1)" ${state.currentPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-left text-xs"></i></button>
+                                <span class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Halaman ${state.currentPage} / ${totalPages}</span>
+                                <button onclick="changePage(1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-right text-xs"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+                return;
+            }
+
             // --- TAMPILAN TABEL PEGAWAI / PETUGAS DESKTOP ---
             const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
             state.itemsPerPage = 15;
@@ -747,7 +929,7 @@
         }
 
         function changePage(dir) {
-            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
+            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : (state.adminActiveTab === 'petugas' ? state.listPetugas : state.listJadwal);
             const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
             const newPage = state.currentPage + dir;
             if (newPage >= 1 && newPage <= totalPages) { state.currentPage = newPage; state.selectedAdminItems = []; renderAdminContent(); }
@@ -807,9 +989,10 @@
         }
         
         function syncSelects() {
-            const sP = document.getElementById('inputNama'), sT = document.getElementById('piketUser');
+            const sP = document.getElementById('inputNama'), sT = document.getElementById('piketUser'), sJ = document.getElementById('jadwalPetugasSelect');
             if (sP) { sP.innerHTML = '<option value="">Pilih Pegawai...</option>'; state.listPegawai.forEach((p, i) => sP.innerHTML += `<option value="${i}">${p.nama}</option>`); }
             if (sT) { sT.innerHTML = '<option value="">Pilih Petugas...</option>'; state.listPetugas.forEach(p => sT.innerHTML += `<option value="${p.nama}">${p.nama}</option>`); }
+            if (sJ) { sJ.innerHTML = '<option value="">Pilih Petugas Piket...</option>'; state.listPetugas.forEach(p => sJ.innerHTML += `<option value="${p.nama}">${p.nama}</option>`); }
         }
         
         function renderUserList() {
@@ -911,16 +1094,11 @@
                 const spec = v2.value.trim();
                 let rawHP = vHP.value.trim();
                 
-                // Tambahkan otomatis awalan +62 jika nomor HP dimasukkan
                 let formattedHP = '';
                 if (rawHP) {
-                    if (rawHP.startsWith('0')) {
-                        formattedHP = '+62' + rawHP.substring(1);
-                    } else if (rawHP.startsWith('62')) {
-                        formattedHP = '+62' + rawHP.substring(2);
-                    } else {
-                        formattedHP = '+62' + rawHP;
-                    }
+                    if (rawHP.startsWith('0')) { formattedHP = '+62' + rawHP.substring(1); } 
+                    else if (rawHP.startsWith('62')) { formattedHP = '+62' + rawHP.substring(2); } 
+                    else { formattedHP = '+62' + rawHP; }
                 }
                 
                 if(nama && spec) {
@@ -933,6 +1111,79 @@
         
         function closeForm() { const m = document.getElementById('modalForm'); m.classList.add('hidden'); m.classList.remove('flex'); }
         
+        // --- JADWAL PIKET LOGIC ---
+        function openModalJadwal(isEdit = false, id = null) {
+            editState = { isEditing: isEdit, editingType: 'jadwal', editingId: id };
+            const mTitle = document.getElementById('modalJadwalTitle');
+            const vPetugas = document.getElementById('jadwalPetugasSelect');
+            const vMulai = document.getElementById('jadwalMulai');
+            const vSelesai = document.getElementById('jadwalSelesai');
+            const multiHari = document.getElementById('jadwalHariMulti');
+            const singleHari = document.getElementById('jadwalHariSingle');
+            const lblHari = document.getElementById('jadwalHariLabel');
+            
+            // Reset check boxes
+            document.querySelectorAll('input[name="hariPiket"]').forEach(cb => cb.checked = false);
+
+            if (isEdit) {
+                mTitle.textContent = 'Edit Jadwal Piket';
+                lblHari.textContent = 'Pilih Hari';
+                multiHari.classList.add('hidden');
+                singleHari.classList.remove('hidden');
+                const i = state.listJadwal.find(j => j.id === id);
+                if (i) {
+                    vPetugas.value = i.nama_petugas;
+                    document.getElementById('jadwalHariSelect').value = i.hari;
+                    vMulai.value = i.jam_mulai || '';
+                    vSelesai.value = i.jam_selesai || '';
+                }
+            } else {
+                mTitle.textContent = 'Atur Jadwal Piket';
+                lblHari.textContent = 'Pilih Hari (Bisa Lebih Dari Satu)';
+                multiHari.classList.remove('hidden');
+                singleHari.classList.add('hidden');
+                vPetugas.value = '';
+                vMulai.value = '08:00';
+                vSelesai.value = '15:00';
+            }
+
+            const modal = document.getElementById('modalJadwal'); 
+            modal.classList.remove('hidden'); 
+            modal.classList.add('flex');
+
+            document.getElementById('btnSaveJadwal').onclick = async () => {
+                const nama = vPetugas.value;
+                const mulai = vMulai.value;
+                const selesai = vSelesai.value;
+
+                if (!nama || !mulai || !selesai) return showToast("Lengkapi semua kolom waktu dan petugas.", "error");
+
+                showLoading("Menyimpan Jadwal...");
+                if (isEdit) {
+                    const hari = document.getElementById('jadwalHariSelect').value;
+                    const { error } = await supabaseClient.from('jadwal_piket').update({
+                        nama_petugas: nama, hari: hari, jam_mulai: mulai, jam_selesai: selesai
+                    }).eq('id', id);
+                    if (!error) { showToast("Jadwal diupdate!", "success"); await fetchJadwal(); closeModalJadwal(); } 
+                    else { showToast("Gagal update jadwal.", "error"); }
+                } else {
+                    const checkedDays = Array.from(document.querySelectorAll('input[name="hariPiket"]:checked')).map(cb => cb.value);
+                    if (checkedDays.length === 0) { hideLoading(); return showToast("Pilih minimal satu hari.", "error"); }
+                    
+                    const payloads = checkedDays.map(hari => ({
+                        nama_petugas: nama, hari: hari, jam_mulai: mulai, jam_selesai: selesai
+                    }));
+                    
+                    const { error } = await supabaseClient.from('jadwal_piket').insert(payloads);
+                    if (!error) { showToast("Jadwal piket berhasil ditambah!", "success"); await fetchJadwal(); closeModalJadwal(); } 
+                    else { showToast("Gagal menyimpan jadwal.", "error"); }
+                }
+                hideLoading();
+            };
+        }
+
+        function closeModalJadwal() { const m = document.getElementById('modalJadwal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+
         async function saveMasterData(type, v1, v2, v3, isEdit, id) {
             showLoading("Menyimpan...");
             const t = type === 'pegawai' ? 'pegawai' : 'petugas';
@@ -951,11 +1202,10 @@
             hideLoading();
         }
         
-        async function deleteMasterData(type, id) { showConfirm("Hapus data ini?", async () => { showLoading("Menghapus..."); const t = type === 'izin' ? 'izin' : type, f = type === 'izin' ? 'id_izin' : 'id'; const {error} = await supabaseClient.from(t).delete().eq(f, id); if(!error) { if(type==='pegawai') await fetchPegawai(); else if(type==='petugas') await fetchPetugas(); else await renderAdminContent(); showToast("Dihapus", "success"); } hideLoading(); }); }
-        async function deleteSelectedMasterData(type) { if(state.selectedAdminItems.length===0) return; showConfirm(`Hapus ${state.selectedAdminItems.length} data?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().in('id', state.selectedAdminItems); if(!error){ state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : await fetchPetugas(); showToast("Berhasil dihapus", "success"); } hideLoading(); }); }
-        async function deleteAllMasterData(type) { showConfirm(`Kosongkan semua data ${type}?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().gt('id', 0); if(!error){ state.currentPage=1; state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : await fetchPetugas(); showToast("Berhasil dikosongkan", "success"); } hideLoading(); }); }
+        async function deleteMasterData(type, id) { showConfirm("Hapus data ini?", async () => { showLoading("Menghapus..."); const t = type === 'izin' ? 'izin' : type, f = type === 'izin' ? 'id_izin' : 'id'; const {error} = await supabaseClient.from(t).delete().eq(f, id); if(!error) { if(type==='pegawai') await fetchPegawai(); else if(type==='petugas') await fetchPetugas(); else if(type==='jadwal_piket') await fetchJadwal(); else await renderAdminContent(); showToast("Dihapus", "success"); } hideLoading(); }); }
+        async function deleteSelectedMasterData(type) { if(state.selectedAdminItems.length===0) return; showConfirm(`Hapus ${state.selectedAdminItems.length} data?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().in('id', state.selectedAdminItems); if(!error){ state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : await fetchJadwal()); showToast("Berhasil dihapus", "success"); } hideLoading(); }); }
+        async function deleteAllMasterData(type) { showConfirm(`Kosongkan semua data ${type}?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().gt('id', 0); if(!error){ state.currentPage=1; state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : await fetchJadwal()); showToast("Berhasil dikosongkan", "success"); } hideLoading(); }); }
         
-        // Pembaruan parser CSV untuk menyaring dan memformat HP otomatis ke +62
         async function handleCSVUpload(e, type) { 
             const f=e.target.files[0]; if(!f) return; 
             showLoading("Mengimpor CSV..."); 
@@ -963,7 +1213,7 @@
             r.onload=async(ev)=>{ 
                 const lines=ev.target.result.split('\n'), payloads=[]; 
                 lines.forEach((l, idx)=>{ 
-                    if(idx === 0) return; // Lewati baris header template
+                    if(idx === 0) return;
                     const c=l.split(',').map(x=>x.trim()); 
                     if(c[0]&&c[1]) {
                         let hp = c[2] || '';
@@ -1003,7 +1253,7 @@
 
         async function init() {
             if(!supabaseClient && window.supabase) supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-            showLoading("Memuat data..."); await Promise.all([fetchPegawai(), fetchPetugas(), fetchIzin()]);
+            showLoading("Memuat data..."); await Promise.all([fetchPegawai(), fetchPetugas(), fetchJadwal(), fetchIzin()]);
             try { const { data: { session } } = await supabaseClient.auth.getSession(); if (session) activateDesktopAdmin(); } catch (e) { console.log(e); }
             hideLoading(); updateTime(); setInterval(updateTime, 1000);
         }
