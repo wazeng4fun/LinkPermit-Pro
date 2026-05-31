@@ -47,8 +47,8 @@
             <h3 class="text-sm font-black uppercase tracking-wider text-slate-800">Konfirmasi</h3>
             <p id="confirmMessage" class="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed">Apakah Anda yakin ingin melakukan tindakan ini?</p>
             <div class="flex gap-3 pt-2">
-                <button id="btnConfirmCancel" class="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all">Batal</button>
-                <button id="btnConfirmProceed" class="flex-1 py-4 bg-red-700 hover:bg-red-800 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-lg shadow-red-700/20 transition-all">Ya, Lanjutkan</button>
+                <button id="btnConfirmCancel" type="button" class="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all">Batal</button>
+                <button id="btnConfirmProceed" type="button" class="flex-1 py-4 bg-red-700 hover:bg-red-800 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-lg shadow-red-700/20 transition-all">Ya, Lanjutkan</button>
             </div>
         </div>
     </div>
@@ -134,7 +134,7 @@
                 <div class="space-y-4 pt-4 border-t border-slate-100">
                     <div class="flex justify-between items-end">
                         <h3 class="font-black text-sm uppercase tracking-tight">Status Pengajuan</h3>
-                        <button onclick="fetchIzin()" class="text-xs text-red-600 font-bold uppercase tracking-widest hover:text-red-800"><i class="fas fa-sync-alt mr-1"></i> Sync</button>
+                        <button type="button" onclick="fetchIzin()" class="text-xs text-red-600 font-bold uppercase tracking-widest hover:text-red-800"><i class="fas fa-sync-alt mr-1"></i> Sync</button>
                     </div>
                     <div id="listAntrean" class="space-y-3"></div>
                 </div>
@@ -142,7 +142,7 @@
 
             <!-- PETUGAS PIKET -->
             <div id="sec-piket" class="hidden animate-slide-up space-y-6">
-                <!-- Bagian Informasi Petugas Piket ON DUTY (Terintegrasi WA) dipindahkan ke sini -->
+                <!-- Bagian Informasi Petugas Piket ON DUTY (Terintegrasi WA) -->
                 <div id="petugasHariIniContainer" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hidden animate-slide-up">
                     <h3 class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex justify-between items-center">
                         <span><i class="fas fa-broadcast-tower mr-1 animate-pulse"></i> Petugas Piket On Duty</span>
@@ -153,7 +153,8 @@
                     </div>
                 </div>
 
-                <div id="piketLogin" class="space-y-6 pt-6">
+                <!-- Form Login Piket dengan dukungan Enter -->
+                <form id="piketLoginForm" onsubmit="event.preventDefault(); handleLogin();" class="space-y-6 pt-6">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-slate-900 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-xl shadow-slate-900/20"><i class="fas fa-user-shield"></i></div>
                         <h3 class="text-xl font-black mb-2">Panel Petugas</h3>
@@ -165,8 +166,8 @@
                         </select>
                         <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-3xl tracking-[1em] outline-none text-slate-700">
                     </div>
-                    <button onclick="handleLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Masuk Sebagai Petugas</button>
-                </div>
+                    <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Masuk Sebagai Petugas</button>
+                </form>
 
                 <div id="piketDashboard" class="hidden space-y-4">
                     <div class="flex justify-between items-center bg-slate-900 p-5 rounded-[2rem] text-white shadow-xl shadow-slate-900/10">
@@ -177,7 +178,7 @@
                                 <span id="petugasAktif" class="text-xs font-black uppercase tracking-wider">-</span>
                             </div>
                         </div>
-                        <button onclick="handleLogout()" class="text-[9px] font-black text-white uppercase tracking-widest bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-all">Logout</button>
+                        <button type="button" onclick="handleLogout()" class="text-[9px] font-black text-white uppercase tracking-widest bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-all">Logout</button>
                     </div>
                     <div id="antreanPiket" class="space-y-3"></div>
                 </div>
@@ -185,7 +186,8 @@
 
             <!-- LOGIN MASTER ADMIN -->
             <div id="sec-admin" class="hidden animate-slide-up space-y-6">
-                <div id="adminLogin" class="space-y-6 pt-10">
+                <!-- Form Login Admin dengan dukungan Enter -->
+                <form id="adminLoginForm" onsubmit="event.preventDefault(); handleAdminLogin();" class="space-y-6 pt-10">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-red-700 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-xl shadow-red-700/20"><i class="fas fa-cog"></i></div>
                         <h3 class="text-xl font-black mb-2">Master Admin</h3>
@@ -194,15 +196,15 @@
                     <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
                         <div class="space-y-1">
                             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Email Admin</label>
-                            <input id="adminEmail" type="email" placeholder="admin@domain.com" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold outline-none text-slate-700 text-sm focus:ring-2 ring-slate-200">
+                            <input id="adminEmail" type="email" required placeholder="admin@domain.com" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold outline-none text-slate-700 text-sm focus:ring-2 ring-slate-200">
                         </div>
                         <div class="space-y-1">
                             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Password</label>
-                            <input id="adminPass" type="password" placeholder="••••••••" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold outline-none text-slate-700 text-sm focus:ring-2 ring-slate-200">
+                            <input id="adminPass" type="password" required placeholder="••••••••" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold outline-none text-slate-700 text-sm focus:ring-2 ring-slate-200">
                         </div>
                     </div>
-                    <button onclick="handleAdminLogin()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Masuk Dashboard</button>
-                </div>
+                    <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Masuk Dashboard</button>
+                </form>
             </div>
         </main>
     </div>
@@ -228,26 +230,23 @@
             
             <nav class="flex-1 p-6 space-y-2 overflow-y-auto hide-scroll">
                 <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 mb-4">Menu Utama</p>
-                <button id="deskTab-pegawai" onclick="switchAdminTab('pegawai')" class="w-full flex items-center gap-4 px-4 py-3.5 bg-white/10 text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
+                <button id="deskTab-pegawai" type="button" onclick="switchAdminTab('pegawai')" class="w-full flex items-center gap-4 px-4 py-3.5 bg-white/10 text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-users w-5 text-center text-lg"></i> Data Pegawai
                 </button>
-                <button id="deskTab-petugas" onclick="switchAdminTab('petugas')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
+                <button id="deskTab-petugas" type="button" onclick="switchAdminTab('petugas')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-user-shield w-5 text-center text-lg"></i> Petugas Piket
                 </button>
-                <!-- Menu Baru: Pengaturan Shift -->
-                <button id="deskTab-shift" onclick="switchAdminTab('shift')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
-                    <i class="fas fa-clock w-5 text-center text-lg"></i> Pengaturan Shift
-                </button>
-                <button id="deskTab-jadwal" onclick="switchAdminTab('jadwal')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
+                <!-- Menu Jadwal Piket (Shift & Jadwal disatukan di sini) -->
+                <button id="deskTab-jadwal" type="button" onclick="switchAdminTab('jadwal')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-calendar-alt w-5 text-center text-lg"></i> Jadwal Piket
                 </button>
-                <button id="deskTab-laporan" onclick="switchAdminTab('laporan')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
+                <button id="deskTab-laporan" type="button" onclick="switchAdminTab('laporan')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-file-pdf w-5 text-center text-lg"></i> Rekap Laporan
                 </button>
             </nav>
 
             <div class="p-6 border-t border-white/5">
-                <button onclick="handleAdminLogout()" class="w-full flex items-center justify-center gap-3 py-4 bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
+                <button type="button" onclick="handleAdminLogout()" class="w-full flex items-center justify-center gap-3 py-4 bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
                     <i class="fas fa-sign-out-alt"></i> Logout Akun
                 </button>
             </div>
@@ -282,144 +281,150 @@
     <!-- MODALS (Form Master/Shift, Jadwal, Kamera) -->
     <!-- ========================================== -->
     <div id="modalForm" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
-        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up shadow-2xl">
-            <h3 id="modalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Tambah Data</h3>
-            <div class="space-y-5">
-                <div class="space-y-1.5">
-                    <label id="labelVal1" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Lengkap</label>
-                    <input id="formVal1" type="text" placeholder="Masukkan Teks" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700">
-                </div>
-                <div class="space-y-1.5 relative" id="containerVal2">
-                    <label id="labelVal2" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">PIN / Jabatan</label>
-                    <div class="relative flex items-center">
-                        <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700 pr-32">
-                        <button id="btnGeneratePin" onclick="generateRandomPin()" class="absolute right-2 bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-black uppercase px-4 py-2.5 rounded-lg tracking-wider transition-all hidden shadow-md">
-                            <i class="fas fa-random mr-1"></i> Generate
-                        </button>
-                    </div>
-                </div>
-                <div class="space-y-1.5" id="containerHP">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nomor HP</label>
-                    <div class="relative flex items-center">
-                        <span class="absolute left-4 font-black text-slate-400 text-sm tracking-wider">+62</span>
-                        <input id="formValHP" type="text" placeholder="8123456789" oninput="formatHPInput(this)" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700 pl-14">
-                    </div>
-                    <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wide ml-1">Ketik mulai dari angka 8 (cth: 812xxxx)</p>
-                </div>
-                <!-- Input Khusus Modal Shift -->
-                <div id="containerTime" class="hidden grid-cols-2 gap-4">
+        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up shadow-2xl">
+            <!-- Modal Form Wrapper -->
+            <form id="masterDataForm" class="space-y-6">
+                <h3 id="modalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Tambah Data</h3>
+                <div class="space-y-5">
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Jam Mulai</label>
-                        <input id="formValTime1" type="time" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 text-slate-700">
+                        <label id="labelVal1" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Lengkap</label>
+                        <input id="formVal1" type="text" placeholder="Masukkan Teks" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700" required>
                     </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Jam Selesai</label>
-                        <input id="formValTime2" type="time" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 text-slate-700">
+                    <div class="space-y-1.5 relative" id="containerVal2">
+                        <label id="labelVal2" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">PIN / Jabatan</label>
+                        <div class="relative flex items-center">
+                            <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700 pr-32" required>
+                            <button id="btnGeneratePin" type="button" onclick="generateRandomPin()" class="absolute right-2 bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-black uppercase px-4 py-2.5 rounded-lg tracking-wider transition-all hidden shadow-md">
+                                <i class="fas fa-random mr-1"></i> Generate
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5" id="containerHP">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nomor HP</label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-4 font-black text-slate-400 text-sm tracking-wider">+62</span>
+                            <input id="formValHP" type="text" placeholder="8123456789" oninput="formatHPInput(this)" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700 pl-14">
+                        </div>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wide ml-1">Ketik mulai dari angka 8 (cth: 812xxxx)</p>
+                    </div>
+                    <!-- Input Khusus Modal Shift -->
+                    <div id="containerTime" class="hidden grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Jam Mulai</label>
+                            <input id="formValTime1" type="time" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 text-slate-700">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Jam Selesai</label>
+                            <input id="formValTime2" type="time" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 text-slate-700">
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="flex gap-3 pt-4 border-t border-slate-100">
-                <button onclick="closeForm()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
-                <button id="btnSave" class="flex-1 bg-red-700 hover:bg-red-800 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-red-700/20 transition-all">Simpan Data</button>
-            </div>
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeForm()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
+                    <button type="submit" class="flex-1 bg-red-700 hover:bg-red-800 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-red-700/20 transition-all">Simpan Data</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Modal Jadwal Piket (Diperbarui dengan Pilihan Shift) -->
+    <!-- Modal Jadwal Piket (Form Multi Petugas, 1 Hari, 1 Shift) -->
     <div id="modalJadwal" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
-        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up shadow-2xl">
-            <h3 id="modalJadwalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Atur Jadwal Piket</h3>
-            <div class="space-y-4">
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Petugas</label>
-                    <select id="jadwalPetugasSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700">
-                        <!-- Populated by JS -->
-                    </select>
-                </div>
-                
-                <div class="space-y-2">
-                    <label id="jadwalHariLabel" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Hari (Bisa Lebih Dari Satu)</label>
-                    <!-- Multi Select untuk Mode Tambah -->
-                    <div class="grid grid-cols-3 gap-2" id="jadwalHariMulti">
-                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Senin" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Senin</span></label>
-                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Selasa" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Selasa</span></label>
-                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Rabu" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Rabu</span></label>
-                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Kamis" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Kamis</span></label>
-                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Jumat" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Jumat</span></label>
-                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Sabtu" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Sabtu</span></label>
-                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all"><input type="checkbox" name="hariPiket" value="Minggu" class="text-red-600 rounded"><span class="text-xs font-bold text-slate-700">Minggu</span></label>
+        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up shadow-2xl h-auto max-h-[90vh] overflow-y-auto custom-scroll">
+            <form id="jadwalForm" class="space-y-6">
+                <h3 id="modalJadwalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Atur Jadwal Piket</h3>
+                <div class="space-y-4">
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Hari</label>
+                            <select id="jadwalHariSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700" required>
+                                <option value="Senin">Senin</option>
+                                <option value="Selasa">Selasa</option>
+                                <option value="Rabu">Rabu</option>
+                                <option value="Kamis">Kamis</option>
+                                <option value="Jumat">Jumat</option>
+                                <option value="Sabtu">Sabtu</option>
+                                <option value="Minggu">Minggu</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Shift Piket</label>
+                            <select id="jadwalShiftSelect" class="w-full p-4 bg-blue-50/50 rounded-xl text-sm font-bold border border-blue-200 outline-none focus:border-blue-600 text-blue-800 transition-all cursor-pointer" required>
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
                     </div>
-                    <!-- Single Select untuk Mode Edit -->
-                    <div id="jadwalHariSingle" class="hidden">
-                        <select id="jadwalHariSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700">
-                            <option value="Senin">Senin</option>
-                            <option value="Selasa">Selasa</option>
-                            <option value="Rabu">Rabu</option>
-                            <option value="Kamis">Kamis</option>
-                            <option value="Jumat">Jumat</option>
-                            <option value="Sabtu">Sabtu</option>
-                            <option value="Minggu">Minggu</option>
+
+                    <!-- Single Select (Hanya untuk Edit 1 data) -->
+                    <div id="jadwalPetugasSingleContainer" class="hidden space-y-1.5">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Petugas</label>
+                        <select id="jadwalPetugasSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700">
+                            <!-- Populated by JS -->
                         </select>
                     </div>
+
+                    <!-- Multi Select (Untuk Tambah Jadwal Baru ke Banyak Petugas) -->
+                    <div id="jadwalPetugasMultiContainer" class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Petugas (Bisa Lebih Dari Satu)</label>
+                        <div id="jadwalPetugasMulti" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scroll pr-1">
+                            <!-- Checkboxes populated by JS -->
+                        </div>
+                    </div>
+                    
                 </div>
-                
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Shift Piket</label>
-                    <select id="jadwalShiftSelect" class="w-full p-4 bg-blue-50/50 rounded-xl text-sm font-bold border border-blue-200 outline-none focus:border-blue-600 text-blue-800 transition-all cursor-pointer">
-                        <!-- Populated by JS -->
-                    </select>
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeModalJadwal()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
+                    <button type="submit" class="flex-1 bg-red-700 hover:bg-red-800 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-red-700/20 transition-all">Simpan Jadwal</button>
                 </div>
-            </div>
-            <div class="flex gap-3 pt-4 border-t border-slate-100">
-                <button onclick="closeModalJadwal()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
-                <button id="btnSaveJadwal" class="flex-1 bg-red-700 hover:bg-red-800 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-red-700/20 transition-all">Simpan Jadwal</button>
-            </div>
+            </form>
         </div>
     </div>
 
     <!-- Modal Edit Izin -->
     <div id="modalEditIzin" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
-        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 space-y-5 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto custom-scroll shadow-2xl">
-            <h3 class="text-xl font-black uppercase tracking-tight text-slate-900 border-b border-slate-100 pb-4">Edit Data Izin</h3>
-            <div class="space-y-4 pt-2">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2 space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Kategori</label>
-                        <select id="editKategori" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
-                            <option value="Dinas/Sekolah">Dinas/Sekolah</option>
-                            <option value="Pribadi">Pribadi</option>
-                        </select>
-                    </div>
-                    <div class="col-span-2 space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Keperluan / Tujuan</label>
-                        <input id="editTujuan" type="text" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
-                    </div>
-                    <div class="col-span-2 space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Tanggal Pengajuan</label>
-                        <input id="editTanggal" type="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Tgl Keluar</label>
-                        <input id="editTanggalKeluar" type="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Jam Keluar</label>
-                        <input id="editWaktuKeluar" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="14:30" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Tgl Kembali</label>
-                        <input id="editTanggalKembali" type="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Jam Kembali</label>
-                        <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
+        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto custom-scroll shadow-2xl">
+            <form id="editIzinForm" class="space-y-5">
+                <h3 class="text-xl font-black uppercase tracking-tight text-slate-900 border-b border-slate-100 pb-4">Edit Data Izin</h3>
+                <div class="space-y-4 pt-2">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2 space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Kategori</label>
+                            <select id="editKategori" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
+                                <option value="Dinas/Sekolah">Dinas/Sekolah</option>
+                                <option value="Pribadi">Pribadi</option>
+                            </select>
+                        </div>
+                        <div class="col-span-2 space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Keperluan / Tujuan</label>
+                            <input id="editTujuan" type="text" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700" required>
+                        </div>
+                        <div class="col-span-2 space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Tanggal Pengajuan</label>
+                            <input id="editTanggal" type="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700" required>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Tgl Keluar</label>
+                            <input id="editTanggalKeluar" type="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Jam Keluar</label>
+                            <input id="editWaktuKeluar" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="14:30" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Tgl Kembali</label>
+                            <input id="editTanggalKembali" type="date" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Jam Kembali</label>
+                            <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="flex gap-3 mt-6 pt-4 border-t border-slate-100">
-                <button onclick="closeEditIzin()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
-                <button onclick="saveEditIzin()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Update Data</button>
-            </div>
+                <div class="flex gap-3 mt-6 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeEditIzin()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl text-[11px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Update Data</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -432,7 +437,7 @@
                 <div class="relative w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-inner border-4 border-slate-100">
                     <video id="cameraVideo" class="w-full h-full object-cover" autoplay playsinline></video>
                 </div>
-                <button onclick="takePhoto()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-[11px] uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                <button type="button" onclick="takePhoto()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-[11px] uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
                     <i class="fas fa-camera text-sm"></i> Jepret Foto
                 </button>
             </div>
@@ -444,11 +449,11 @@
                     <img id="previewImg" class="w-full h-full object-cover" />
                 </div>
                 <div class="flex gap-3 mt-4">
-                    <button onclick="retakePhoto()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[11px] uppercase hover:bg-slate-200 transition-all">Ulangi</button>
-                    <button onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[11px] uppercase shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Kirim & Selesai</button>
+                    <button type="button" onclick="retakePhoto()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[11px] uppercase hover:bg-slate-200 transition-all">Ulangi</button>
+                    <button type="button" onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-[11px] uppercase shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Kirim & Selesai</button>
                 </div>
             </div>
-            <button onclick="closeFinishModal()" class="w-full mt-6 text-slate-400 hover:text-slate-600 py-2 font-black text-[10px] uppercase transition-all">Batal / Tutup</button>
+            <button type="button" onclick="closeFinishModal()" class="w-full mt-6 text-slate-400 hover:text-slate-600 py-2 font-black text-[10px] uppercase transition-all">Batal / Tutup</button>
         </div>
     </div>
 
@@ -586,7 +591,7 @@
             const { data, error } = await supabaseClient.from('shift_piket').select('*').order('jam_mulai', { ascending: true });
             if (!error) {
                 state.listShift = data || [];
-                if(state.isAdmin && state.adminActiveTab === 'shift') renderAdminContent();
+                if(state.isAdmin && state.adminActiveTab === 'jadwal') renderAdminContent();
                 syncSelects();
             }
         }
@@ -619,7 +624,6 @@
             const lbl = document.getElementById('hariIniLabel');
             if(lbl) lbl.textContent = today;
 
-            // Logika Penyaringan: Hanya yang on-duty saat ini (jam sekarang di dalam jam piket)
             const onDutyJadwal = state.listJadwal.filter(j => {
                 if (j.hari !== today) return false;
                 if (!j.jam_mulai || !j.jam_selesai) return false;
@@ -630,7 +634,6 @@
                 const startMins = sH * 60 + sM;
                 let endMins = eH * 60 + eM;
                 
-                // Menangani shift malam yang melewati tengah malam
                 if (endMins < startMins) endMins += 24 * 60; 
                 
                 let cMins = currMins;
@@ -667,8 +670,6 @@
                 list.innerHTML = `<div class="text-center py-5"><i class="fas fa-moon text-slate-300 text-2xl mb-2"></i><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Tidak ada petugas yang sedang<br>berjaga pada jam ini.</p></div>`;
             }
         }
-
-        // Memanggil update petugas per menit
         setInterval(renderPetugasHariIni, 60000);
 
         // --- ADMIN VIEW & AUTH LOGIC ---
@@ -712,13 +713,13 @@
         function switchAdminTab(tab) {
             state.adminActiveTab = tab; state.currentPage = 1; state.selectedAdminItems = [];
             
-            ['pegawai', 'petugas', 'shift', 'jadwal', 'laporan'].forEach(t => {
+            ['pegawai', 'petugas', 'jadwal', 'laporan'].forEach(t => {
                 const btn = document.getElementById(`deskTab-${t}`);
                 if(t === tab) { btn.classList.add('bg-white/10', 'text-white'); btn.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); } 
                 else { btn.classList.remove('bg-white/10', 'text-white'); btn.classList.add('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); }
             });
 
-            const titles = { 'pegawai': 'Manajemen Pegawai', 'petugas': 'Petugas Piket', 'shift': 'Pengaturan Shift Piket', 'jadwal': 'Jadwal Piket', 'laporan': 'Rekap Laporan Izin' };
+            const titles = { 'pegawai': 'Manajemen Pegawai', 'petugas': 'Petugas Piket', 'jadwal': 'Pengaturan Jadwal & Shift Piket', 'laporan': 'Rekap Laporan Izin' };
             document.getElementById('adminPageTitle').textContent = titles[tab];
 
             renderAdminContent();
@@ -783,8 +784,8 @@
                             <td class="p-4">
                                 <div class="flex items-center gap-2">
                                     <a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-all" title="Lihat Foto"><i class="fas fa-image text-xs"></i></a>
-                                    <button onclick="openEditIzin('${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
-                                    <button onclick="deleteMasterData('izin', '${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
+                                    <button type="button" onclick="openEditIzin('${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
+                                    <button type="button" onclick="deleteMasterData('izin', '${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
                                 </div>
                             </td>
                         </tr>`;
@@ -806,8 +807,8 @@
                             </div>
                         </div>
                         <div class="flex gap-3">
-                            <button onclick="deleteReportByPeriod()" class="px-6 py-3 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"><i class="fas fa-trash-alt mr-2"></i> Bersihkan Periode</button>
-                            <button onclick="downloadReport()" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-700/20 transition-all"><i class="fas fa-file-pdf mr-2"></i> Unduh PDF</button>
+                            <button type="button" onclick="deleteReportByPeriod()" class="px-6 py-3 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"><i class="fas fa-trash-alt mr-2"></i> Bersihkan Periode</button>
+                            <button type="button" onclick="downloadReport()" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-700/20 transition-all"><i class="fas fa-file-pdf mr-2"></i> Unduh PDF</button>
                         </div>
                     </div>
                     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -829,136 +830,106 @@
                 return;
             }
 
-            // --- TABEL JADWAL PIKET DESKTOP ---
+            // --- TABEL JADWAL & SHIFT (DISATUKAN) ---
             if (state.adminActiveTab === 'jadwal') {
                 const source = state.listJadwal;
                 state.itemsPerPage = 15;
                 const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
                 const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
                 const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
-                let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button onclick="deleteSelectedMasterData('jadwal_piket')" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-2"></i> Hapus ${state.selectedAdminItems.length} Terpilih</button>` : '';
+                let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button type="button" onclick="deleteSelectedMasterData('jadwal_piket')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-1"></i> Hapus ${state.selectedAdminItems.length} Data</button>` : '';
 
-                let tbodyHtml = '';
+                // Generate Data Tabel Jadwal
+                let jadwalHtml = '';
                 if (paginatedItems.length > 0) {
-                    tbodyHtml = paginatedItems.map(item => {
+                    jadwalHtml = paginatedItems.map(item => {
                         const shiftName = item.nama_shift ? `<span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-black tracking-widest">${item.nama_shift}</span>` : '';
                         return `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/30' : ''}">
-                            <td class="p-4 w-12 text-center">
-                                <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer">
-                            </td>
-                            <td class="p-4 text-xs font-black uppercase text-slate-900">${item.nama_petugas}</td>
-                            <td class="p-4 text-xs font-bold text-slate-600">${item.hari}</td>
-                            <td class="p-4 text-xs font-bold text-slate-600">${shiftName} <span class="bg-slate-100 px-2 py-1 rounded tracking-wider ml-2 text-[10px]">${item.jam_mulai} - ${item.jam_selesai}</span></td>
-                            <td class="p-4">
-                                <div class="flex items-center gap-2">
-                                    <button onclick="openModalJadwal(true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
-                                    <button onclick="deleteMasterData('jadwal_piket', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
+                            <td class="p-3 w-10 text-center"><input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></td>
+                            <td class="p-3 text-xs font-black uppercase text-slate-900">${item.nama_petugas}</td>
+                            <td class="p-3 text-xs font-bold text-slate-600">${item.hari}</td>
+                            <td class="p-3 text-xs font-bold text-slate-600">${shiftName} <span class="bg-slate-100 px-2 py-1 rounded tracking-wider ml-1 text-[10px]">${item.jam_mulai} - ${item.jam_selesai}</span></td>
+                            <td class="p-3">
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" onclick="openModalJadwal(true, ${item.id})" class="w-7 h-7 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-[10px]"></i></button>
+                                    <button type="button" onclick="deleteMasterData('jadwal_piket', ${item.id})" class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-[10px]"></i></button>
                                 </div>
                             </td>
                         </tr>`;
                     }).join('');
                 } else {
-                    tbodyHtml = '<tr><td colspan="5" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada data jadwal. Silakan tambah jadwal baru.</td></tr>';
+                    jadwalHtml = '<tr><td colspan="5" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada jadwal tercatat</td></tr>';
                 }
 
-                container.innerHTML = `
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex items-center gap-3">
-                            <button onclick="deleteAllMasterData('jadwal_piket')" class="px-5 py-3 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all"><i class="fas fa-trash-alt mr-2"></i> Kosongkan Semua</button>
-                            ${bulkDeleteBtn}
-                        </div>
-                        <button onclick="openModalJadwal(false)" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all"><i class="fas fa-plus mr-2"></i> Atur Jadwal Baru</button>
-                    </div>
+                // Generate Data Tabel Shift
+                let shiftHtml = state.listShift.map(s => `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td class="p-3 text-[11px] font-black text-blue-800 uppercase">${s.nama_shift}</td>
+                        <td class="p-3 text-[10px] font-bold text-slate-600">${s.jam_mulai} - ${s.jam_selesai}</td>
+                        <td class="p-3">
+                            <div class="flex items-center gap-1.5 justify-end">
+                                <button type="button" onclick="openForm('shift', true, ${s.id})" class="w-7 h-7 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-md transition-all" title="Edit"><i class="fas fa-edit text-[10px]"></i></button>
+                                <button type="button" onclick="deleteMasterData('shift_piket', ${s.id})" class="w-7 h-7 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-md transition-all" title="Hapus"><i class="fas fa-trash text-[10px]"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
 
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-50 border-b border-slate-200">
-                                <tr>
-                                    <th class="p-4 w-12 text-center"><input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Nama Petugas</th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Hari</th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Detail Shift Piket</th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest w-24">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>${tbodyHtml}</tbody>
-                        </table>
-                        
-                        <!-- Pagination Desktop -->
-                        <div class="mt-auto border-t border-slate-100 bg-slate-50 p-4 flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Jadwal: ${source.length}</span>
-                            <div class="flex items-center gap-4">
-                                <button onclick="changePage(-1)" ${state.currentPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-left text-xs"></i></button>
-                                <span class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Halaman ${state.currentPage} / ${totalPages}</span>
-                                <button onclick="changePage(1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-right text-xs"></i></button>
+                container.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                        <!-- Panel Kiri: Pengaturan Shift -->
+                        <div class="lg:col-span-1 flex flex-col space-y-3 h-fit">
+                            <div class="flex justify-between items-center px-1">
+                                <h3 class="text-sm font-black uppercase tracking-tight text-slate-800">Master Shift</h3>
+                                <button type="button" onclick="openForm('shift', false)" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase hover:bg-slate-800 transition-all shadow-md"><i class="fas fa-plus mr-1"></i> Shift</button>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-3 text-[9px] font-black text-slate-500 uppercase">Nama Shift</th>
+                                            <th class="p-3 text-[9px] font-black text-slate-500 uppercase">Jam Waktu</th>
+                                            <th class="p-3 text-[9px] font-black text-slate-500 uppercase text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${shiftHtml || '<tr><td colspan="3" class="p-6 text-center text-[10px] font-bold text-slate-400 uppercase">Belum ada shift.</td></tr>'}</tbody>
+                                </table>
                             </div>
                         </div>
-                    </div>`;
-                return;
-            }
 
-            // --- TABEL SHIFT DESKTOP ---
-            if (state.adminActiveTab === 'shift') {
-                const source = state.listShift;
-                state.itemsPerPage = 15;
-                const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
-                const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
-                const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
-                let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button onclick="deleteSelectedMasterData('shift_piket')" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-2"></i> Hapus ${state.selectedAdminItems.length} Terpilih</button>` : '';
-
-                let tbodyHtml = '';
-                if (paginatedItems.length > 0) {
-                    tbodyHtml = paginatedItems.map(item => {
-                        return `
-                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/30' : ''}">
-                            <td class="p-4 w-12 text-center">
-                                <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer">
-                            </td>
-                            <td class="p-4 text-xs font-black uppercase text-blue-800">${item.nama_shift}</td>
-                            <td class="p-4 text-xs font-bold text-slate-600"><span class="font-mono bg-slate-100 px-2 py-1 rounded tracking-widest">${item.jam_mulai}</span></td>
-                            <td class="p-4 text-xs font-bold text-slate-600"><span class="font-mono bg-slate-100 px-2 py-1 rounded tracking-widest">${item.jam_selesai}</span></td>
-                            <td class="p-4">
-                                <div class="flex items-center gap-2">
-                                    <button onclick="openForm('shift', true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
-                                    <button onclick="deleteMasterData('shift_piket', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
+                        <!-- Panel Kanan: Jadwal Piket -->
+                        <div class="lg:col-span-2 flex flex-col space-y-3 min-h-[400px]">
+                            <div class="flex justify-between items-center px-1">
+                                <h3 class="text-sm font-black uppercase tracking-tight text-slate-800 flex items-center gap-2">Jadwal Penugasan ${bulkDeleteBtn}</h3>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="deleteAllMasterData('jadwal_piket')" class="px-3 py-2 border border-red-200 text-red-600 rounded-lg text-[9px] font-black uppercase hover:bg-red-50 transition-all"><i class="fas fa-trash-alt mr-1"></i> Kosongkan</button>
+                                    <button type="button" onclick="openModalJadwal(false)" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-[9px] font-black uppercase hover:bg-blue-700 transition-all shadow-md"><i class="fas fa-calendar-plus mr-1"></i> Jadwal Baru</button>
                                 </div>
-                            </td>
-                        </tr>`;
-                    }).join('');
-                } else {
-                    tbodyHtml = '<tr><td colspan="5" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada data shift. Silakan tambah data baru.</td></tr>';
-                }
-
-                container.innerHTML = `
-                    <div class="flex justify-between items-center mb-6">
-                        <div class="flex items-center gap-3">
-                            <button onclick="deleteAllMasterData('shift_piket')" class="px-5 py-3 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all"><i class="fas fa-trash-alt mr-2"></i> Kosongkan Semua</button>
-                            ${bulkDeleteBtn}
-                        </div>
-                        <button onclick="openForm('shift', false)" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all"><i class="fas fa-plus mr-2"></i> Tambah Shift Baru</button>
-                    </div>
-
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-50 border-b border-slate-200">
-                                <tr>
-                                    <th class="p-4 w-12 text-center"><input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Nama Shift</th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Jam Mulai</th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Jam Selesai</th>
-                                    <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest w-24">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>${tbodyHtml}</tbody>
-                        </table>
-                        
-                        <div class="mt-auto border-t border-slate-100 bg-slate-50 p-4 flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Shift: ${source.length}</span>
-                            <div class="flex items-center gap-4">
-                                <button onclick="changePage(-1)" ${state.currentPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-left text-xs"></i></button>
-                                <span class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Halaman ${state.currentPage} / ${totalPages}</span>
-                                <button onclick="changePage(1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-right text-xs"></i></button>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th class="p-3 w-10 text-center"><input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></th>
+                                            <th class="p-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Nama Petugas</th>
+                                            <th class="p-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Hari</th>
+                                            <th class="p-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Detail Shift</th>
+                                            <th class="p-3 text-[9px] font-black text-slate-500 uppercase tracking-widest w-20">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${jadwalHtml}</tbody>
+                                </table>
+                                
+                                <!-- Pagination -->
+                                <div class="mt-auto border-t border-slate-100 bg-slate-50 p-3 px-4 flex justify-between items-center">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Jadwal: ${source.length}</span>
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" onclick="changePage(-1)" ${state.currentPage <= 1 ? 'disabled' : ''} class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                                        <span class="text-[10px] font-black text-slate-800 uppercase tracking-widest">Hal ${state.currentPage} / ${totalPages}</span>
+                                        <button type="button" onclick="changePage(1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>`;
@@ -972,7 +943,7 @@
             const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
             const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
 
-            let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button onclick="deleteSelectedMasterData('${state.adminActiveTab}')" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-2"></i> Hapus ${state.selectedAdminItems.length} Terpilih</button>` : '';
+            let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button type="button" onclick="deleteSelectedMasterData('${state.adminActiveTab}')" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-2"></i> Hapus ${state.selectedAdminItems.length} Terpilih</button>` : '';
 
             let tbodyHtml = '';
             if (paginatedItems.length > 0) {
@@ -990,8 +961,8 @@
                         </td>
                         <td class="p-4">
                             <div class="flex items-center gap-2">
-                                <button onclick="openForm('${state.adminActiveTab}', true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
-                                <button onclick="deleteMasterData('${state.adminActiveTab}', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
+                                <button type="button" onclick="openForm('${state.adminActiveTab}', true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
+                                <button type="button" onclick="deleteMasterData('${state.adminActiveTab}', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
                             </div>
                         </td>
                     </tr>`;
@@ -1000,6 +971,7 @@
                 tbodyHtml = '<tr><td colspan="4" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada data</td></tr>';
             }
 
+            // Integrasi tombol download template CSV & tombol import baru
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center gap-3">
@@ -1007,13 +979,13 @@
                             <i class="fas fa-file-csv text-sm text-green-600"></i><span class="text-[10px] font-black uppercase tracking-widest">Import CSV</span>
                             <input type="file" class="hidden" onchange="handleCSVUpload(event, '${state.adminActiveTab}')">
                         </label>
-                        <button onclick="downloadCSVTemplate('${state.adminActiveTab}')" class="px-5 py-3 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all">
+                        <button type="button" onclick="downloadCSVTemplate('${state.adminActiveTab}')" class="px-5 py-3 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all">
                             <i class="fas fa-download mr-1.5 text-blue-600"></i> Unduh Template CSV
                         </button>
-                        <button onclick="deleteAllMasterData('${state.adminActiveTab}')" class="px-5 py-3 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all"><i class="fas fa-trash-alt mr-2"></i> Kosongkan</button>
+                        <button type="button" onclick="deleteAllMasterData('${state.adminActiveTab}')" class="px-5 py-3 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all"><i class="fas fa-trash-alt mr-2"></i> Kosongkan</button>
                         ${bulkDeleteBtn}
                     </div>
-                    <button onclick="openForm('${state.adminActiveTab}', false)" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all"><i class="fas fa-plus mr-2"></i> Tambah Manual</button>
+                    <button type="button" onclick="openForm('${state.adminActiveTab}', false)" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all"><i class="fas fa-plus mr-2"></i> Tambah Manual</button>
                 </div>
 
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[400px]">
@@ -1033,16 +1005,16 @@
                     <div class="mt-auto border-t border-slate-100 bg-slate-50 p-4 flex justify-between items-center">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Data: ${source.length}</span>
                         <div class="flex items-center gap-4">
-                            <button onclick="changePage(-1)" ${state.currentPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-left text-xs"></i></button>
+                            <button type="button" onclick="changePage(-1)" ${state.currentPage <= 1 ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-left text-xs"></i></button>
                             <span class="text-[11px] font-black text-slate-800 uppercase tracking-widest">Halaman ${state.currentPage} / ${totalPages}</span>
-                            <button onclick="changePage(1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-right text-xs"></i></button>
+                            <button type="button" onclick="changePage(1)" ${state.currentPage >= totalPages ? 'disabled' : ''} class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"><i class="fas fa-chevron-right text-xs"></i></button>
                         </div>
                     </div>
                 </div>`;
         }
 
         function changePage(dir) {
-            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : (state.adminActiveTab === 'petugas' ? state.listPetugas : (state.adminActiveTab === 'shift' ? state.listShift : state.listJadwal));
+            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : (state.adminActiveTab === 'petugas' ? state.listPetugas : state.listJadwal);
             const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
             const newPage = state.currentPage + dir;
             if (newPage >= 1 && newPage <= totalPages) { state.currentPage = newPage; state.selectedAdminItems = []; renderAdminContent(); }
@@ -1107,6 +1079,17 @@
             if (sT) { sT.innerHTML = '<option value="">Pilih Petugas...</option>'; state.listPetugas.forEach(p => sT.innerHTML += `<option value="${p.nama}">${p.nama}</option>`); }
             if (sJ) { sJ.innerHTML = '<option value="">Pilih Petugas Piket...</option>'; state.listPetugas.forEach(p => sJ.innerHTML += `<option value="${p.nama}">${p.nama}</option>`); }
             if (sShift) { sShift.innerHTML = '<option value="">Pilih Shift Piket...</option>'; state.listShift.forEach(s => sShift.innerHTML += `<option value="${s.id}">${s.nama_shift} (${s.jam_mulai} - ${s.jam_selesai})</option>`); }
+            
+            // Sync Checkbox Petugas untuk Modal Tambah Jadwal
+            const multiContainer = document.getElementById('jadwalPetugasMulti');
+            if(multiContainer) {
+                multiContainer.innerHTML = state.listPetugas.map(p => `
+                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all">
+                        <input type="checkbox" name="petugasPiket" value="${p.nama}" class="text-red-600 rounded">
+                        <span class="text-xs font-bold text-slate-700 truncate">${p.nama}</span>
+                    </label>
+                `).join('');
+            }
         }
         
         function renderUserList() {
@@ -1117,14 +1100,14 @@
                 let wKHtml = ''; const late = item.status === 'Keluar' && isTerlambat(item);
                 if (item.status === 'Keluar' && item.waktu_keluar) wKHtml = `<div class="text-[8px] font-bold ${late ? 'text-red-500' : 'text-slate-500'} mt-1.5"><i class="fas fa-clock mr-1"></i> Keluar: ${item.tanggal_keluar || item.tanggal} | ${formatTo24Hour(item.waktu_keluar)}</div>`;
                 const warnBox = late ? `<div class="mt-3 p-2 bg-red-100 border border-red-200 rounded-xl flex items-start gap-2 animate-pulse"><i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i><p class="text-[8px] font-black text-red-700 leading-tight">WAKTU IZIN HABIS!</p></div>` : '';
-                container.innerHTML += `<div class="p-5 ${late ? 'border-red-400 bg-red-50 shadow-red-200/50' : 'border-slate-100 bg-white shadow-sm'} border rounded-3xl flex flex-col animate-slide-up transition-all"><div class="flex justify-between items-center w-full"><div class="truncate pr-4"><div class="text-xs font-black uppercase ${late ? 'text-red-800' : 'text-slate-900'}">${item.nama}</div><div class="flex items-center gap-2 mt-1"><span class="text-[7px] font-black px-2 py-0.5 ${late ? 'bg-red-200 text-red-800' : 'bg-slate-100 text-slate-500'} rounded uppercase">${item.id_izin}</span><span class="text-[8px] font-bold text-red-600 uppercase tracking-widest truncate">${item.keperluan}: ${item.tujuan}</span></div>${wKHtml}</div><div>${item.status === 'Menunggu' ? '<span class="text-[7px] font-black uppercase px-3 py-1.5 bg-amber-50 text-amber-600 rounded-xl">Menunggu</span>' : `<button onclick="openFinish('${item.id_izin}')" class="text-[8px] font-black uppercase px-4 py-2 bg-red-700 text-white rounded-xl shadow-lg">Lapor</button>`}</div></div>${warnBox}</div>`;
+                container.innerHTML += `<div class="p-5 ${late ? 'border-red-400 bg-red-50 shadow-red-200/50' : 'border-slate-100 bg-white shadow-sm'} border rounded-3xl flex flex-col animate-slide-up transition-all"><div class="flex justify-between items-center w-full"><div class="truncate pr-4"><div class="text-xs font-black uppercase ${late ? 'text-red-800' : 'text-slate-900'}">${item.nama}</div><div class="flex items-center gap-2 mt-1"><span class="text-[7px] font-black px-2 py-0.5 ${late ? 'bg-red-200 text-red-800' : 'bg-slate-100 text-slate-500'} rounded uppercase">${item.id_izin}</span><span class="text-[8px] font-bold text-red-600 uppercase tracking-widest truncate">${item.keperluan}: ${item.tujuan}</span></div>${wKHtml}</div><div>${item.status === 'Menunggu' ? '<span class="text-[7px] font-black uppercase px-3 py-1.5 bg-amber-50 text-amber-600 rounded-xl">Menunggu</span>' : `<button type="button" onclick="openFinish('${item.id_izin}')" class="text-[8px] font-black uppercase px-4 py-2 bg-red-700 text-white rounded-xl shadow-lg">Lapor</button>`}</div></div>${warnBox}</div>`;
             });
         }
         function renderPiketAntrean() {
             const container = document.getElementById('antreanPiket'); if(!container) return;
             const waiting = state.dataIzin.filter(i => i.status === 'Menunggu');
             container.innerHTML = waiting.length === 0 ? '<div class="p-10 text-center text-[9px] font-black text-slate-300 uppercase border border-dashed rounded-3xl">Tidak Ada Antrean</div>' : '';
-            waiting.forEach(item => { container.innerHTML += `<div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-4 animate-slide-up shadow-sm"><div class="flex justify-between items-start"><div class="truncate pr-2"><div class="text-sm font-black uppercase truncate">${item.nama}</div><p class="text-[8px] font-bold text-slate-400 uppercase mt-1">Tujuan: ${item.tujuan}</p></div><span class="text-[9px] font-black text-red-700">${item.id_izin}</span></div><button onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase shadow-md">Izinkan Keluar</button></div>`; });
+            waiting.forEach(item => { container.innerHTML += `<div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-4 animate-slide-up shadow-sm"><div class="flex justify-between items-start"><div class="truncate pr-2"><div class="text-sm font-black uppercase truncate">${item.nama}</div><p class="text-[8px] font-bold text-slate-400 uppercase mt-1">Tujuan: ${item.tujuan}</p></div><span class="text-[9px] font-black text-red-700">${item.id_izin}</span></div><button type="button" onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase shadow-md">Izinkan Keluar</button></div>`; });
         }
 
         // Kamera & Bukti Foto
@@ -1183,6 +1166,8 @@
                 mTitle.textContent = isEdit ? 'Edit Shift' : 'Tambah Shift';
                 document.getElementById('labelVal1').textContent = 'Nama Shift (Cth: Shift Pagi)';
                 cVal2.classList.add('hidden'); cHP.classList.add('hidden'); cTime.classList.replace('hidden', 'grid');
+                v1.required = true; document.getElementById('formValTime1').required = true; document.getElementById('formValTime2').required = true;
+                v2.required = false;
                 
                 if (isEdit) {
                     const i = state.listShift.find(s => s.id === id);
@@ -1193,18 +1178,22 @@
             } else if (type === 'pegawai') {
                 mTitle.textContent = isEdit ? 'Edit Data Pegawai' : 'Tambah Data Pegawai';
                 document.getElementById('labelVal1').textContent = 'Nama Lengkap'; document.getElementById('labelVal2').textContent = 'Jabatan / Bidang'; btnGen.classList.add('hidden');
+                v1.required = true; v2.required = true; document.getElementById('formValTime1').required = false; document.getElementById('formValTime2').required = false;
                 if (isEdit) { const i = state.listPegawai.find(p => p.id === id); if (i) { v1.value = i.nama; v2.value = i.jabatan || ''; let cleanHp = i.no_hp || ''; if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3); vHP.value = cleanHp; } } 
                 else { v1.value = ''; v2.value = ''; vHP.value = ''; }
             } else if (type === 'petugas') {
                 mTitle.textContent = isEdit ? 'Edit Data Petugas' : 'Tambah Data Petugas';
                 document.getElementById('labelVal1').textContent = 'Nama Lengkap'; document.getElementById('labelVal2').textContent = 'PIN (4 Digit)'; btnGen.classList.remove('hidden');
+                v1.required = true; v2.required = true; document.getElementById('formValTime1').required = false; document.getElementById('formValTime2').required = false;
                 if (isEdit) { const i = state.listPetugas.find(p => p.id === id); if (i) { v1.value = i.nama; v2.value = i.pin || ''; let cleanHp = i.no_hp || ''; if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3); vHP.value = cleanHp; } } 
                 else { v1.value = ''; generateRandomPin(); vHP.value = ''; }
             }
             
             const modal = document.getElementById('modalForm'); modal.classList.remove('hidden'); modal.classList.add('flex');
             
-            document.getElementById('btnSave').onclick = () => {
+            // Logic Penanganan Submit yang mendukung Enter Key (HTML5 Form)
+            document.getElementById('masterDataForm').onsubmit = (e) => {
+                e.preventDefault();
                 if (type === 'shift') {
                     const nm = v1.value.trim(), jm1 = document.getElementById('formValTime1').value, jm2 = document.getElementById('formValTime2').value;
                     if(!nm || !jm1 || !jm2) return showToast("Isi semua data shift", "error");
@@ -1232,40 +1221,36 @@
             hideLoading();
         }
         
-        // --- JADWAL PIKET LOGIC (Dengan Pemilihan Shift) ---
+        // --- JADWAL PIKET LOGIC (Satu Hari -> 1 Shift -> Multi Petugas) ---
         function openModalJadwal(isEdit = false, id = null) {
             if (state.listShift.length === 0) return showToast("Buat Data Shift terlebih dahulu!", "error");
 
             editState = { isEditing: isEdit, editingType: 'jadwal', editingId: id };
             const mTitle = document.getElementById('modalJadwalTitle');
-            const vPetugas = document.getElementById('jadwalPetugasSelect');
             const shiftSelect = document.getElementById('jadwalShiftSelect');
-            const multiHari = document.getElementById('jadwalHariMulti');
-            const singleHari = document.getElementById('jadwalHariSingle');
-            const lblHari = document.getElementById('jadwalHariLabel');
+            const vPetugasSingle = document.getElementById('jadwalPetugasSelect');
             
-            document.querySelectorAll('input[name="hariPiket"]').forEach(cb => cb.checked = false);
+            const singleContainer = document.getElementById('jadwalPetugasSingleContainer');
+            const multiContainer = document.getElementById('jadwalPetugasMultiContainer');
+            
+            document.querySelectorAll('input[name="petugasPiket"]').forEach(cb => cb.checked = false);
 
             if (isEdit) {
                 mTitle.textContent = 'Edit Jadwal Piket';
-                lblHari.textContent = 'Pilih Hari';
-                multiHari.classList.add('hidden');
-                singleHari.classList.remove('hidden');
+                singleContainer.classList.remove('hidden');
+                multiContainer.classList.add('hidden');
+                
                 const i = state.listJadwal.find(j => j.id === id);
                 if (i) {
-                    vPetugas.value = i.nama_petugas;
+                    vPetugasSingle.value = i.nama_petugas;
                     document.getElementById('jadwalHariSelect').value = i.hari;
-                    
-                    // Setel otomatis opsi shift terpilih berdasarkan pencocokan jam dan nama shift
                     const matchedShift = state.listShift.find(s => s.nama_shift === i.nama_shift);
                     if (matchedShift) shiftSelect.value = matchedShift.id;
                 }
             } else {
                 mTitle.textContent = 'Atur Jadwal Piket';
-                lblHari.textContent = 'Pilih Hari (Bisa Lebih Dari Satu)';
-                multiHari.classList.remove('hidden');
-                singleHari.classList.add('hidden');
-                vPetugas.value = '';
+                singleContainer.classList.add('hidden');
+                multiContainer.classList.remove('hidden');
                 shiftSelect.value = '';
             }
 
@@ -1273,26 +1258,27 @@
             modal.classList.remove('hidden'); 
             modal.classList.add('flex');
 
-            document.getElementById('btnSaveJadwal').onclick = async () => {
-                const nama = vPetugas.value;
+            document.getElementById('jadwalForm').onsubmit = async (e) => {
+                e.preventDefault();
                 const shiftId = shiftSelect.value;
-                if (!nama || !shiftId) return showToast("Petugas dan Shift wajib dipilih.", "error");
+                const hari = document.getElementById('jadwalHariSelect').value;
+                if (!shiftId) return showToast("Pilih Shift Piket terlebih dahulu.", "error");
 
                 const shiftData = state.listShift.find(s => s.id == shiftId);
-
                 showLoading("Menyimpan Jadwal...");
+
                 if (isEdit) {
-                    const hari = document.getElementById('jadwalHariSelect').value;
+                    const nama = vPetugasSingle.value;
                     const { error } = await supabaseClient.from('jadwal_piket').update({
                         nama_petugas: nama, hari: hari, nama_shift: shiftData.nama_shift, jam_mulai: shiftData.jam_mulai, jam_selesai: shiftData.jam_selesai
                     }).eq('id', id);
                     if (!error) { showToast("Jadwal diupdate!", "success"); await fetchJadwal(); closeModalJadwal(); } 
                     else { showToast("Gagal update jadwal.", "error"); }
                 } else {
-                    const checkedDays = Array.from(document.querySelectorAll('input[name="hariPiket"]:checked')).map(cb => cb.value);
-                    if (checkedDays.length === 0) { hideLoading(); return showToast("Pilih minimal satu hari.", "error"); }
+                    const checkedPetugas = Array.from(document.querySelectorAll('input[name="petugasPiket"]:checked')).map(cb => cb.value);
+                    if (checkedPetugas.length === 0) { hideLoading(); return showToast("Pilih minimal satu petugas piket.", "error"); }
                     
-                    const payloads = checkedDays.map(hari => ({
+                    const payloads = checkedPetugas.map(nama => ({
                         nama_petugas: nama, hari: hari, nama_shift: shiftData.nama_shift, jam_mulai: shiftData.jam_mulai, jam_selesai: shiftData.jam_selesai
                     }));
                     
@@ -1306,24 +1292,6 @@
 
         function closeModalJadwal() { const m = document.getElementById('modalJadwal'); m.classList.add('hidden'); m.classList.remove('flex'); }
 
-        async function saveMasterData(type, v1, v2, v3, isEdit, id) {
-            showLoading("Menyimpan...");
-            const t = type === 'pegawai' ? 'pegawai' : 'petugas';
-            const p = type === 'pegawai' 
-                ? { nama: v1, jabatan: v2, no_hp: v3 } 
-                : { nama: v1, pin: v2, no_hp: v3 };
-                
-            const { error } = isEdit ? await supabaseClient.from(t).update(p).eq('id', id) : await supabaseClient.from(t).insert([p]);
-            if (!error) { 
-                type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); 
-                closeForm(); 
-                showToast("Data master berhasil disimpan", "success"); 
-            } else {
-                showToast("Gagal menyimpan data master ke server.", "error");
-            }
-            hideLoading();
-        }
-        
         async function deleteMasterData(type, id) { showConfirm("Hapus data ini?", async () => { showLoading("Menghapus..."); const t = type === 'izin' ? 'izin' : type, f = type === 'izin' ? 'id_izin' : 'id'; const {error} = await supabaseClient.from(t).delete().eq(f, id); if(!error) { if(type==='pegawai') await fetchPegawai(); else if(type==='petugas') await fetchPetugas(); else if(type==='shift_piket') await fetchShift(); else if(type==='jadwal_piket') await fetchJadwal(); else await renderAdminContent(); showToast("Dihapus", "success"); } hideLoading(); }); }
         async function deleteSelectedMasterData(type) { if(state.selectedAdminItems.length===0) return; showConfirm(`Hapus ${state.selectedAdminItems.length} data?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().in('id', state.selectedAdminItems); if(!error){ state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : (type === 'shift_piket' ? await fetchShift() : await fetchJadwal())); showToast("Berhasil dihapus", "success"); } hideLoading(); }); }
         async function deleteAllMasterData(type) { showConfirm(`Kosongkan semua data ${type}?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().gt('id', 0); if(!error){ state.currentPage=1; state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : (type === 'shift_piket' ? await fetchShift() : await fetchJadwal())); showToast("Berhasil dikosongkan", "success"); } hideLoading(); }); }
@@ -1339,12 +1307,12 @@
                 const existingData = type === 'pegawai' ? state.listPegawai : state.listPetugas;
 
                 lines.forEach((l, idx) => { 
-                    if(idx === 0) return; // Lewati baris header
+                    if(idx === 0) return; 
                     const c = l.split(',').map(x => x.trim()); 
-                    if(!c[0]) return; // Lewati baris jika nama kosong
+                    if(!c[0]) return; 
 
                     const nama = c[0];
-                    const field2 = c[1] || ''; // Jabatan / PIN bisa kosong
+                    const field2 = c[1] || ''; 
                     let hp = c[2] || '';
                     
                     if (hp) {
@@ -1402,7 +1370,9 @@
             hideLoading(); updateTime(); setInterval(updateTime, 1000);
         }
         window.onload = init;
-        document.getElementById('izinForm').onsubmit = handleIzinSubmit;
+        
+        // Form Edit Laporan Izin Handling
+        document.getElementById('editIzinForm').onsubmit = (e) => { e.preventDefault(); saveEditIzin(); };
     </script>
 </body>
 </html>
