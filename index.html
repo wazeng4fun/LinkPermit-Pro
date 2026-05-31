@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LinkPermit Pro</title>
+    <title>LinkPermit Pro - Final Comprehensive</title>
     
     <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,22 +15,21 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .hide-scroll::-webkit-scrollbar { display: none; }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
-        .modal-active { overflow: hidden; }
-        input:focus, select:focus { border-color: #b91c1c !important; }
+        .glass-effect { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="text-slate-900 antialiased">
 
-    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-md hidden flex flex-col items-center justify-center">
+    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 hidden flex flex-col items-center justify-center">
         <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
-        <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Sinkronisasi Data</p>
+        <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Sinkronisasi Sistem</p>
     </div>
 
     <div id="authOverlay" class="fixed inset-0 z-[2000] bg-white hidden overflow-y-auto p-8 animate-slide-up">
@@ -38,57 +37,35 @@
             <button onclick="closeAuth()" class="mb-8 text-slate-400 hover:text-red-700 transition-colors">
                 <i class="fas fa-arrow-left text-xl"></i>
             </button>
-            
             <div class="text-center mb-8">
                 <h2 id="authTitle" class="text-2xl font-black uppercase italic tracking-tighter">Akses <span class="text-red-700">Piket</span></h2>
-                <p id="authSub" class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">Silakan login untuk bertugas</p>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">Masuk untuk mengelola izin</p>
             </div>
-
             <div id="authTabs" class="flex bg-slate-100 p-1 rounded-2xl mb-8">
                 <button id="tabLogin" onclick="toggleAuthTab('login')" class="flex-1 py-3 text-[10px] font-black uppercase rounded-xl bg-white shadow-sm transition-all">Login</button>
                 <button id="tabDaftar" onclick="toggleAuthTab('daftar')" class="flex-1 py-3 text-[10px] font-black uppercase text-slate-400 transition-all">Daftar</button>
             </div>
-
             <div id="boxLogin" class="space-y-4">
                 <select id="loginNama" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none text-slate-700"></select>
-                <input type="password" id="loginPass" placeholder="Password" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
-                <button onclick="handleLoginPiket()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Login Petugas</button>
-                <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-red-700 mt-4">Login Master Admin</button>
+                <input type="password" id="loginPass" placeholder="Password PIN" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
+                <button onclick="handleLoginPiket()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Masuk Petugas</button>
+                <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-red-700 mt-4 underline">Login Master Admin</button>
             </div>
-
             <div id="boxDaftar" class="hidden space-y-4">
                 <select id="regNama" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none text-slate-700"></select>
-                <input type="email" id="regEmail" placeholder="Email" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
-                <input type="number" id="regWA" placeholder="No WhatsApp" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
+                <input type="email" id="regEmail" placeholder="Email Aktif" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
+                <input id="regWA" type="number" placeholder="No. WhatsApp" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
                 <input type="password" id="regPass" placeholder="Buat Password" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
-                <button onclick="handleRegisterPiket()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Ajukan Pendaftaran</button>
+                <button onclick="handleRegisterPiket()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Ajukan Akun</button>
             </div>
-
             <div id="boxAdmin" class="hidden space-y-4">
-                <input type="email" id="adminEmail" placeholder="Email Admin (Supabase)" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
-                <input type="password" id="adminPass" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
+                <input type="email" id="adminEmail" placeholder="Email Master" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none text-slate-700">
+                <input type="password" id="adminPass" placeholder="Password Master" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none">
                 <button onclick="handleLoginAdmin()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Buka Dashboard Admin</button>
-                <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-slate-400 py-2">Kembali ke Piket</button>
+                <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-slate-400 mt-4">Kembali ke Piket</button>
             </div>
         </div>
     </div>
-
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[1000] px-4 py-2 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div class="max-w-md mx-auto flex justify-around items-center">
-            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-600">
-                <i class="fas fa-home-alt text-lg"></i>
-                <span class="text-[9px] font-bold uppercase tracking-tighter">Beranda</span>
-            </button>
-            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 p-2 text-slate-400">
-                <i class="fas fa-user-shield text-lg"></i>
-                <span class="text-[9px] font-bold uppercase tracking-tighter">Piket</span>
-            </button>
-            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-400">
-                <i class="fas fa-cog text-lg"></i>
-                <span class="text-[9px] font-bold uppercase tracking-tighter">Admin</span>
-            </button>
-        </div>
-    </nav>
 
     <header class="sticky top-0 bg-white/80 backdrop-blur-md z-[900] px-6 py-4 border-b border-slate-50">
         <div class="max-w-md mx-auto flex justify-between items-center">
@@ -102,16 +79,15 @@
                 </div>
             </div>
             <div class="text-right">
-                <div id="clockDisplay" class="text-xs font-black">00:00</div>
-                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">LOADING...</div>
+                <div id="clockDisplay" class="text-xs font-black text-slate-800">00:00</div>
+                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">SINKRONISASI...</div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto p-5 pb-24">
-        
+    <main class="max-w-md mx-auto p-5 pb-32">
         <div id="sec-layanan" class="animate-slide-up space-y-6">
-            <div class="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden">
+            <div class="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20">
                 <div class="relative z-10">
                     <h2 class="text-lg font-black leading-tight mb-1">Pengajuan Izin</h2>
                     <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">SMK Link and Match</p>
@@ -122,207 +98,176 @@
             <form id="izinForm" class="space-y-4">
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
-                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all text-slate-700">
-                        <option value="">Memuat data pegawai...</option>
-                    </select>
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none focus:ring-2 ring-red-600/10 text-slate-700"></select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Kategori</label>
-                        <select id="inputKategori" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
+                        <select id="inputKategori" class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
                             <option value="Dinas/Sekolah">Dinas/Sekolah</option>
                             <option value="Pribadi">Pribadi</option>
                         </select>
                     </div>
                     <div class="space-y-2">
                         <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Keperluan</label>
-                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
+                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-700/20 active:scale-95 transition-all">
                     Kirim Permohonan <i class="fas fa-paper-plane ml-2"></i>
                 </button>
             </form>
+
+            <div class="pt-6 border-t border-slate-100 space-y-4">
+                <div class="flex justify-between items-end px-1">
+                    <h3 class="font-black text-xs uppercase tracking-tight text-slate-400">Antrean Izin</h3>
+                    <button onclick="fetchIzin()" class="text-[9px] font-black text-red-600 uppercase tracking-widest"><i class="fas fa-sync-alt mr-1"></i> Perbarui</button>
+                </div>
+                <div id="listAntrean" class="space-y-3"></div>
+            </div>
         </div>
 
         <div id="sec-piket" class="hidden animate-slide-up space-y-4">
-            <div class="flex justify-between items-center bg-slate-900 p-4 rounded-2xl text-white mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-[10px]"><i class="fas fa-user-shield"></i></div>
-                    <span id="petugasAktif" class="text-[10px] font-black uppercase tracking-widest">-</span>
+            <div class="bg-slate-900 p-5 rounded-3xl text-white flex justify-between items-center mb-6">
+                <div>
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Petugas Aktif</p>
+                    <h2 id="petugasAktif" class="text-sm font-black uppercase italic">-</h2>
                 </div>
-                <button onclick="handleLogout()" class="text-[9px] font-bold text-white/50 uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-lg hover:bg-white/20">Logout</button>
+                <button onclick="handleLogout()" class="bg-white/10 px-4 py-2 rounded-xl text-[9px] font-black uppercase">Logout</button>
             </div>
-            
-            <div class="flex justify-between items-end">
-                <h3 class="font-black text-sm uppercase tracking-tight">Antrean Izin</h3>
-                <button onclick="fetchIzin()" class="text-[10px] font-black text-red-600 uppercase tracking-widest"><i class="fas fa-sync-alt mr-1"></i> Sync</button>
-            </div>
-            
-            <div id="listAntrean" class="space-y-3"></div>
+            <div id="listOperasional" class="space-y-3"></div>
         </div>
 
         <div id="sec-admin" class="hidden animate-slide-up space-y-6">
-            <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 bg-slate-900 text-white rounded-md flex items-center justify-center text-[10px]"><i class="fas fa-database"></i></div>
-                    <span class="text-[9px] font-black uppercase tracking-widest">Master Admin</span>
-                </div>
-                <button onclick="handleLogout()" class="text-[9px] font-black text-red-600 uppercase tracking-widest border border-red-100 px-3 py-1 rounded-lg bg-red-50">Logout</button>
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-sm font-black uppercase italic">Master <span class="text-red-700">Admin</span></h2>
+                <button onclick="exportToPDF()" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-emerald-600/20"><i class="fas fa-file-export mr-1"></i> PDF Report</button>
             </div>
 
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Persetujuan Akun Piket</h3>
-                <div id="listApprove" class="space-y-3"></div>
+            <div class="flex p-1 bg-slate-100 rounded-2xl gap-1 overflow-x-auto hide-scroll">
+                <button onclick="switchAdminTab('pendaftar')" id="tab-pendaftar" class="flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase bg-white shadow-sm transition-all">Pendaftar</button>
+                <button onclick="switchAdminTab('pegawai')" id="tab-pegawai" class="flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase text-slate-400 transition-all">Data Pegawai</button>
+                <button onclick="switchAdminTab('master')" id="tab-master" class="flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase text-slate-400 transition-all">Daftar Piket</button>
+                <button onclick="switchAdminTab('history')" id="tab-history" class="flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase text-slate-400 transition-all">History</button>
             </div>
+
+            <div id="adminContainer" class="animate-slide-up"></div>
         </div>
     </main>
 
-    <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
-        <div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center scale-95 animate-slide-up">
-            <div id="step-camera" class="space-y-4">
-                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Ambil Foto Bukti</h3>
-                <div class="relative w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-inner">
-                    <video id="cameraVideo" class="w-full h-full object-cover" autoplay playsinline></video>
-                </div>
-                <button onclick="takePhoto()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
-                    <i class="fas fa-camera"></i> Jepret Foto
-                </button>
-            </div>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-50 z-[1000] px-4 py-2 safe-area-bottom shadow-[0_-4px_30px_rgba(0,0,0,0.03)]">
+        <div class="max-w-md mx-auto flex justify-around items-center">
+            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-700">
+                <i class="fas fa-home-alt text-lg"></i><span class="text-[9px] font-black uppercase">Beranda</span>
+            </button>
+            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 p-2 text-slate-300">
+                <i class="fas fa-user-shield text-lg"></i><span class="text-[9px] font-black uppercase">Piket</span>
+            </button>
+            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-300">
+                <i class="fas fa-cog text-lg"></i><span class="text-[9px] font-black uppercase">Admin</span>
+            </button>
+        </div>
+    </nav>
 
-            <div id="step-preview" class="hidden space-y-4">
-                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Konfirmasi Foto</h3>
-                <canvas id="photoCanvas" class="hidden"></canvas> 
-                <div class="w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-inner border border-slate-200 bg-slate-100">
-                    <img id="previewImg" class="w-full h-full object-cover" />
+    <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/90 backdrop-blur-md hidden items-center justify-center p-6">
+        <div class="bg-white p-6 rounded-[2.5rem] w-full max-w-sm space-y-5 animate-slide-up text-center">
+            <div id="camView">
+                <h3 class="text-sm font-black uppercase mb-4">Bukti Kedatangan</h3>
+                <div class="relative aspect-[3/4] bg-black rounded-3xl overflow-hidden mb-4 shadow-2xl">
+                    <video id="video" class="w-full h-full object-cover" autoplay playsinline></video>
+                    <canvas id="canvas" class="hidden"></canvas>
                 </div>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="retakePhoto()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase hover:bg-slate-200 transition-all">Ulangi</button>
-                    <button onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Kirim Selesai</button>
+                <button onclick="takeSnapshot()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl shadow-indigo-600/20 active:scale-95 transition-all">Ambil Foto</button>
+            </div>
+            <div id="previewView" class="hidden">
+                <h3 class="text-sm font-black uppercase mb-4">Konfirmasi Laporan</h3>
+                <img id="photoPreview" class="w-full aspect-[3/4] object-cover rounded-3xl border mb-4">
+                <div class="flex gap-2">
+                    <button onclick="retakePhoto()" class="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-black text-[10px] uppercase">Ulangi</button>
+                    <button onclick="submitFinish()" class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-emerald-600/20">Kirim</button>
                 </div>
             </div>
-            <button onclick="closeFinishModal()" class="w-full mt-4 text-slate-400 py-2 font-bold text-[10px] uppercase hover:text-slate-600 transition-all">Batal / Tutup</button>
+            <button onclick="closeModal()" class="text-[9px] font-black text-slate-400 uppercase pt-2">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalEdit" class="fixed inset-0 z-[2000] bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-sm space-y-4">
+            <h3 class="font-black uppercase text-xs">Edit Data Log</h3>
+            <input id="editTujuan" type="text" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
+            <div class="grid grid-cols-2 gap-2">
+                <input id="editJamKeluar" type="text" placeholder="Jam Keluar" class="p-4 bg-slate-50 rounded-2xl font-bold text-xs">
+                <input id="editJamKembali" type="text" placeholder="Jam Kembali" class="p-4 bg-slate-50 rounded-2xl font-bold text-xs">
+            </div>
+            <button onclick="saveEdit()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase">Simpan Perubahan</button>
+            <button onclick="closeEdit()" class="w-full text-slate-400 font-bold text-[9px] uppercase">Batal</button>
         </div>
     </div>
 
     <script>
-        // --- KONFIGURASI SUPABASE ---
         const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
         const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
-        const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
         let currentSession = null;
-        let state = { cameraStream: null, currentFinishId: null, dataIzin: [] };
+        let activeAdminTab = 'pendaftar';
+        let stream = null;
+        let activeIzinId = null;
+        let editId = null;
 
-        // --- SISTEM PWA & NOTIFIKASI ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
-            if ('Notification' in window) Notification.requestPermission();
-        }
-
-        function kirimNotifikasi(pesan) {
-            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-                navigator.serviceWorker.ready.then(reg => {
-                    reg.showNotification('LinkPermit Pro', {
-                        body: pesan,
-                        icon: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
-                        vibrate: [200, 100, 200],
-                        requireInteraction: true,
-                        tag: 'izin-alert'
-                    });
-                });
-            }
-        }
-
-        // --- ALARM CHECKER ---
-        setInterval(() => {
-            const myName = localStorage.getItem('local_pemohon_pwa');
-            if (!myName || state.dataIzin.length === 0) return;
-            const ticket = state.dataIzin.find(i => i.nama === myName && i.status === 'Keluar');
-            if (ticket) {
-                // Contoh: Alarm dasar mengingatkan izin sedang berjalan (bisa dikustomisasi)
-                // kirimNotifikasi("Waktu izin berjalan. Harap perhatikan waktu Anda.");
-            }
-        }, 60000);
-
-        // --- FETCH DATA AWAL ---
-        window.onload = async () => {
+        // --- CORE ---
+        async function init() {
             updateTime();
             setInterval(updateTime, 1000);
-            
-            // Fetch Pegawai (Dari tabel baru data_pegawai)
-            const { data } = await supabaseClient.from('data_pegawai').select('nama').order('nama');
-            const sel = document.getElementById('inputNama');
-            sel.innerHTML = '<option value="">Pilih Nama...</option>';
-            data?.forEach(p => sel.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
-        };
+            await fetchPegawai();
+            await fetchIzin();
+        }
 
-        // --- PENGAJUAN IZIN FORM ---
-        document.getElementById('izinForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const namaSelect = document.getElementById('inputNama');
-            const nama = namaSelect.options[namaSelect.selectedIndex].text;
-            const kategori = document.getElementById('inputKategori').value;
-            const keperluan = document.getElementById('inputTujuan').value;
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clockDisplay').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            document.getElementById('dateDisplay').innerText = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+        }
 
-            if(!nama || !keperluan) return;
-            showLoading("Mengirim Izin...");
-            
-            const { error } = await supabaseClient.from('izin_keluar').insert([{
-                nama: nama, kategori: kategori, keperluan: keperluan, status: 'Pending'
-            }]);
-
-            if(!error) {
-                localStorage.setItem('local_pemohon_pwa', nama);
-                document.getElementById('inputTujuan').value = '';
-                alert("Pengajuan Berhasil Terkirim!");
-            } else { alert("Gagal: " + error.message); }
-            hideLoading();
-        });
-
-        // --- NAVIGASI ---
-        function navTo(section) {
-            if (section === 'layanan') { renderSection(section); return; }
+        // --- NAVIGATION ---
+        function navTo(sec) {
+            if (sec === 'layanan') { renderSec(sec); return; }
             if (!currentSession) { showAuth(); } 
             else {
-                if (section === 'admin' && currentSession.role !== 'admin') { alert("Hanya Admin yang diizinkan!"); return; }
-                renderSection(section);
+                if (sec === 'admin' && currentSession.role !== 'admin') { alert("Hanya Admin Utama!"); return; }
+                renderSec(sec);
             }
         }
 
-        function renderSection(section) {
+        function renderSec(sec) {
             ['layanan', 'piket', 'admin'].forEach(s => {
                 document.getElementById(`sec-${s}`).classList.add('hidden');
-                document.getElementById(`nav-${s}`).classList.replace('text-red-600', 'text-slate-400');
+                document.getElementById(`nav-${s}`).classList.replace('text-red-700', 'text-slate-300');
             });
-            document.getElementById(`sec-${section}`).classList.remove('hidden');
-            document.getElementById(`nav-${section}`).classList.replace('text-slate-400', 'text-red-600');
-            
-            if (section === 'piket') fetchIzin();
-            if (section === 'admin') fetchPendaftarPiket();
+            document.getElementById(`sec-${sec}`).classList.remove('hidden');
+            document.getElementById(`nav-${sec}`).classList.replace('text-slate-300', 'text-red-700');
+            if (sec === 'piket') fetchOperasional();
+            if (sec === 'admin') switchAdminTab('pendaftar');
         }
 
-        // --- AUTH & LOGIN ---
-        function showAuth() { document.getElementById('authOverlay').classList.remove('hidden'); fetchMasterPiket(); }
+        // --- AUTH ---
+        function showAuth() { document.getElementById('authOverlay').classList.remove('hidden'); fetchMasterList(); }
         function closeAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
-        function toggleAuthTab(type) {
-            const isLogin = type === 'login';
+        function toggleAuthTab(t) {
+            const isLogin = t === 'login';
             document.getElementById('boxLogin').classList.toggle('hidden', !isLogin);
             document.getElementById('boxDaftar').classList.toggle('hidden', isLogin);
             document.getElementById('tabLogin').classList.toggle('bg-white', isLogin);
-            document.getElementById('tabLogin').classList.toggle('shadow-sm', isLogin);
             document.getElementById('tabDaftar').classList.toggle('bg-white', !isLogin);
-            document.getElementById('tabDaftar').classList.toggle('shadow-sm', !isLogin);
         }
         function switchAdminUI() {
-            const isHidden = document.getElementById('boxAdmin').classList.toggle('hidden');
-            document.getElementById('boxLogin').classList.toggle('hidden', !isHidden);
-            document.getElementById('authTabs').classList.toggle('hidden', !isHidden);
-            document.getElementById('authTitle').innerHTML = isHidden ? 'Akses <span class="text-red-700">Piket</span>' : 'Master <span class="text-red-700">Admin</span>';
+            const isAdm = document.getElementById('boxAdmin').classList.toggle('hidden');
+            document.getElementById('boxLogin').classList.toggle('hidden', !isAdm);
+            document.getElementById('authTabs').classList.toggle('hidden', !isAdm);
         }
 
-        async function fetchMasterPiket() {
-            const { data } = await supabaseClient.from('master_piket').select('nama_piket').order('nama_piket');
+        async function fetchMasterList() {
+            const { data } = await supabase.from('master_piket').select('nama_piket').order('nama_piket');
             const sels = [document.getElementById('loginNama'), document.getElementById('regNama')];
             sels.forEach(s => {
                 s.innerHTML = '<option value="">Pilih Petugas...</option>';
@@ -330,178 +275,147 @@
             });
         }
 
-        async function handleRegisterPiket() {
-            const nama = document.getElementById('regNama').value;
-            const email = document.getElementById('regEmail').value;
-            const wa = document.getElementById('regWA').value;
-            const pass = document.getElementById('regPass').value;
-
-            if(!nama || !email || !pass) return alert("Lengkapi data!");
-            showLoading("Mengirim...");
-            const { error } = await supabaseClient.from('users_piket').insert([{ nama_piket: nama, email, whatsapp: wa, password: pass, is_approved: false }]);
-            hideLoading();
-            if(!error) { alert("Pendaftaran Berhasil! Tunggu di-Approve Admin."); toggleAuthTab('login'); } 
-            else alert("Error: " + error.message);
-        }
-
         async function handleLoginPiket() {
-            const nama = document.getElementById('loginNama').value;
-            const pass = document.getElementById('loginPass').value;
+            const n = document.getElementById('loginNama').value;
+            const p = document.getElementById('loginPass').value;
             showLoading("Verifikasi...");
-            const { data } = await supabaseClient.from('users_piket').select('*').eq('nama_piket', nama).eq('password', pass).single();
+            const { data } = await supabase.from('users_piket').select('*').eq('nama_piket', n).eq('password', p).single();
             hideLoading();
             if (data?.is_approved) {
-                currentSession = { nama: data.nama_piket, role: 'piket' };
-                document.getElementById('userStatus').innerText = `PIKET: ${currentSession.nama}`;
-                document.getElementById('petugasAktif').innerText = currentSession.nama;
+                currentSession = { ...data, role: 'piket' };
+                document.getElementById('userStatus').innerText = `Petugas: ${data.nama_piket}`;
+                document.getElementById('petugasAktif').innerText = data.nama_piket;
                 closeAuth(); navTo('piket');
-            } else alert("Nama/Password salah atau belum disetujui Admin.");
+            } else alert("Akun tidak ditemukan atau belum disetujui Admin.");
         }
 
         async function handleLoginAdmin() {
-            const email = document.getElementById('adminEmail').value;
-            const pass = document.getElementById('adminPass').value;
-            showLoading("Login...");
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+            const e = document.getElementById('adminEmail').value;
+            const p = document.getElementById('adminPass').value;
+            showLoading("Buka Master...");
+            const { data, error } = await supabase.auth.signInWithPassword({ email: e, password: p });
             hideLoading();
             if (data.user) {
-                currentSession = { nama: 'Admin', role: 'admin' };
-                document.getElementById('userStatus').innerText = "MASTER ADMIN";
+                currentSession = { role: 'admin', nama: 'Administrator' };
+                document.getElementById('userStatus').innerText = "Master Admin";
                 closeAuth(); navTo('admin');
-            } else alert("Gagal Login Admin: " + error.message);
+            } else alert(error.message);
         }
 
-        function handleLogout() {
-            currentSession = null;
-            document.getElementById('userStatus').innerText = "Guest Mode";
-            navTo('layanan');
+        function handleLogout() { currentSession = null; document.getElementById('userStatus').innerText = "Guest Mode"; navTo('layanan'); }
+
+        // --- BERANDA FEATURES ---
+        async function fetchPegawai() {
+            const { data } = await supabase.from('data_pegawai').select('nama').order('nama');
+            const s = document.getElementById('inputNama');
+            s.innerHTML = '<option value="">Pilih Nama...</option>';
+            data?.forEach(p => s.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
         }
 
-        // --- FITUR PIKET: ANTREAN & APPROVE ---
         async function fetchIzin() {
-            const { data } = await supabaseClient.from('izin_keluar').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
-            state.dataIzin = data || [];
+            const { data } = await supabase.from('izin_keluar').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
             const list = document.getElementById('listAntrean');
             list.innerHTML = '';
             data?.forEach(i => {
                 list.innerHTML += `
-                    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm space-y-3">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-black text-sm">${i.nama}</h4>
-                            <span class="text-[8px] font-black uppercase px-2 py-1 rounded-full ${i.status === 'Keluar' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-500'}">${i.status}</span>
-                        </div>
-                        <p class="text-[10px] text-slate-500 font-medium">Tujuan: ${i.keperluan}</p>
-                        <div class="flex gap-2">
-                            ${i.status === 'Pending' ? `
-                                <button onclick="approveIzin('${i.id}')" class="flex-1 bg-slate-900 text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest">Setujui Keluar</button>
-                            ` : `
-                                <button onclick="openFinish('${i.id}')" class="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-600/20">Lapor Selesai</button>
-                            `}
-                        </div>
-                    </div>`;
-            });
-        }
-
-        async function approveIzin(id) {
-            showLoading("Memproses...");
-            const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
-            await supabaseClient.from('izin_keluar').update({ status: 'Keluar', disetujui_oleh: currentSession.nama, waktu_keluar: jam }).eq('id', id);
-            fetchIzin();
-            hideLoading();
-        }
-
-        // --- FITUR ADMIN: APPROVE AKUN PIKET ---
-        async function fetchPendaftarPiket() {
-            const { data } = await supabaseClient.from('users_piket').select('*').eq('is_approved', false);
-            const list = document.getElementById('listApprove');
-            list.innerHTML = data?.length ? '' : '<p class="text-[9px] text-slate-400 italic">Tidak ada pendaftaran baru.</p>';
-            data?.forEach(p => {
-                list.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl">
+                    <div class="bg-white p-5 rounded-[2rem] border border-slate-50 shadow-sm flex justify-between items-center">
                         <div>
-                            <p class="text-[10px] font-black">${p.nama_piket}</p>
-                            <p class="text-[8px] text-slate-400">${p.email}</p>
+                            <h4 class="font-black text-xs text-slate-800">${i.nama}</h4>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mt-0.5 tracking-widest">${i.keperluan}</p>
                         </div>
-                        <button onclick="setujuiUser('${p.id}')" class="bg-red-700 text-white px-4 py-2 rounded-xl text-[8px] font-black uppercase shadow-lg shadow-red-700/20 active:scale-95 transition-all">Setujui</button>
+                        <span class="px-3 py-1.5 rounded-full text-[8px] font-black uppercase ${i.status === 'Keluar' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-400'}">${i.status}</span>
                     </div>`;
             });
         }
 
-        async function setujuiUser(id) {
-            showLoading("Menyetujui...");
-            await supabaseClient.from('users_piket').update({ is_approved: true }).eq('id', id);
-            fetchPendaftarPiket();
+        document.getElementById('izinForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const n = document.getElementById('inputNama').value;
+            const k = document.getElementById('inputKategori').value;
+            const t = document.getElementById('inputTujuan').value;
+            showLoading("Mengirim...");
+            await supabase.from('izin_keluar').insert([{ nama: n, kategori: k, keperluan: t, status: 'Pending' }]);
             hideLoading();
+            document.getElementById('inputTujuan').value = '';
+            alert("Berhasil Terkirim!");
+            fetchIzin();
+        };
+
+        // --- PIKET OPERATIONAL ---
+        async function fetchOperasional() {
+            const { data } = await supabase.from('izin_keluar').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
+            const list = document.getElementById('listOperasional');
+            list.innerHTML = '';
+            data?.forEach(i => {
+                list.innerHTML += `
+                    <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-black text-sm uppercase">${i.nama}</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">${i.kategori}</p>
+                            </div>
+                            <span class="text-[8px] font-black bg-slate-900 text-white px-3 py-1 rounded-full uppercase">${i.status}</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-600">Tujuan: ${i.keperluan}</p>
+                        ${i.status === 'Pending' ? 
+                            `<button onclick="approveExit('${i.id}')" class="w-full bg-red-700 text-white py-3 rounded-2xl font-black text-[9px] uppercase shadow-lg shadow-red-700/20">Izinkan Keluar</button>` :
+                            `<button onclick="openCam('${i.id}')" class="w-full bg-emerald-600 text-white py-3 rounded-2xl font-black text-[9px] uppercase shadow-lg shadow-emerald-600/20">Lapor Selesai / Kembali</button>`
+                        }
+                    </div>`;
+            });
         }
 
-        // --- FITUR KAMERA (LAPOR SELESAI) ---
-        function openFinish(id) {
-            state.currentFinishId = id;
+        async function approveExit(id) {
+            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            await supabase.from('izin_keluar').update({ status: 'Keluar', waktu_keluar: jam, disetujui_oleh: currentSession.nama_piket }).eq('id', id);
+            fetchOperasional();
+        }
+
+        // --- KAMERA & WATERMARK ---
+        async function openCam(id) {
+            activeIzinId = id;
             document.getElementById('modalFinish').classList.replace('hidden', 'flex');
-            document.getElementById('step-camera').classList.remove('hidden');
-            document.getElementById('step-preview').classList.add('hidden');
-            startCamera();
+            document.getElementById('camView').classList.remove('hidden');
+            document.getElementById('previewView').classList.add('hidden');
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+            document.getElementById('video').srcObject = stream;
         }
-        async function startCamera() {
-            try {
-                state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-                document.getElementById('cameraVideo').srcObject = state.cameraStream;
-            } catch (e) { alert("Gagal akses kamera: " + e.message); closeFinishModal(); }
-        }
-        function stopCamera() {
-            if (state.cameraStream) { state.cameraStream.getTracks().forEach(track => track.stop()); state.cameraStream = null; }
-        }
-        function closeFinishModal() {
-            stopCamera();
+
+        function closeModal() {
+            if(stream) stream.getTracks().forEach(t => t.stop());
             document.getElementById('modalFinish').classList.replace('flex', 'hidden');
         }
-        function takePhoto() {
-            const v = document.getElementById('cameraVideo');
-            const c = document.getElementById('photoCanvas');
+
+        function takeSnapshot() {
+            const v = document.getElementById('video');
+            const c = document.getElementById('canvas');
             const ctx = c.getContext('2d');
-            c.width = 720; c.height = 1280;
-            // Draw image logic (disederhanakan untuk preview)
+            c.width = 720; c.height = 1080;
             ctx.drawImage(v, 0, 0, c.width, c.height);
             
-            // Watermark sederhana
-            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-            ctx.fillRect(0, c.height - 100, c.width, 100);
-            ctx.fillStyle = "black";
-            ctx.font = "30px Arial";
-            ctx.fillText(`Telah Melapor: ${new Date().toLocaleString('id-ID')}`, 50, c.height - 40);
+            // Watermark (Fitur Asli)
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fillRect(0, c.height - 150, c.width, 150);
+            ctx.fillStyle = "white";
+            ctx.font = "bold 30px Arial";
+            ctx.fillText("LINKPERMIT PRO - BUKTI KEMBALI", 40, c.height - 100);
+            ctx.font = "24px Arial";
+            ctx.fillText(`${new Date().toLocaleString('id-ID')} | Petugas: ${currentSession.nama_piket}`, 40, c.height - 60);
 
-            document.getElementById('previewImg').src = c.toDataURL('image/jpeg');
-            document.getElementById('step-camera').classList.add('hidden');
-            document.getElementById('step-preview').classList.remove('hidden');
-            stopCamera();
+            document.getElementById('photoPreview').src = c.toDataURL('image/jpeg');
+            document.getElementById('camView').classList.add('hidden');
+            document.getElementById('previewView').classList.remove('hidden');
         }
+
         function retakePhoto() {
-            document.getElementById('step-preview').classList.add('hidden');
-            document.getElementById('step-camera').classList.remove('hidden');
-            startCamera();
-        }
-        async function submitFinish() {
-            showLoading("Menyimpan...");
-            const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
-            await supabaseClient.from('izin_keluar').update({ status: 'Selesai', waktu_kembali: jam }).eq('id', state.currentFinishId);
-            closeFinishModal();
-            fetchIzin();
-            hideLoading();
-            alert("Laporan Kepulangan Berhasil!");
+            document.getElementById('previewView').classList.add('hidden');
+            document.getElementById('camView').classList.remove('hidden');
         }
 
-        // --- UTILS ---
-        function showLoading(txt) { document.getElementById('loadingText').innerText = txt; document.getElementById('loadingOverlay').classList.remove('hidden'); }
-        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false});
-            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('id-ID', {weekday:'short', day:'numeric', month:'short'}).toUpperCase();
-        }
-        function formatTo24Hour(timeStr) {
-            let str = timeStr.toString().toLowerCase().trim().replace(/\./g, ':');
-            return str;
-        }
-    </script>
-</body>
-</html>
+        async function submitFinish() {
+            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            showLoading("Menyimpan...");
+            await supabase.from('izin_keluar').update({ status: 'Selesai', waktu_kembali: jam }).eq('id', activeIzinId);
+            hideLoading();
+            closeModal();
+            fetch
