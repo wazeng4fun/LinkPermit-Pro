@@ -142,7 +142,7 @@
 
             <!-- PETUGAS PIKET -->
             <div id="sec-piket" class="hidden animate-slide-up space-y-6">
-                <!-- Bagian Informasi Petugas Piket ON DUTY (Terintegrasi WA) -->
+                <!-- Bagian Informasi Petugas Piket ON DUTY -->
                 <div id="petugasHariIniContainer" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hidden animate-slide-up">
                     <h3 class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex justify-between items-center">
                         <span><i class="fas fa-broadcast-tower mr-1 animate-pulse"></i> Petugas Piket On Duty</span>
@@ -153,8 +153,8 @@
                     </div>
                 </div>
 
-                <!-- Form Login Piket dengan dukungan Enter -->
-                <form id="piketLoginForm" onsubmit="event.preventDefault(); handleLogin();" class="space-y-6 pt-6">
+                <!-- Form Login Piket -->
+                <form id="piketLoginForm" class="space-y-6 pt-6">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-slate-900 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-xl shadow-slate-900/20"><i class="fas fa-user-shield"></i></div>
                         <h3 class="text-xl font-black mb-2">Panel Petugas</h3>
@@ -164,9 +164,26 @@
                         <select id="piketUser" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none text-slate-700">
                             <option value="">Pilih Petugas...</option>
                         </select>
-                        <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-3xl tracking-[1em] outline-none text-slate-700">
+                        <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-3xl tracking-[1em] outline-none text-slate-700" required>
                     </div>
                     <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Masuk Sebagai Petugas</button>
+                    
+                    <!-- Catatan Rincian Jadwal Shift -->
+                    <div class="p-5 bg-slate-50 rounded-3xl border border-slate-100 text-left mt-2 shadow-inner">
+                        <h4 class="font-black text-[10px] text-slate-700 uppercase tracking-widest mb-3 flex items-center"><i class="fas fa-info-circle mr-2 text-slate-400"></i> Rincian Jadwal</h4>
+                        <div class="space-y-3 text-[9px] text-slate-500 leading-relaxed font-medium">
+                            <div class="space-y-1">
+                                <p><span class="font-black text-slate-700">Shift 1:</span> 06.45 – 12.30 (Durasi: 5 jam 45 menit)</p>
+                                <p><span class="font-black text-slate-700">Shift 2:</span> 12.00 – 17.45 (Durasi: 5 jam 45 menit)</p>
+                                <p class="pt-1 text-slate-600"><span class="font-black text-slate-700">Catatan:</span> Untuk Piket Tata Usaha bertugas dari pukul 09.00 s.d 15.00</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-200">
+                                <p class="font-black text-slate-700 uppercase tracking-wide mb-1">Agenda Transisi (Overlap)</p>
+                                <p><span class="font-black text-slate-700">Waktu Bersama:</span> 12.00 – 12.30 (Durasi: 30 menit)</p>
+                                <p class="mt-1">Selama pukul 12.00 hingga 12.30, petugas dari Shift 1 dan Shift 2 akan berada di lokasi secara bersamaan. Waktu ini digunakan untuk briefing atau serah terima tugas (handover).</p>
+                            </div>
+                        </div>
+                    </div>
                 </form>
 
                 <div id="piketDashboard" class="hidden space-y-4">
@@ -186,8 +203,8 @@
 
             <!-- LOGIN MASTER ADMIN -->
             <div id="sec-admin" class="hidden animate-slide-up space-y-6">
-                <!-- Form Login Admin dengan dukungan Enter -->
-                <form id="adminLoginForm" onsubmit="event.preventDefault(); handleAdminLogin();" class="space-y-6 pt-10">
+                <!-- Form Login Admin -->
+                <form id="adminLoginForm" class="space-y-6 pt-10">
                     <div class="text-center">
                         <div class="w-16 h-16 bg-red-700 text-white rounded-3xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-xl shadow-red-700/20"><i class="fas fa-cog"></i></div>
                         <h3 class="text-xl font-black mb-2">Master Admin</h3>
@@ -236,7 +253,6 @@
                 <button id="deskTab-petugas" type="button" onclick="switchAdminTab('petugas')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-user-shield w-5 text-center text-lg"></i> Petugas Piket
                 </button>
-                <!-- Menu Jadwal Piket (Shift & Jadwal disatukan di sini) -->
                 <button id="deskTab-jadwal" type="button" onclick="switchAdminTab('jadwal')" class="w-full flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:bg-white/5 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-wider transition-all">
                     <i class="fas fa-calendar-alt w-5 text-center text-lg"></i> Jadwal Piket
                 </button>
@@ -253,8 +269,7 @@
         </aside>
 
         <!-- MAIN CONTENT AREA -->
-        <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
-            
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-screen">
             <!-- Desktop Header -->
             <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shrink-0 z-10 shadow-sm">
                 <div>
@@ -272,7 +287,7 @@
 
             <!-- Dynamic Content Container -->
             <div class="flex-1 overflow-y-auto custom-scroll p-10 flex flex-col" id="desktopAdminContent">
-                <!-- Tabel dan kontrol akan dirender di sini via JS -->
+                <!-- Tabel dan kontrol dirender di sini via JS -->
             </div>
         </main>
     </div>
@@ -293,7 +308,7 @@
                     <div class="space-y-1.5 relative" id="containerVal2">
                         <label id="labelVal2" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">PIN / Jabatan</label>
                         <div class="relative flex items-center">
-                            <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700 pr-32" required>
+                            <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700">
                             <button id="btnGeneratePin" type="button" onclick="generateRandomPin()" class="absolute right-2 bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-black uppercase px-4 py-2.5 rounded-lg tracking-wider transition-all hidden shadow-md">
                                 <i class="fas fa-random mr-1"></i> Generate
                             </button>
@@ -327,50 +342,34 @@
         </div>
     </div>
 
-    <!-- Modal Jadwal Piket (Form Multi Petugas, 1 Hari, 1 Shift) -->
+    <!-- Modal Jadwal Piket -->
     <div id="modalJadwal" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up shadow-2xl h-auto max-h-[90vh] overflow-y-auto custom-scroll">
             <form id="jadwalForm" class="space-y-6">
                 <h3 id="modalJadwalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Atur Jadwal Piket</h3>
                 <div class="space-y-4">
-                    
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Hari</label>
                             <select id="jadwalHariSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700" required>
-                                <option value="Senin">Senin</option>
-                                <option value="Selasa">Selasa</option>
-                                <option value="Rabu">Rabu</option>
-                                <option value="Kamis">Kamis</option>
-                                <option value="Jumat">Jumat</option>
-                                <option value="Sabtu">Sabtu</option>
-                                <option value="Minggu">Minggu</option>
+                                <option value="Senin">Senin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Kamis">Kamis</option><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option><option value="Minggu">Minggu</option>
                             </select>
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Shift Piket</label>
-                            <select id="jadwalShiftSelect" class="w-full p-4 bg-blue-50/50 rounded-xl text-sm font-bold border border-blue-200 outline-none focus:border-blue-600 text-blue-800 transition-all cursor-pointer" required>
-                                <!-- Populated by JS -->
-                            </select>
+                            <select id="jadwalShiftSelect" class="w-full p-4 bg-blue-50/50 rounded-xl text-sm font-bold border border-blue-200 outline-none focus:border-blue-600 text-blue-800 transition-all cursor-pointer" required></select>
                         </div>
                     </div>
-
                     <!-- Single Select (Hanya untuk Edit 1 data) -->
                     <div id="jadwalPetugasSingleContainer" class="hidden space-y-1.5">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Petugas</label>
-                        <select id="jadwalPetugasSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700">
-                            <!-- Populated by JS -->
-                        </select>
+                        <select id="jadwalPetugasSelect" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 transition-all text-slate-700"></select>
                     </div>
-
-                    <!-- Multi Select (Untuk Tambah Jadwal Baru ke Banyak Petugas) -->
+                    <!-- Multi Select (Untuk Tambah Jadwal Baru) -->
                     <div id="jadwalPetugasMultiContainer" class="space-y-2">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Pilih Petugas (Bisa Lebih Dari Satu)</label>
-                        <div id="jadwalPetugasMulti" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scroll pr-1">
-                            <!-- Checkboxes populated by JS -->
-                        </div>
+                        <div id="jadwalPetugasMulti" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto custom-scroll pr-1"></div>
                     </div>
-                    
                 </div>
                 <div class="flex gap-3 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeModalJadwal()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
@@ -474,7 +473,7 @@
             activeTab: 'layanan',
             adminActiveTab: 'pegawai',
             dataIzin: [], listPegawai: [], listPetugas: [], listJadwal: [], listShift: [],
-            currentUser: null, isAdmin: false, currentPage: 1, itemsPerPage: 10,
+            currentUser: null, isAdmin: false, currentPage: 1, itemsPerPage: 15,
             currentFinishId: null, cameraStream: null, selectedAdminItems: [], 
             tempLaporanData: [], currentEditIzinId: null
         };
@@ -730,7 +729,7 @@
         }
         setInterval(renderPetugasHariIni, 60000);
 
-        // --- ADMIN VIEW & AUTH LOGIC ---
+        // --- AUTH LOGIC (Admin & Petugas) ---
         async function handleAdminLogin() {
             const email = document.getElementById('adminEmail').value.trim(), password = document.getElementById('adminPass').value;
             if (!email || !password) return showToast("Lengkapi email dan password terlebih dahulu.", "error");
@@ -783,31 +782,7 @@
             renderAdminContent();
         }
 
-        // --- FITUR UNDUH TEMPLATE CSV ---
-        function downloadCSVTemplate(type) {
-            let csvContent = "\uFEFF"; 
-            if (type === 'pegawai') {
-                csvContent += "Nama Lengkap,Jabatan / Bidang,Nomor HP\n";
-                csvContent += "Andi Hermawan,Guru Kejuruan,081234567890\n";
-                csvContent += "Siti Aminah,Staff Tata Usaha,087788990011\n";
-            } else {
-                csvContent += "Nama Lengkap,PIN (4 Digit),Nomor HP\n";
-                csvContent += "Fajar Ramadhan,2580,085299887766\n";
-                csvContent += "Rendi Saputra,1470,089911223344\n";
-            }
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Template_Import_${type === 'pegawai' ? 'Pegawai' : 'Petugas'}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast(`Template CSV ${type === 'pegawai' ? 'Pegawai' : 'Petugas'} berhasil diunduh!`, "success");
-        }
-
-        // --- RENDER DESKTOP ADMIN CONTENT (TABLES) ---
+        // --- RENDER DESKTOP ADMIN CONTENT (TABLES WITH SCROLL) ---
         async function renderAdminContent() {
             const container = document.getElementById('desktopAdminContent');
             container.innerHTML = '';
@@ -869,7 +844,8 @@
                             <button type="button" onclick="downloadReport()" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-700/20 transition-all"><i class="fas fa-file-pdf mr-2"></i> Unduh PDF</button>
                         </div>
                     </div>
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1 min-h-[400px]">
+                    <!-- Tabel yang bisa di scroll berkat h-[calc...] -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-250px)]">
                         <div class="flex-1 overflow-y-auto custom-scroll">
                             <table class="w-full text-left border-collapse relative">
                                 <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
@@ -893,7 +869,6 @@
             // --- TABEL JADWAL & SHIFT (DISATUKAN) ---
             if (state.adminActiveTab === 'jadwal') {
                 const source = state.listJadwal;
-                state.itemsPerPage = 15;
                 const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
                 const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
                 const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
@@ -937,15 +912,16 @@
                 `).join('');
 
                 container.innerHTML = `
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start h-[calc(100vh-140px)]">
                         <!-- Panel Kiri: Pengaturan Shift -->
-                        <div class="lg:col-span-1 flex flex-col space-y-3">
+                        <div class="lg:col-span-1 flex flex-col space-y-3 h-full">
                             <div class="flex justify-between items-center px-1 shrink-0">
                                 <h3 class="text-sm font-black uppercase tracking-tight text-slate-800">Master Shift</h3>
                                 <button type="button" onclick="openForm('shift', false)" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase hover:bg-slate-800 transition-all shadow-md"><i class="fas fa-plus mr-1"></i> Shift</button>
                             </div>
-                            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col">
-                                <div class="flex-1 overflow-y-auto custom-scroll max-h-[400px]">
+                            <!-- Tabel dengan batas tinggi -->
+                            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+                                <div class="flex-1 overflow-y-auto custom-scroll">
                                     <table class="w-full text-left relative">
                                         <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
                                             <tr>
@@ -961,7 +937,7 @@
                         </div>
 
                         <!-- Panel Kanan: Jadwal Piket -->
-                        <div class="lg:col-span-2 flex flex-col space-y-3">
+                        <div class="lg:col-span-2 flex flex-col space-y-3 h-full">
                             <div class="flex justify-between items-center px-1 shrink-0">
                                 <h3 class="text-sm font-black uppercase tracking-tight text-slate-800 flex items-center gap-2">Jadwal Penugasan ${bulkDeleteBtn}</h3>
                                 <div class="flex gap-2">
@@ -969,7 +945,7 @@
                                     <button type="button" onclick="openModalJadwal(false)" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-[9px] font-black uppercase hover:bg-blue-700 transition-all shadow-md"><i class="fas fa-calendar-plus mr-1"></i> Jadwal Baru</button>
                                 </div>
                             </div>
-                            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1">
+                            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1 min-h-0">
                                 <div class="flex-1 overflow-y-auto custom-scroll">
                                     <table class="w-full text-left border-collapse relative">
                                         <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
@@ -1002,7 +978,6 @@
 
             // --- TAMPILAN TABEL PEGAWAI / PETUGAS DESKTOP ---
             const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
-            state.itemsPerPage = 15;
             const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
             const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
             const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
@@ -1012,7 +987,6 @@
             let tbodyHtml = '';
             if (paginatedItems.length > 0) {
                 tbodyHtml = paginatedItems.map(item => {
-                    // Update tampilan nomor HP untuk mengaktifkan direct ke WhatsApp
                     let hpDisplay = '<span class="text-[10px] text-slate-300 block mt-1">- No HP -</span>';
                     if (item.no_hp) {
                         let cleanHp = item.no_hp.replace(/\D/g, '');
@@ -1062,7 +1036,7 @@
                     <button type="button" onclick="openForm('${state.adminActiveTab}', false)" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all"><i class="fas fa-plus mr-2"></i> Tambah Manual</button>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1 min-h-[400px]">
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-250px)]">
                     <div class="flex-1 overflow-y-auto custom-scroll">
                         <table class="w-full text-left border-collapse relative">
                             <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
@@ -1156,7 +1130,6 @@
             if (sJ) { sJ.innerHTML = '<option value="">Pilih Petugas Piket...</option>'; state.listPetugas.forEach(p => sJ.innerHTML += `<option value="${p.nama}">${p.nama}</option>`); }
             if (sShift) { sShift.innerHTML = '<option value="">Pilih Shift Piket...</option>'; state.listShift.forEach(s => sShift.innerHTML += `<option value="${s.id}">${s.nama_shift} (${s.jam_mulai} - ${s.jam_selesai})</option>`); }
             
-            // Sync Checkbox Petugas untuk Modal Tambah Jadwal
             const multiContainer = document.getElementById('jadwalPetugasMulti');
             if(multiContainer) {
                 multiContainer.innerHTML = state.listPetugas.map(p => `
@@ -1265,7 +1238,6 @@
             const cVal2 = document.getElementById('containerVal2'), cHP = document.getElementById('containerHP'), cTime = document.getElementById('containerTime');
             const btnGen = document.getElementById('btnGeneratePin');
             
-            // Setel visibilitas kolom default
             cVal2.classList.remove('hidden'); cHP.classList.remove('hidden'); cTime.classList.replace('grid', 'hidden');
             
             if (type === 'shift') {
@@ -1297,13 +1269,14 @@
             
             const modal = document.getElementById('modalForm'); modal.classList.remove('hidden'); modal.classList.add('flex');
             
-            // Logic Penanganan Submit yang mendukung Enter Key (HTML5 Form)
+            // Logic Penanganan Submit yang terisolasi sempurna (no stale closure)
             document.getElementById('masterDataForm').onsubmit = (e) => {
                 e.preventDefault();
-                if (type === 'shift') {
+                
+                if (editState.editingType === 'shift') {
                     const nm = v1.value.trim(), jm1 = document.getElementById('formValTime1').value, jm2 = document.getElementById('formValTime2').value;
                     if(!nm || !jm1 || !jm2) return showToast("Isi semua data shift", "error");
-                    saveShiftData(nm, jm1, jm2, isEdit, id);
+                    saveShiftData(nm, jm1, jm2, editState.isEditing, editState.editingId);
                     return;
                 }
 
@@ -1311,14 +1284,14 @@
                 let rawHP = vHP.value.trim(); let formattedHP = '';
                 if (rawHP) { if (rawHP.startsWith('0')) formattedHP = '+62' + rawHP.substring(1); else if (rawHP.startsWith('62')) formattedHP = '+62' + rawHP.substring(2); else formattedHP = '+62' + rawHP; }
                 
-                if(nama && spec) saveMasterData(type, nama, spec, formattedHP, isEdit, id);
+                if(nama && spec) saveMasterData(editState.editingType, nama, spec, formattedHP, editState.isEditing, editState.editingId);
                 else showToast("Harap isi semua kolom wajib (Nama & Jabatan/PIN).", "error");
             };
         }
         
-        function closeForm() { const m = document.getElementById('modalForm'); m.classList.add('hidden'); m.classList.remove('flex'); }
+        function closeForm() { const m = document.getElementById('modalForm'); m.classList.add('hidden'); m.classList.remove('flex'); document.getElementById('masterDataForm').reset(); }
 
-        // --- FUNGSI EDIT IZIN (DIKEMBALIKAN) ---
+        // --- FUNGSI EDIT IZIN ---
         function openEditIzin(id) {
             const item = state.tempLaporanData.find(i => i.id_izin === id);
             if(!item) return;
@@ -1365,6 +1338,7 @@
             hideLoading();
         }
 
+        // --- PDF & REPORTING ---
         async function downloadReport() {
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value;
             if (!startDate || !endDate) return showToast("Harap tentukan rentang tanggal laporan.", "error");
@@ -1398,10 +1372,7 @@
                     tableRows.push([row.id_izin || '', row.nama || '', row.keperluan || '-', row.tanggal || '', `${tglK}\n${out24}`, `${tglKm}\n${in24}`, durasi, keterangan]);
                 }
 
-                doc.autoTable({
-                    head: [tableColumn], body: tableRows, startY: 28, margin: { bottom: 15 },
-                    styles: { fontSize: 8, valign: 'middle', cellPadding: 2 }
-                });
+                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 28, margin: { bottom: 15 }, styles: { fontSize: 8, valign: 'middle', cellPadding: 2 } });
                 doc.save(`Laporan_Izin_${startDate}_sd_${endDate}.pdf`);
                 showToast("Laporan berhasil diunduh!", "success");
             } catch (err) { showToast("Gagal menghasilkan laporan.", "error"); } finally { hideLoading(); }
@@ -1415,13 +1386,8 @@
                 try {
                     const endDateFull = new Date(endDate); endDateFull.setHours(23, 59, 59, 999);
                     const { error } = await supabaseClient.from('izin').delete().gte('created_at', new Date(startDate).toISOString()).lte('created_at', endDateFull.toISOString());
-                    if(!error) {
-                        showToast("Data periode berhasil dibersihkan.", "success");
-                        await fetchIzin();
-                        if (state.adminActiveTab === 'laporan') renderAdminContent();
-                    } else {
-                        showToast("Gagal menghapus data.", "error");
-                    }
+                    if(!error) { showToast("Data periode berhasil dibersihkan.", "success"); await fetchIzin(); if (state.adminActiveTab === 'laporan') renderAdminContent(); } 
+                    else { showToast("Gagal menghapus data.", "error"); }
                 } catch (err) { showToast("Gagal menghapus data.", "error"); } finally { hideLoading(); }
             });
         }
@@ -1435,7 +1401,7 @@
             hideLoading();
         }
         
-        // --- JADWAL PIKET LOGIC (Satu Hari -> 1 Shift -> Multi Petugas) ---
+        // --- JADWAL PIKET LOGIC ---
         function openModalJadwal(isEdit = false, id = null) {
             if (state.listShift.length === 0) return showToast("Buat Data Shift terlebih dahulu!", "error");
 
@@ -1481,11 +1447,11 @@
                 const shiftData = state.listShift.find(s => s.id == shiftId);
                 showLoading("Menyimpan Jadwal...");
 
-                if (isEdit) {
+                if (editState.isEditing) {
                     const nama = vPetugasSingle.value;
                     const { error } = await supabaseClient.from('jadwal_piket').update({
                         nama_petugas: nama, hari: hari, nama_shift: shiftData.nama_shift, jam_mulai: shiftData.jam_mulai, jam_selesai: shiftData.jam_selesai
-                    }).eq('id', id);
+                    }).eq('id', editState.editingId);
                     if (!error) { showToast("Jadwal diupdate!", "success"); await fetchJadwal(); closeModalJadwal(); } 
                     else { showToast("Gagal update jadwal.", "error"); }
                 } else {
@@ -1504,7 +1470,7 @@
             };
         }
 
-        function closeModalJadwal() { const m = document.getElementById('modalJadwal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+        function closeModalJadwal() { const m = document.getElementById('modalJadwal'); m.classList.add('hidden'); m.classList.remove('flex'); document.getElementById('jadwalForm').reset(); }
 
         async function deleteMasterData(type, id) { showConfirm("Hapus data ini?", async () => { showLoading("Menghapus..."); const t = type === 'izin' ? 'izin' : type, f = type === 'izin' ? 'id_izin' : 'id'; const {error} = await supabaseClient.from(t).delete().eq(f, id); if(!error) { if(type==='pegawai') await fetchPegawai(); else if(type==='petugas') await fetchPetugas(); else if(type==='shift_piket') await fetchShift(); else if(type==='jadwal_piket') await fetchJadwal(); else await renderAdminContent(); showToast("Dihapus", "success"); } hideLoading(); }); }
         async function deleteSelectedMasterData(type) { if(state.selectedAdminItems.length===0) return; showConfirm(`Hapus ${state.selectedAdminItems.length} data?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().in('id', state.selectedAdminItems); if(!error){ state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : (type === 'shift_piket' ? await fetchShift() : await fetchJadwal())); showToast("Berhasil dihapus", "success"); } hideLoading(); }); }
@@ -1584,9 +1550,6 @@
             hideLoading(); updateTime(); setInterval(updateTime, 1000);
         }
         window.onload = init;
-        
-        // Form Edit Laporan Izin Handling
-        document.getElementById('editIzinForm').onsubmit = (e) => { e.preventDefault(); saveEditIzin(); };
     </script>
 </body>
 </html>
