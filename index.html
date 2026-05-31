@@ -513,10 +513,24 @@
         // --- 5. CAMERA FINISH ---
         function openFinish(id) { 
             state.currentFinishId = id; 
-            document.getElementById('modalFinish').classList.replace('hidden', 'flex');
+            const modal = document.getElementById('modalFinish');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
             document.getElementById('step-camera').classList.remove('hidden');
             document.getElementById('step-preview').classList.add('hidden'); 
             startCamera();
+        }
+
+        // INILAH FUNGSI YANG SEBELUMNYA HILANG:
+        function closeFinishModal() {
+            stopCamera();
+            const modal = document.getElementById('modalFinish');
+            if(modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            document.getElementById('step-camera').classList.remove('hidden');
+            document.getElementById('step-preview').classList.add('hidden');
         }
 
         async function startCamera() {
@@ -709,10 +723,18 @@
             let wK = formatTo24Hour(item.waktu_keluar), wKm = formatTo24Hour(item.waktu_kembali);
             document.getElementById('editWaktuKeluar').value = wK.length >= 5 ? wK.substring(0,5) : '';
             document.getElementById('editWaktuKembali').value = wKm.length >= 5 ? wKm.substring(0,5) : '';
-            document.getElementById('modalEditIzin').classList.replace('hidden', 'flex');
+            
+            const modal = document.getElementById('modalEditIzin');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
-        function closeEditIzin() { document.getElementById('modalEditIzin').classList.replace('flex', 'hidden'); state.currentEditIzinId = null; }
+        function closeEditIzin() { 
+            const modal = document.getElementById('modalEditIzin');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            state.currentEditIzinId = null; 
+        }
 
         async function saveEditIzin() {
             if(!state.currentEditIzinId) return;
@@ -781,7 +803,7 @@
             } catch (err) { alert("Gagal hapus."); } finally { hideLoading(); }
         }
 
-        // --- 7. UI LOGIC (navTo, etc) ---
+        // --- 7. UI LOGIC (navTo, dll) ---
         function navTo(sec) {
             ['layanan', 'piket', 'admin'].forEach(s => {
                 const el = document.getElementById(`sec-${s}`), nav = document.getElementById(`nav-${s}`);
@@ -986,14 +1008,25 @@
             document.getElementById('modalTitle').textContent = `Tambah ${type}`;
             document.getElementById('formVal1').placeholder = 'Nama Lengkap';
             document.getElementById('formVal2').placeholder = type === 'pegawai' ? 'Jabatan/Bidang' : 'PIN (4 Digit)';
-            document.getElementById('modalForm').classList.replace('hidden', 'flex');
+            
+            const modal = document.getElementById('modalForm');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
             document.getElementById('btnSave').onclick = () => {
                 const v1 = document.getElementById('formVal1').value, v2 = document.getElementById('formVal2').value;
                 if(v1 && v2) saveMasterData(type, v1, v2);
             };
         }
 
-        function closeForm() { document.getElementById('modalForm').classList.replace('flex', 'hidden'); document.getElementById('formVal1').value = ''; document.getElementById('formVal2').value = ''; }
+        function closeForm() { 
+            const modal = document.getElementById('modalForm');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('formVal1').value = ''; 
+            document.getElementById('formVal2').value = ''; 
+        }
+
         function showLoading(txt) { const el = document.getElementById('loadingText'); if (el) el.textContent = txt; document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
         function updateTime() {
