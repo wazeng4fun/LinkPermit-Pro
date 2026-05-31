@@ -21,7 +21,7 @@
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .hide-scroll::-webkit-scrollbar { display: none; }
-        .modal-active { overflow: hidden; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
     </style>
 </head>
 <body class="text-slate-900 antialiased">
@@ -58,7 +58,7 @@
             </div>
             <div class="text-right">
                 <div id="clockDisplay" class="text-xs font-black">00:00</div>
-                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">MEMUAT...</div>
+                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">LOADING...</div>
             </div>
         </div>
     </header>
@@ -77,7 +77,7 @@
             <form id="izinForm" class="space-y-4">
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
-                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all text-slate-700">
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 text-slate-700">
                         <option value="">Memuat data...</option>
                     </select>
                 </div>
@@ -136,7 +136,7 @@
         </div>
 
         <div id="sec-admin" class="hidden animate-slide-up space-y-6">
-             <div id="adminLogin" class="space-y-6 pt-10">
+            <div id="adminLogin" class="space-y-6 pt-10">
                 <div class="text-center">
                     <h3 class="text-xl font-black mb-2">Master Admin</h3>
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Cloud</p>
@@ -146,8 +146,33 @@
                 </div>
                 <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Buka Dashboard</button>
             </div>
-            <div id="adminDashboard" class="hidden">
-                 <div id="adminContent"></div>
+
+            <div id="adminDashboard" class="hidden space-y-6">
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-slate-900 text-white rounded-md flex items-center justify-center text-[10px]"><i class="fas fa-database"></i></div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Supabase Cloud</span>
+                    </div>
+                    <button onclick="handleAdminLogout()" class="text-[9px] font-black text-red-600 uppercase tracking-widest border border-red-100 px-3 py-1 rounded-lg bg-red-50">Logout</button>
+                </div>
+
+                <div class="flex gap-2 p-1 bg-slate-100 rounded-xl overflow-x-auto hide-scroll">
+                    <button id="tabBtn-pegawai" onclick="switchAdminTab('pegawai')" class="flex-none px-4 py-3 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Pegawai</button>
+                    <button id="tabBtn-petugas" onclick="switchAdminTab('petugas')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Petugas Piket</button>
+                    <button id="tabBtn-laporan" onclick="switchAdminTab('laporan')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Laporan</button>
+                </div>
+
+                <div id="adminContent" class="space-y-4"></div>
+
+                <div id="adminPagination" class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                    <button id="prevPage" onclick="changePage(-1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <span id="pageInfo" class="text-[9px] font-black uppercase tracking-widest text-slate-900">Halaman 1 / 1</span>
+                    <button id="nextPage" onclick="changePage(1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </main>
@@ -156,249 +181,49 @@
         <div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center scale-95 animate-slide-up">
             <div id="step-camera" class="space-y-4">
                 <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Ambil Foto Bukti</h3>
-                <div class="relative w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden">
+                <div class="relative w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-inner">
                     <video id="cameraVideo" class="w-full h-full object-cover" autoplay playsinline></video>
                 </div>
-                <button onclick="takePhoto()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase">Jepret Foto</button>
+                <button onclick="takePhoto()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                    <i class="fas fa-camera mr-2"></i> Jepret Foto
+                </button>
             </div>
             <div id="step-preview" class="hidden space-y-4">
-                <canvas id="photoCanvas" class="hidden"></canvas> 
-                <img id="previewImg" class="w-full aspect-[9/16] object-cover rounded-2xl shadow-inner" />
+                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Konfirmasi Foto</h3>
+                <div class="w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-inner border border-slate-200">
+                    <img id="previewImg" class="w-full h-full object-cover" />
+                </div>
                 <div class="flex gap-2">
                     <button onclick="retakePhoto()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase">Ulangi</button>
-                    <button onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase">Kirim & Selesai</button>
+                    <button onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg">Kirim & Selesai</button>
                 </div>
             </div>
             <button onclick="closeFinishModal()" class="w-full mt-4 text-slate-400 py-2 font-bold text-[10px] uppercase">Batal</button>
+            <canvas id="photoCanvas" class="hidden"></canvas>
         </div>
     </div>
 
     <script>
+        // --- CONFIG ---
         const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
         const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
         let supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
 
         let state = {
-            activeTab: 'layanan', dataIzin: [], listPegawai: [], listPetugas: [],
-            currentUser: null, isAdmin: false, currentFinishId: null, cameraStream: null
+            activeTab: 'layanan', adminActiveTab: 'pegawai', dataIzin: [], listPegawai: [], listPetugas: [],
+            currentUser: null, isAdmin: false, currentFinishId: null, cameraStream: null, 
+            currentPage: 1, itemsPerPage: 10, selectedAdminItems: []
         };
 
-        // --- CORE FUNCTIONS ---
+        // --- INIT ---
         async function init() {
-            showLoading("Memuat data...");
+            showLoading("Sinkronisasi...");
             await Promise.all([fetchPegawai(), fetchPetugas(), fetchIzin()]);
             hideLoading();
             updateTime();
             setInterval(updateTime, 1000);
-        }
-
-        async function fetchPegawai() {
-            const { data, error } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
-            if (!error) { state.listPegawai = data || []; syncSelects(); }
-        }
-
-        async function fetchPetugas() {
-            const { data, error } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
-            if (!error) { state.listPetugas = data || []; syncSelects(); }
-        }
-
-        async function fetchIzin() {
-            // Memanggil semua kolom agar tidak ada yang error
-            const { data, error } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
-            if (!error) {
-                state.dataIzin = data || [];
-                renderUserList();
-                renderPiketAntrean();
+            
+            // PWA & Notif Setup
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Fail:", err));
             }
-        }
-
-        // --- HANDLERS ---
-        async function handleIzinSubmit(e) {
-            e.preventDefault();
-            const idx = document.getElementById('inputNama').value;
-            if (!idx) return;
-            showLoading("Mengirim...");
-            const peg = state.listPegawai[idx];
-            const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
-            const jamStr = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}).replace('.', ':');
-
-            const { error } = await supabaseClient.from('izin').insert([{
-                id_izin: reqId,
-                nama: peg.nama,
-                keperluan: document.getElementById('inputKategori').value,
-                tujuan: document.getElementById('inputTujuan').value,
-                waktu_daftar: jamStr,
-                tanggal: new Date().toLocaleDateString('id-ID'),
-                status: 'Menunggu'
-            }]);
-
-            if (!error) {
-                document.getElementById('inputTujuan').value = "";
-                await fetchIzin();
-                alert("Permohonan Terkirim!");
-            } else { alert("Gagal: " + error.message); }
-            hideLoading();
-        }
-
-        async function approveIzin(idIzin) {
-            showLoading("Menyetujui...");
-            const now = new Date();
-            const jamStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
-            const tglStr = now.toLocaleDateString('id-ID');
-
-            // PERBAIKAN: Pastikan kolom status, waktu_keluar, dan tanggal_keluar sesuai SQL
-            const { error } = await supabaseClient.from('izin').update({ 
-                status: 'Keluar',
-                waktu_keluar: jamStr,
-                tanggal_keluar: tglStr
-            }).eq('id_izin', idIzin);
-
-            if (!error) {
-                await fetchIzin();
-                alert("Berhasil disetujui!");
-            } else {
-                console.error(error);
-                alert("Error 400: Nama kolom di JS tidak cocok dengan Database.");
-            }
-            hideLoading();
-        }
-
-        // --- UI RENDERERS ---
-        function renderUserList() {
-            const container = document.getElementById('listAntrean');
-            container.innerHTML = '';
-            state.dataIzin.forEach(item => {
-                const late = isTerlambat(item);
-                container.innerHTML += `
-                    <div class="p-5 border ${late ? 'border-red-400 bg-red-50' : 'border-slate-100 bg-white'} rounded-3xl flex justify-between items-center shadow-sm">
-                        <div class="truncate">
-                            <div class="text-xs font-black uppercase">${item.nama}</div>
-                            <div class="text-[8px] font-bold text-slate-400 uppercase">${item.keperluan}: ${item.tujuan}</div>
-                        </div>
-                        ${item.status === 'Keluar' ? 
-                          `<button onclick="openFinish('${item.id_izin}')" class="px-4 py-2 bg-red-700 text-white rounded-xl text-[8px] font-black uppercase">Lapor</button>` : 
-                          `<span class="text-[7px] font-black uppercase px-2 py-1 bg-amber-50 text-amber-600 rounded">Menunggu</span>`}
-                    </div>
-                `;
-            });
-        }
-
-        function renderPiketAntrean() {
-            const container = document.getElementById('antreanPiket');
-            if(!container) return;
-            const waiting = state.dataIzin.filter(i => i.status === 'Menunggu');
-            container.innerHTML = waiting.length === 0 ? '<div class="text-center py-10 text-slate-300">Tidak ada antrean</div>' : '';
-            waiting.forEach(item => {
-                container.innerHTML += `
-                    <div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-3">
-                        <div class="text-sm font-black uppercase">${item.nama}</div>
-                        <p class="text-[8px] font-bold text-slate-400 uppercase">Tujuan: ${item.tujuan}</p>
-                        <button onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase">Izinkan Keluar</button>
-                    </div>
-                `;
-            });
-        }
-
-        // --- UTILS ---
-        function isTerlambat(item) {
-            if (item.status !== 'Keluar' || !item.waktu_keluar) return false;
-            const [h, m] = item.waktu_keluar.split(':');
-            const keluar = new Date(); keluar.setHours(h, m, 0);
-            const diff = Math.floor((new Date() - keluar) / 60000);
-            const limit = (parseInt(h) >= 11 && parseInt(h) <= 12) ? 130 : 70;
-            return diff > limit;
-        }
-
-        function syncSelects() {
-            const sP = document.getElementById('inputNama');
-            const sT = document.getElementById('piketUser');
-            if(sP) {
-                sP.innerHTML = '<option value="">Pilih Pegawai...</option>';
-                state.listPegawai.forEach((p, i) => sP.innerHTML += `<option value="${i}">${p.nama}</option>`);
-            }
-            if(sT) {
-                sT.innerHTML = '<option value="">Pilih Petugas...</option>';
-                state.listPetugas.forEach(p => sT.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
-            }
-        }
-
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}).replace('.', ':');
-            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('id-ID', {weekday:'short', day:'numeric', month:'short'}).toUpperCase();
-        }
-
-        function navTo(tab) {
-            ['layanan', 'piket', 'admin'].forEach(t => {
-                document.getElementById(`sec-${t}`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).classList.replace('text-red-600', 'text-slate-400');
-            });
-            document.getElementById(`sec-${tab}`).classList.remove('hidden');
-            document.getElementById(`nav-${tab}`).classList.replace('text-slate-400', 'text-red-600');
-        }
-
-        function showLoading(t) { document.getElementById('loadingText').textContent = t; document.getElementById('loadingOverlay').classList.remove('hidden'); }
-        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
-
-        // --- FINISH MODAL & CAMERA ---
-        function openFinish(id) {
-            state.currentFinishId = id;
-            document.getElementById('modalFinish').classList.remove('hidden');
-            startCamera();
-        }
-        function closeFinishModal() {
-            if(state.cameraStream) state.cameraStream.getTracks().forEach(t => t.stop());
-            document.getElementById('modalFinish').classList.add('hidden');
-            document.getElementById('step-camera').classList.remove('hidden');
-            document.getElementById('step-preview').classList.add('hidden');
-        }
-        async function startCamera() {
-            state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-            document.getElementById('cameraVideo').srcObject = state.cameraStream;
-        }
-        function takePhoto() {
-            const video = document.getElementById('cameraVideo');
-            const canvas = document.getElementById('photoCanvas');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            document.getElementById('previewImg').src = canvas.toDataURL('image/jpeg');
-            document.getElementById('step-camera').classList.add('hidden');
-            document.getElementById('step-preview').classList.remove('hidden');
-        }
-        async function submitFinish() {
-            showLoading("Menyimpan...");
-            const now = new Date();
-            const jamStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace('.', ':');
-            const tglStr = now.toLocaleDateString('id-ID');
-            const foto = document.getElementById('previewImg').src;
-
-            const { error } = await supabaseClient.from('izin').update({
-                status: 'Selesai',
-                waktu_kembali: jamStr,
-                tanggal_kembali: tglStr,
-                foto_bukti: foto
-            }).eq('id_izin', state.currentFinishId);
-
-            if(!error) { await fetchIzin(); closeFinishModal(); alert("Berhasil Kembali!"); }
-            hideLoading();
-        }
-
-        function handleLogin() {
-            const u = document.getElementById('piketUser').value;
-            const p = document.getElementById('piketPin').value;
-            const m = state.listPetugas.find(x => x.nama === u && x.pin === p);
-            if(m) { 
-                state.currentUser = m; 
-                document.getElementById('piketLogin').classList.add('hidden'); 
-                document.getElementById('piketDashboard').classList.remove('hidden');
-                document.getElementById('petugasAktif').textContent = m.nama;
-            } else { alert("PIN Salah!"); }
-        }
-
-        function handleLogout() { state.currentUser = null; navTo('layanan'); location.reload(); }
-
-        window.onload = init;
-        document.getElementById('izinForm').onsubmit = handleIzinSubmit;
-    </script>
-</body>
-</html>
