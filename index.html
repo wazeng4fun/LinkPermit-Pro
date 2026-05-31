@@ -937,6 +937,7 @@
                             <td class="p-4 text-xs font-bold text-slate-600">${i.tanggal}</td>
                             <td class="p-4 text-xs font-bold text-slate-600">${formatTo24Hour(i.waktu_keluar) || '-'}</td>
                             <td class="p-4 text-xs font-bold text-slate-600">${formatTo24Hour(i.waktu_kembali) || '-'}</td>
+                            <td class="p-4 text-xs font-bold text-slate-600">${i.petugas_piket || '-'}</td>
                             <td class="p-4">
                                 ${late ? '<span class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Melebihi Waktu</span>' : '<span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Tepat Waktu</span>'}
                             </td>
@@ -950,7 +951,7 @@
                         </tr>`;
                     }).join('');
                 } else {
-                    tbodyHtml = '<tr><td colspan="7" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada data laporan ditemukan</td></tr>';
+                    tbodyHtml = '<tr><td colspan="8" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada data laporan ditemukan</td></tr>';
                 }
 
                 container.innerHTML = `
@@ -991,6 +992,7 @@
                                         <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Tanggal</th>
                                         <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Keluar</th>
                                         <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Kembali</th>
+                                        <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Petugas Piket</th>
                                         <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
                                         <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Aksi</th>
                                     </tr>
@@ -1524,48 +1526,89 @@
                 doc.text("Halaman pertama ini berisi akumulasi jumlah keterlambatan yang dipisah berdasarkan jenis keperluan.", 14, 26);
 
                 // Hitung statistik keterlambatan per pegawai secara dinamis
-                const rekapKeterlambatan = {};
+                const rekapPribadi = {};
+                const rekapDinas = {};
                 data.forEach(i => {
                     if (isTerlambat(i)) {
-                        if (!rekapKeterlambatan[i.nama]) {
-                            rekapKeterlambatan[i.nama] = { dinas: 0, pribadi: 0, total: 0 };
-                        }
                         const kategoriNorm = (i.keperluan || '').toLowerCase();
-                        if (kategoriNorm.includes('dinas') || kategoriNorm.includes('sekolah')) {
-                            rekapKeterlambatan[i.nama].dinas++;
-                        } else {
-                            rekapKeterlambatan[i.nama].pribadi++;
+                        const targetRekap = (kategoriNorm.includes('dinas') || kategoriNorm.includes('sekolah')) ? rekapDinas : rekapPribadi;
+                        
+                        if (!targetRekap[i.nama]) {
+                            targetRekap[i.nama] = { count: 0, dates: [] };
                         }
-                        rekapKeterlambatan[i.nama].total++;
+                        targetRekap[i.nama].count++;
+                        if (i.tanggal && !targetRekap[i.nama].dates.includes(i.tanggal)) {
+                            targetRekap[i.nama].dates.push(i.tanggal);
+                        }
                     }
                 });
 
-                const summaryColumns = ["No", "Nama Pegawai / Guru", "Keterlambatan Dinas / Sekolah", "Keterlambatan Kepentingan Pribadi", "Total Akumulasi Keterlambatan"];
-                const summaryRows = [];
-                let indexNo = 1;
-                Object.keys(rekapKeterlambatan).sort().forEach(nama => {
-                    summaryRows.push([
-                        indexNo++,
+                // Tabel 1: Rekap Keterlambatan Izin Pribadi
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(127, 29, 29);
+                doc.text("1. Rekap Keterlambatan Izin Pribadi", 14, 32);
+
+                const summaryColumnsPribadi = ["No", "Nama Pegawai / Guru", "Jumlah Keterlambatan", "Tanggal Terlambat"];
+                const summaryRowsPribadi = [];
+                let idxP = 1;
+                Object.keys(rekapPribadi).sort().forEach(nama => {
+                    summaryRowsPribadi.push([
+                        idxP++,
                         nama.toUpperCase(),
-                        `${rekapKeterlambatan[nama].dinas} Kali`,
-                        `${rekapKeterlambatan[nama].pribadi} Kali`,
-                        `${rekapKeterlambatan[nama].total} Kali`
+                        `${rekapPribadi[nama].count} Kali`,
+                        rekapPribadi[nama].dates.join(", ")
                     ]);
                 });
 
-                if (summaryRows.length === 0) {
-                    summaryRows.push(["-", "Semua Guru & Karyawan Tepat Waktu", "0 Kali", "0 Kali", "0 Kali"]);
+                if (summaryRowsPribadi.length === 0) {
+                    summaryRowsPribadi.push(["-", "Semua Guru & Karyawan Tepat Waktu", "0 Kali", "-"]);
                 }
 
-                // Render Tabel Ringkasan (Tema Maroon)
+                // Render Tabel Ringkasan Pribadi (Tema Maroon)
                 doc.autoTable({
-                    head: [summaryColumns],
-                    body: summaryRows,
-                    startY: 32,
+                    head: [summaryColumnsPribadi],
+                    body: summaryRowsPribadi,
+                    startY: 36,
                     theme: 'grid',
                     headStyles: { fillColor: [127, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' }, // Maroon Header
                     alternateRowStyles: { fillColor: [248, 250, 252] },
-                    styles: { fontSize: 9, valign: 'middle', cellPadding: 3.5 }
+                    styles: { fontSize: 8.5, valign: 'middle', cellPadding: 3 }
+                });
+
+                let nextY = doc.lastAutoTable.finalY + 12;
+
+                // Tabel 2: Rekap Keterlambatan Izin Dinas
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(127, 29, 29);
+                doc.text("2. Rekap Keterlambatan Izin Dinas / Sekolah", 14, nextY);
+
+                const summaryColumnsDinas = ["No", "Nama Pegawai / Guru", "Jumlah Keterlambatan", "Tanggal Terlambat"];
+                const summaryRowsDinas = [];
+                let idxD = 1;
+                Object.keys(rekapDinas).sort().forEach(nama => {
+                    summaryRowsDinas.push([
+                        idxD++,
+                        nama.toUpperCase(),
+                        `${rekapDinas[nama].count} Kali`,
+                        rekapDinas[nama].dates.join(", ")
+                    ]);
+                });
+
+                if (summaryRowsDinas.length === 0) {
+                    summaryRowsDinas.push(["-", "Semua Guru & Karyawan Tepat Waktu", "0 Kali", "-"]);
+                }
+
+                // Render Tabel Ringkasan Dinas (Tema Maroon)
+                doc.autoTable({
+                    head: [summaryColumnsDinas],
+                    body: summaryRowsDinas,
+                    startY: nextY + 4,
+                    theme: 'grid',
+                    headStyles: { fillColor: [127, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' }, // Maroon Header
+                    alternateRowStyles: { fillColor: [248, 250, 252] },
+                    styles: { fontSize: 8.5, valign: 'middle', cellPadding: 3 }
                 });
 
                 // --- HALAMAN 2 & SETERUSNYA: LOG FILE AKTIVITAS DETAIL ---
@@ -1823,6 +1866,31 @@
         function showLoading(txt) { const el = document.getElementById('loadingText'); if (el) el.textContent = txt; document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
         
+        // --- INTEGRASI ENTER KEY DI SELURUH FORMULIR MODAL ---
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                // Cegah aksi default jika fokus berada di area input multi-petugas atau select
+                const activeElement = document.activeElement;
+                if (activeElement && activeElement.tagName === 'TEXTAREA') return;
+
+                // Cek modal form mana yang sedang aktif dan submit programmatically
+                const modalForm = document.getElementById('modalForm');
+                const modalJadwal = document.getElementById('modalJadwal');
+                const modalEditIzin = document.getElementById('modalEditIzin');
+
+                if (modalForm && !modalForm.classList.contains('hidden')) {
+                    event.preventDefault();
+                    document.getElementById('masterDataForm').requestSubmit();
+                } else if (modalJadwal && !modalJadwal.classList.contains('hidden')) {
+                    event.preventDefault();
+                    document.getElementById('jadwalForm').requestSubmit();
+                } else if (modalEditIzin && !modalEditIzin.classList.contains('hidden')) {
+                    event.preventDefault();
+                    document.getElementById('editIzinForm').requestSubmit();
+                }
+            }
+        });
+
         function updateTime() {
             const now = new Date(), t = formatTo24Hour(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })), d = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
             const cd = document.getElementById('clockDisplay'), dd = document.getElementById('dateDisplay'); if(cd) cd.textContent = t; if(dd) dd.textContent = d;
