@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LinkPermit Pro</title>
+    
     <link rel="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -23,10 +28,12 @@
     </style>
 </head>
 <body class="text-slate-900 antialiased">
+
     <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-md hidden flex flex-col items-center justify-center">
         <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
         <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Sinkronisasi Data</p>
     </div>
+
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[1000] px-4 py-2 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <div class="max-w-md mx-auto flex justify-around items-center">
             <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-600">
@@ -43,6 +50,7 @@
             </button>
         </div>
     </nav>
+
     <header class="sticky top-0 bg-white/80 backdrop-blur-md z-[900] px-6 py-4 border-b border-slate-50">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div class="flex items-center gap-2">
@@ -57,7 +65,9 @@
             </div>
         </div>
     </header>
+
     <main class="max-w-md mx-auto p-5 pb-24">
+        
         <div id="sec-layanan" class="animate-slide-up space-y-6">
             <div class="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden">
                 <div class="relative z-10">
@@ -66,6 +76,7 @@
                 </div>
                 <i class="fas fa-cloud absolute -right-2 -bottom-2 text-6xl text-white/5"></i>
             </div>
+
             <form id="izinForm" class="space-y-4">
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
@@ -90,6 +101,7 @@
                     Kirim Permohonan <i class="fas fa-paper-plane ml-2"></i>
                 </button>
             </form>
+
             <div class="space-y-4 pt-4 border-t border-slate-100">
                 <div class="flex justify-between items-end">
                     <h3 class="font-black text-sm uppercase tracking-tight">Status Pengajuan</h3>
@@ -98,6 +110,7 @@
                 <div id="listAntrean" class="space-y-3"></div>
             </div>
         </div>
+
         <div id="sec-piket" class="hidden animate-slide-up space-y-6">
             <div id="piketLogin" class="space-y-6 pt-10">
                 <div class="text-center">
@@ -105,4 +118,1468 @@
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Akses Database Pusat</p>
                 </div>
                 <div class="space-y-3 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <select id="piketUser" class="w-full p-4
+                    <select id="piketUser" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none text-slate-700">
+                        <option value="">Pilih Petugas...</option>
+                    </select>
+                    <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-2xl tracking-[1em] outline-none text-slate-700">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Login Petugas</button>
+            </div>
+
+            <div id="piketDashboard" class="hidden space-y-4">
+                <div class="flex justify-between items-center bg-slate-900 p-4 rounded-2xl text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-[10px]"><i class="fas fa-user-shield"></i></div>
+                        <span id="petugasAktif" class="text-[10px] font-black uppercase tracking-widest">-</span>
+                    </div>
+                    <button onclick="handleLogout()" class="text-[9px] font-bold text-white/50 uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-lg">Logout</button>
+                </div>
+                <div id="antreanPiket" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <div id="sec-admin" class="hidden animate-slide-up space-y-6">
+            <div id="adminLogin" class="space-y-6 pt-10">
+                <div class="text-center">
+                    <h3 class="text-xl font-black mb-2">Master Admin</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Cloud</p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                    <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-center outline-none text-slate-700">
+                </div>
+                <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Buka Dashboard</button>
+            </div>
+
+            <div id="adminDashboard" class="hidden space-y-6">
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-slate-900 text-white rounded-md flex items-center justify-center text-[10px]"><i class="fas fa-database"></i></div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Supabase Cloud</span>
+                    </div>
+                    <button onclick="handleAdminLogout()" class="text-[9px] font-black text-red-600 uppercase tracking-widest border border-red-100 px-3 py-1 rounded-lg bg-red-50">Logout</button>
+                </div>
+
+                <div class="flex gap-2 p-1 bg-slate-100 rounded-xl overflow-x-auto hide-scroll">
+                    <button id="tabBtn-pegawai" onclick="switchAdminTab('pegawai')" class="flex-none px-4 py-3 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Pegawai</button>
+                    <button id="tabBtn-petugas" onclick="switchAdminTab('petugas')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Petugas Piket</button>
+                    <button id="tabBtn-laporan" onclick="switchAdminTab('laporan')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Laporan</button>
+                </div>
+
+                <div id="adminContent" class="space-y-4">
+                    </div>
+
+                <div id="adminPagination" class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                    <button id="prevPage" onclick="changePage(-1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <div class="text-center">
+                        <span id="pageInfo" class="text-[9px] font-black uppercase tracking-widest text-slate-900">Halaman 1 / 1</span>
+                    </div>
+                    <button id="nextPage" onclick="changePage(1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalForm" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up">
+            <h3 id="modalTitle" class="text-lg font-black uppercase tracking-tight">Tambah Data</h3>
+            <div class="space-y-4">
+                <input id="formVal1" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
+                <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeForm()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400">Batal</button>
+                <button id="btnSave" class="flex-1 bg-red-700 text-white py-4 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-red-700/20">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditIzin" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-4 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto hide-scroll">
+            <h3 class="text-lg font-black uppercase tracking-tight mb-2">Edit Data Izin</h3>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Kategori</label>
+                        <select id="editKategori" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                            <option value="Dinas/Sekolah">Dinas/Sekolah</option>
+                            <option value="Pribadi">Pribadi</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Keperluan / Tujuan</label>
+                        <input id="editTujuan" type="text" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Pengajuan</label>
+                        <input id="editTanggal" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Keluar</label>
+                        <input id="editTanggalKeluar" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Keluar</label>
+                        <input id="editWaktuKeluar" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="14:30" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Kembali</label>
+                        <input id="editTanggalKembali" type="date" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Waktu Kembali</label>
+                        <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45" class="w-full p-3 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-blue-600/10 text-slate-700">
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="closeEditIzin()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400 hover:bg-slate-50 rounded-xl transition-all">Batal</button>
+                <button onclick="saveEditIzin()" class="flex-1 bg-blue-600 text-white py-4 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalFinish" class="fixed inset-0 z-[2000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center scale-95 animate-slide-up">
+            
+            <div id="step-camera" class="space-y-4">
+                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Ambil Foto Bukti</h3>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Silakan jepret foto wajah/bukti kehadiran langsung untuk melapor kepulangan.</p>
+                <div class="relative w-full aspect-[9/16] bg-slate-900 rounded-2xl overflow-hidden shadow-inner">
+                    <video id="cameraVideo" class="w-full h-full object-cover" autoplay playsinline></video>
+                </div>
+                <button onclick="takePhoto()" class="w-full py-4 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-camera"></i> Jepret Foto
+                </button>
+            </div>
+
+            <div id="step-preview" class="hidden space-y-4">
+                <h3 class="text-lg font-black uppercase tracking-tight text-slate-800">Konfirmasi Foto</h3>
+                <canvas id="photoCanvas" class="hidden"></canvas> 
+                <div class="w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-inner border border-slate-200 bg-slate-100">
+                    <img id="previewImg" class="w-full h-full object-cover" />
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="retakePhoto()" class="flex-1 py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase hover:bg-slate-200 transition-all">Ulangi</button>
+                    <button onclick="submitFinish()" class="flex-1 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Kirim & Selesai</button>
+                </div>
+            </div>
+
+            <button onclick="closeFinishModal()" class="w-full mt-4 text-slate-400 py-2 font-bold text-[10px] uppercase hover:text-slate-600 transition-all">Batal / Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG SUPABASE ---
+        const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
+        const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
+        
+        let supabaseClient = null;
+        if (window.supabase && SB_URL && SB_KEY) {
+            supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+        }
+
+        let state = {
+            activeTab: 'layanan',
+            adminActiveTab: 'pegawai',
+            dataIzin: [],
+            listPegawai: [],
+            listPetugas: [],
+            currentUser: null,
+            isAdmin: false,
+            currentPage: 1,
+            itemsPerPage: 10,
+            currentFinishId: null,
+            cameraStream: null,
+            selectedAdminItems: [], 
+            tempLaporanData: [],
+            currentEditIzinId: null
+        };
+
+        // --- REGISTRASI SERVICE WORKER (PWA) & IZIN NOTIFIKASI ---
+        if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then((reg) => {
+                    console.log('SW: Registrasi berhasil dengan cakupan:', reg.scope);
+                    requestNotificationPermission();
+                })
+                .catch((err) => {
+                    console.error('SW: Registrasi gagal:', err);
+                });
+            });
+        } else {
+            console.log('SW: Registrasi dilewati (mode local preview / protokol non-http).');
+        }
+
+        function requestNotificationPermission() {
+            if ('Notification' in window) {
+                Notification.requestPermission().then((permission) => {
+                    if (permission === 'granted') {
+                        console.log('Notifikasi: Izin diberikan.');
+                    }
+                });
+            }
+        }
+
+        // --- LOGIKA ALARM NOTIFIKASI PWA (LOCAL CHECKER) ---
+        // 1. Simpan nama pemohon di memori HP saat form disubmit
+        const formPWA = document.getElementById('izinForm');
+        if (formPWA) {
+            formPWA.addEventListener('submit', () => {
+                const namaInput = document.getElementById('inputNama');
+                if (namaInput && namaInput.options[namaInput.selectedIndex]) {
+                    const namaText = namaInput.options[namaInput.selectedIndex].text;
+                    localStorage.setItem('local_pemohon_pwa', namaText);
+                }
+                if ('Notification' in window && Notification.permission !== 'granted') {
+                    Notification.requestPermission();
+                }
+            });
+        }
+
+// Alarm Pengecekan Waktu (Jalan otomatis setiap 1 Menit)
+// VERSI AMAN: Hanya mengecek waktu lokal, TIDAK melakukan query ke Supabase
+setInterval(checkNotificationSchedules, 60000);
+
+function checkNotificationSchedules() {
+    // Berhenti jika browser tidak dukung notif atau belum diizinkan
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    
+    // Cari data izin aktif pengguna di memori state lokal (yang sudah di-download saat awal buka aplikasi)
+    const myName = localStorage.getItem('local_pemohon_pwa');
+    if (!myName || state.dataIzin.length === 0) return; 
+
+    // Cari tiket aktif orang ini dari state lokal, bukan fetch dari internet
+    const ticket = state.dataIzin.find(i => i.nama === myName && i.status === 'Keluar');
+    if (!ticket) return;
+
+    try {
+        const now = new Date();
+        
+        let tglKeluarStr = ticket.tanggal_keluar || ticket.tanggal;
+        if (tglKeluarStr && tglKeluarStr.includes('/')) {
+            const p = tglKeluarStr.split('/');
+            if (p.length === 3) tglKeluarStr = `${p[2]}-${p[1]}-${p[0]}`; 
+        }
+        const waktuK = ticket.waktu_keluar || '00:00';
+        const waktuKeluar = new Date(`${tglKeluarStr}T${waktuK}`);
+        
+        // SKENARIO 1: KATEGORI PRIBADI (Sisa 20 Menit)
+        if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('pribadi')) {
+            let batasMenitTotal = 70;
+            if (waktuKeluar.getHours() === 11 || waktuKeluar.getHours() === 12) batasMenitTotal = 130; 
+            
+            const batasWaktu = new Date(waktuKeluar.getTime() + batasMenitTotal * 60000);
+            const sisaMenit = Math.floor((batasWaktu - now) / 60000);
+            
+            if (sisaMenit <= 20 && sisaMenit > 0 && !localStorage.getItem(`notif_pribadi_${ticket.id_izin}`)) {
+                kirimNotifikasi("Peringatan: Waktu izin keluar Anda hampir habis! Harap segera kembali.");
+                localStorage.setItem(`notif_pribadi_${ticket.id_izin}`, 'sent');
+            }
+        }
+        
+        // SKENARIO 2: KATEGORI DINAS (17:30 & 24 Jam)
+        else if (ticket.keperluan && ticket.keperluan.toLowerCase().includes('dinas')) {
+            if (now.getHours() === 17 && now.getMinutes() >= 30 && !localStorage.getItem(`notif_1730_${ticket.id_izin}`)) {
+                kirimNotifikasi("Jam Operasional Sekolah akan segera berakhir! Jangan lupa lapor kembali.");
+                localStorage.setItem(`notif_1730_${ticket.id_izin}`, 'sent');
+            }
+            
+            const selisihMenit = Math.floor((now - waktuKeluar) / 60000);
+            if (selisihMenit >= 1440 && !localStorage.getItem(`notif_24j_${ticket.id_izin}`)) {
+                kirimNotifikasi("Harap selesaikan izin keluar!");
+                localStorage.setItem(`notif_24j_${ticket.id_izin}`, 'sent');
+            }
+        }
+    } catch (err) {
+        console.log("PWA Background Checker Error:", err);
+    }
+}
+        function kirimNotifikasi(pesan) {
+            if (Notification.permission === "granted") {
+                const notif = new Notification("LinkPermit Pro", {
+                body: pesan,
+                icon: "logo-192.png", // pastikan file ini ada
+                vibrate: [200, 100, 200], // HP akan bergetar
+                tag: 'peringatan-izin' // agar notifikasi tidak bertumpuk banyak
+            });
+
+            notif.onclick = () => {
+            window.focus();
+            notif.close();
+            };
+        } else {
+            requestNotificationPermission();
+            alert(pesan);
+        }
+    }
+
+        // Initialize App
+        async function init() {
+            if (!supabaseClient) {
+                alert("Konfigurasi Supabase belum benar.");
+                return;
+            }
+            showLoading("Memuat data...");
+            await Promise.all([fetchPegawai(), fetchPetugas(), fetchIzin()]);
+            hideLoading();
+            updateTime();
+            setInterval(updateTime, 1000);
+        }
+
+        // --- HELPER FORMAT JAM & WAKTU ---
+        function formatTo24Hour(timeStr) {
+            if (!timeStr || timeStr === '-') return '';
+            let str = timeStr.toString().toLowerCase().trim();
+            let isPM = str.includes('pm');
+            let isAM = str.includes('am');
+            let parts = str.replace(/[a-z]/g, '').trim().replace(/\./g, ':').split(':');
+            
+            let h = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10);
+            let s = parts.length > 2 ? parseInt(parts[2], 10) : null;
+            
+            if (isNaN(h)) return timeStr;
+            if (isNaN(m)) m = 0;
+            
+            if (isPM && h < 12) h += 12;
+            if (isAM && h === 12) h = 0;
+            
+            let res = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            if (s !== null && !isNaN(s)) res += `:${s.toString().padStart(2, '0')}`;
+            return res;
+        }
+
+        function toDateInputFormat(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            if (dateStr.includes('-') && dateStr.length === 10) return dateStr;
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return '';
+        }
+
+        function toDDMMYYYY(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function formatTimeInput(e) {
+            let val = e.target.value.replace(/[^0-9]/g, '');
+            if (val.length >= 3) {
+                let h = parseInt(val.substring(0, 2));
+                if (h > 23) val = '23' + val.substring(2);
+                if (val.length >= 4) {
+                    let m = parseInt(val.substring(2, 4));
+                    if (m > 59) val = val.substring(0, 2) + '59';
+                }
+                val = val.substring(0, 2) + ':' + val.substring(2, 4);
+            }
+            e.target.value = val;
+        }
+
+        // --- FUNGSI DETEKSI WAKTU TERLAMBAT ---
+        function isTerlambat(item) {
+            if (!item.waktu_keluar || item.waktu_keluar === '-') return false;
+            
+            let parsedK = formatTo24Hour(item.waktu_keluar);
+            if (!parsedK.includes(':')) return false;
+            let [kH, kM] = parsedK.split(':').map(Number);
+            if (isNaN(kH)) return false;
+
+            let start = item.created_at ? new Date(item.created_at) : new Date();
+            start.setHours(kH, kM, 0, 0);
+
+            let end = item.created_at ? new Date(item.created_at) : new Date();
+            
+            if (item.status === 'Selesai' && item.waktu_kembali) {
+                let parsedE = formatTo24Hour(item.waktu_kembali);
+                if (parsedE.includes(':')) {
+                    let [eH, eM] = parsedE.split(':').map(Number);
+                    if (!isNaN(eH)) {
+                        end.setHours(eH, eM, 0, 0);
+                        if (end < start) end.setDate(end.getDate() + 1);
+                    }
+                }
+            } else {
+                end = new Date();
+            }
+
+            const diffMins = (end - start) / 60000;
+            const isPribadi = item.keperluan === 'Pribadi';
+
+            if (!isPribadi) {
+                return diffMins > 1440; 
+            } else {
+                if (kH === 11) {
+                    return diffMins > 130;
+                } else if (kH === 12) {
+                    let limit = new Date(start);
+                    limit.setHours(14, 10, 0, 0);
+                    return end > limit;
+                } else {
+                    return diffMins > 70;
+                }
+            }
+        }
+
+        // --- DATABASE OPERATIONS (SUPABASE) ---
+        async function fetchPegawai() {
+            const { data, error = null } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
+            if (!error) {
+                state.listPegawai = data || [];
+                syncSelects();
+                if(state.isAdmin && state.adminActiveTab === 'pegawai') renderAdminContent();
+            }
+        }
+
+        async function fetchPetugas() {
+            const { data, error = null } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
+            if (!error) {
+                state.listPetugas = data || [];
+                syncSelects();
+                if(state.isAdmin && state.adminActiveTab === 'petugas') renderAdminContent();
+            }
+        }
+
+        async function fetchIzin() {
+            const { data, error = null } = await supabaseClient.from('izin')
+                .select('*')
+                .neq('status', 'Selesai')
+                .order('created_at', { ascending: false });
+            if (!error) {
+                state.dataIzin = data || [];
+                renderUserList();
+                renderPiketAntrean();
+            }
+        }
+
+        async function handleIzinSubmit(e) {
+            e.preventDefault();
+            const idx = document.getElementById('inputNama').value;
+            if (!idx || !state.listPegawai[idx]) return;
+
+            showLoading("Mengirim...");
+            const peg = state.listPegawai[idx];
+            const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
+            const fmtWaktu = formatTo24Hour(new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}));
+
+            const { error = null } = await supabaseClient.from('izin').insert([{
+                id_izin: reqId,
+                nama: peg.nama,
+                keperluan: document.getElementById('inputKategori').value,
+                tujuan: document.getElementById('inputTujuan').value,
+                waktu_daftar: fmtWaktu,
+                status: 'Menunggu',
+                tanggal: new Date().toLocaleDateString('id-ID')
+            }]);
+
+            if (!error) {
+                // Jangan reset form agar localStorage di event submit sebelumnya bekerja
+                document.getElementById('inputTujuan').value = "";
+                await fetchIzin();
+            } else {
+                alert("Gagal mengajukan izin.");
+            }
+            hideLoading();
+        }
+
+        async function approveIzin(id) {
+            showLoading("Mengonfirmasi...");
+            const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
+            const tgl = new Date().toLocaleDateString('id-ID');
+            const { error = null } = await supabaseClient.from('izin')
+                .update({ 
+                    status: 'Keluar', 
+                    petugas_piket: state.currentUser.nama, 
+                    waktu_keluar: jam,
+                    tanggal_keluar: tgl
+                })
+                .eq('id_izin', id);
+            
+            if(!error) await fetchIzin();
+            hideLoading();
+        }
+
+        // --- SISTEM FINISH SIMPEL TANPA GPS (LANGSUNG FOTO) ---
+        function openFinish(id) { 
+            state.currentFinishId = id; 
+            document.getElementById('modalFinish').classList.replace('hidden', 'flex');
+            document.getElementById('step-camera').classList.remove('hidden');
+            document.getElementById('step-preview').classList.add('hidden'); 
+            startCamera();
+        }
+
+        async function startCamera() {
+            try {
+                state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                document.getElementById('cameraVideo').srcObject = state.cameraStream;
+            } catch (e) { 
+                alert("Gagal mengakses kamera: " + e.message); 
+                closeFinishModal();
+            }
+        }
+
+        function stopCamera() {
+            if (state.cameraStream) {
+                state.cameraStream.getTracks().forEach(track => track.stop());
+                state.cameraStream = null;
+            }
+        }
+
+        function takePhoto() {
+            const v = document.getElementById('cameraVideo');
+            const c = document.getElementById('photoCanvas');
+            const ctx = c.getContext('2d');
+            
+            c.width = 720;
+            c.height = 1280;
+            
+            const vRatio = v.videoWidth / v.videoHeight;
+            const cRatio = c.width / c.height;
+            let drawWidth, drawHeight, startX, startY;
+            
+            if (vRatio > cRatio) {
+                drawHeight = c.height;
+                drawWidth = (v.videoWidth * c.height) / v.videoHeight;
+                startX = (c.width - drawWidth) / 2;
+                startY = 0;
+            } else {
+                drawWidth = c.width;
+                drawHeight = (v.videoHeight * c.width) / v.videoWidth;
+                startX = 0;
+                startY = (c.height - drawHeight) / 2;
+            }
+            ctx.drawImage(v, startX, startY, drawWidth, drawHeight);
+            
+            const watermarkHeight = c.height * 0.20;
+            const startYWatermark = c.height - watermarkHeight;
+            
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.fillRect(0, startYWatermark, c.width, watermarkHeight);
+            
+            const padding = 35;
+            const lh = (watermarkHeight - padding) / 5;
+            const fs = Math.floor(lh * 0.8);
+            
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            const timeStr = formatTo24Hour(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+            
+            const lines = [
+                "TITLE",
+                "SMK Link and Match", 
+                `Tanggal: ${dateStr} | Jam: ${timeStr}`, 
+                "Support by HenSan"
+            ];
+            
+            ctx.textBaseline = "middle";
+            
+            lines.forEach((line, i) => {
+                const y = startYWatermark + padding + (i * lh);
+                ctx.font = `bold ${fs}px 'Plus Jakarta Sans', sans-serif`;
+                
+                if (i === 0) {
+                    ctx.fillStyle = "#000000"; 
+                    ctx.fillText("LINKPERMIT ", padding, y);
+                    let tw = ctx.measureText("LINKPERMIT ").width;
+                    ctx.fillStyle = "#FF0000"; 
+                    ctx.fillText("PRO", padding + tw, y);
+                } else {
+                    ctx.fillStyle = "#000000";
+                    ctx.fillText(line, padding, y);
+                }
+            });
+            
+            document.getElementById('previewImg').src = c.toDataURL('image/jpeg', 0.8);
+            document.getElementById('step-camera').classList.add('hidden');
+            document.getElementById('step-preview').classList.remove('hidden');
+            stopCamera();
+        }
+
+        function retakePhoto() {
+            document.getElementById('step-preview').classList.add('hidden');
+            document.getElementById('step-camera').classList.remove('hidden');
+            startCamera();
+        }
+
+        function submitFinish() {
+            const dataUrl = document.getElementById('previewImg').src;
+            const blob = dataURItoBlob(dataUrl);
+            const targetId = state.currentFinishId;
+            const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
+            const tgl = new Date().toLocaleDateString('id-ID');
+            
+            alert("Berhasil! Kehadiran terverifikasi. Foto sedang diunggah secara senyap.");
+            closeFinishModal();
+
+            const idx = state.dataIzin.findIndex(i => i.id_izin === targetId);
+            if(idx !== -1) {
+                state.dataIzin.splice(idx, 1);
+                renderUserList();
+                renderPiketAntrean();
+            }
+
+            setTimeout(async () => {
+                try {
+                    const fileName = `LP_${targetId}_${Date.now()}.jpg`;
+                    let fileUrl = null;
+                    const { error: upErr = null } = await supabaseClient.storage.from('foto_izin').upload(fileName, blob);
+                    
+                    if (!upErr) {
+                        const { data } = supabaseClient.storage.from('foto_izin').getPublicUrl(fileName);
+                        fileUrl = data.publicUrl;
+                    }
+
+                    const updateData = { status: 'Selesai', waktu_kembali: jam, tanggal_kembali: tgl };
+                    if (fileUrl) updateData.foto_url = fileUrl;
+
+                    await supabaseClient.from('izin').update(updateData).eq('id_izin', targetId);
+                    
+                    const { data: latestData } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
+                    if(latestData) state.dataIzin = latestData;
+                    
+                } catch (err) {
+                    console.error("Upload error:", err);
+                }
+            }, 500);
+        }
+
+        function dataURItoBlob(uri) {
+            const byteStr = atob(uri.split(',')[1]);
+            const mime = uri.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteStr.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i);
+            return new Blob([ab], {type: mime});
+        }
+
+        // --- ADMIN OPERATIONS ---
+        async function saveMasterData(type, v1, v2) {
+            showLoading("Menyimpan...");
+            const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+            const payload = type === 'pegawai' ? { nama: v1, jabatan: v2 } : { nama: v1, pin: v2 };
+            
+            const { error = null } = await supabaseClient.from(table).insert([payload]);
+            if (!error) {
+                type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                closeForm();
+            } else {
+                alert(`Gagal menyimpan data ${type}.`);
+            }
+            hideLoading();
+        }
+
+        async function deleteMasterData(type, id) {
+            if (!confirm("Hapus data ini secara permanen dari Cloud?")) return;
+            showLoading("Menghapus...");
+            
+            let table = type === 'pegawai' ? 'pegawai' : 'petugas';
+            let idField = 'id';
+            
+            if (type === 'izin') {
+                table = 'izin';
+                idField = 'id_izin';
+            }
+            
+            const { error = null } = await supabaseClient.from(table).delete().eq(idField, id);
+            if (!error) {
+                if (type === 'pegawai') await fetchPegawai();
+                else if (type === 'petugas') await fetchPetugas();
+                else if (type === 'izin') await renderAdminContent();
+            } else {
+                alert("Gagal menghapus data.");
+            }
+            hideLoading();
+        }
+
+        async function deleteSelectedMasterData(type) {
+            if (state.selectedAdminItems.length === 0) return;
+            if (!confirm(`Anda akan menghapus ${state.selectedAdminItems.length} data terpilih secara permanen. Lanjutkan?`)) return;
+            
+            showLoading("Menghapus...");
+            const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+            
+            const { error = null } = await supabaseClient.from(table).delete().in('id', state.selectedAdminItems);
+            if (!error) {
+                state.selectedAdminItems = [];
+                type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+            } else {
+                alert("Gagal menghapus data.");
+            }
+            hideLoading();
+        }
+
+        async function deleteAllMasterData(type) {
+            const label = type === 'pegawai' ? 'SELURUH DATA PEGAWAI' : 'SELURUH DATA PETUGAS PIKET';
+            if (confirm(`PERINGATAN: Apakah Anda yakin ingin menghapus ${label}?`)) {
+                showLoading("Membersihkan...");
+                const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+                
+                const { error = null } = await supabaseClient.from(table).delete().gt('id', 0);
+                if (!error) {
+                    state.currentPage = 1;
+                    state.selectedAdminItems = [];
+                    type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                } else {
+                    alert("Gagal menghapus.");
+                }
+                hideLoading();
+            }
+        }
+
+        async function handleCSVUpload(e, type) {
+            const file = e.target.files[0];
+            if (!file) return;
+            showLoading("Mengimpor ke Cloud...");
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const lines = event.target.result.split('\n');
+                const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+                const payloads = [];
+
+                lines.forEach(line => {
+                    const cols = line.split(',').map(c => c.trim());
+                    if (cols[0] && cols[1]) {
+                        if (type === 'pegawai') payloads.push({ nama: cols[0], jabatan: cols[1] });
+                        else payloads.push({ nama: cols[0], pin: cols[1] });
+                    }
+                });
+
+                if (payloads.length > 0) {
+                    const { error = null } = await supabaseClient.from(table).insert(payloads);
+                    if (!error) {
+                        type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                    } else {
+                        alert("Gagal mengimpor data. Cek format CSV.");
+                        console.error(error);
+                    }
+                }
+                hideLoading();
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+        
+        // --- EDIT DATA IZIN (MODAL) ---
+        function openEditIzin(id) {
+            const item = state.tempLaporanData.find(i => i.id_izin === id);
+            if(!item) return;
+
+            state.currentEditIzinId = id;
+            document.getElementById('editKategori').value = item.keperluan || 'Dinas/Sekolah';
+            document.getElementById('editTujuan').value = item.tujuan || '';
+            
+            document.getElementById('editTanggal').value = toDateInputFormat(item.tanggal);
+            document.getElementById('editTanggalKeluar').value = toDateInputFormat(item.tanggal_keluar || item.tanggal);
+            document.getElementById('editTanggalKembali').value = toDateInputFormat(item.tanggal_kembali || item.tanggal);
+
+            let wK = formatTo24Hour(item.waktu_keluar);
+            let wKm = formatTo24Hour(item.waktu_kembali);
+            document.getElementById('editWaktuKeluar').value = wK.length >= 5 ? wK.substring(0,5) : '';
+            document.getElementById('editWaktuKembali').value = wKm.length >= 5 ? wKm.substring(0,5) : '';
+
+            document.getElementById('modalEditIzin').classList.replace('hidden', 'flex');
+        }
+
+        function closeEditIzin() {
+            document.getElementById('modalEditIzin').classList.replace('flex', 'hidden');
+            state.currentEditIzinId = null;
+        }
+
+        async function saveEditIzin() {
+            if(!state.currentEditIzinId) return;
+
+            showLoading("Menyimpan Perubahan...");
+            const payload = {
+                keperluan: document.getElementById('editKategori').value,
+                tujuan: document.getElementById('editTujuan').value,
+                waktu_keluar: document.getElementById('editWaktuKeluar').value || '-',
+                waktu_kembali: document.getElementById('editWaktuKembali').value || '-',
+                tanggal: toDDMMYYYY(document.getElementById('editTanggal').value),
+                tanggal_keluar: toDDMMYYYY(document.getElementById('editTanggalKeluar').value),
+                tanggal_kembali: toDDMMYYYY(document.getElementById('editTanggalKembali').value)
+            };
+
+            const { error = null } = await supabaseClient.from('izin').update(payload).eq('id_izin', state.currentEditIzinId);
+            
+            if (!error) {
+                closeEditIzin();
+                await renderAdminContent();
+            } else {
+                alert("Gagal memperbarui data. Cek penamaan kolom.");
+            }
+            hideLoading();
+        }
+
+        // --- DOWNLOAD LANDSCAPE REPORT PDF ---
+        async function downloadReport() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert("Silakan pilih rentang tanggal mulai dan tanggal akhir.");
+                return;
+            }
+
+            showLoading("Menyiapkan Laporan PDF...");
+            
+            try {
+                const endDateFull = new Date(endDate);
+                endDateFull.setHours(23, 59, 59, 999);
+
+                const { data, error = null } = await supabaseClient.from('izin')
+                    .select('*')
+                    .gte('created_at', new Date(startDate).toISOString())
+                    .lte('created_at', endDateFull.toISOString())
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    alert("Tidak ada data izin yang ditemukan.");
+                    hideLoading();
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('l', 'mm', 'a4'); 
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.text("LAPORAN PENGAJUAN IZIN KELUAR - SMK LINK AND MATCH", 14, 15);
+                
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(10);
+                doc.text(`Periode: ${startDate} s/d ${endDate}`, 14, 22);
+
+                const tableColumn = ["ID Izin", "Nama Pegawai", "Kategori", "Tanggal Pengajuan", "Keluar", "Kembali", "Durasi", "Keterangan", "FOTO"];
+                const tableRows = [];
+                const imagesData = {};
+                
+                let summaryLate = { "Dinas/Sekolah": {}, "Pribadi": {} };
+                let summaryBelumKembali = [];
+                
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
+                    
+                    let out24 = formatTo24Hour(row.waktu_keluar) || '-';
+                    let in24 = formatTo24Hour(row.waktu_kembali) || '-';
+                    let tglK = row.tanggal_keluar || row.tanggal || '-';
+                    let tglKm = row.tanggal_kembali || row.tanggal || '-';
+                    
+                    let durasi = "-";
+                    if (out24 !== '-' && in24 !== '-') {
+                        const [kh, km] = out24.split(':').map(Number);
+                        const [eh, em] = in24.split(':').map(Number);
+                        if (!isNaN(kh) && !isNaN(km) && !isNaN(eh) && !isNaN(em)) {
+                            let startMins = kh * 60 + km;
+                            let endMins = eh * 60 + em;
+                            if (endMins < startMins) endMins += 24 * 60;
+                            
+                            let totalMins = endMins - startMins;
+                            let jam = Math.floor(totalMins / 60);
+                            let sisaMenit = totalMins % 60;
+                            
+                            if (jam > 0 && sisaMenit > 0) {
+                                durasi = `${jam} Jam ${sisaMenit} Mnt`;
+                            } else if (jam > 0) {
+                                durasi = `${jam} Jam`;
+                            } else {
+                                durasi = `${sisaMenit} Menit`;
+                            }
+                        }
+                    }
+
+                    const isLate = isTerlambat(row);
+                    const keterangan = isLate ? "MELEBIHI IZIN KELUAR" : "";
+
+                    if (isLate) {
+                        let cat = row.keperluan === 'Pribadi' ? 'Pribadi' : 'Dinas/Sekolah';
+                        let empName = row.nama || 'Anonim';
+                        let empDate = row.tanggal || '-';
+                        if (!summaryLate[cat][empName]) summaryLate[cat][empName] = [];
+                        summaryLate[cat][empName].push(empDate);
+                    }
+
+                    if (row.status === 'Keluar') {
+                        summaryBelumKembali.push([
+                            row.nama || 'Anonim',
+                            row.keperluan || '-',
+                            `${tglK} | ${out24}`
+                        ]);
+                    }
+
+                    const rowData = [
+                        row.id_izin || '',
+                        row.nama || '',
+                        row.keperluan || '-',
+                        row.tanggal || '',
+                        `${tglK}\n${out24}`,
+                        `${tglKm}\n${in24}`,
+                        durasi,
+                        keterangan,
+                        ""
+                    ];
+                    tableRows.push(rowData);
+
+                    if (row.foto_url && row.foto_url !== 'Tidak Ada Foto' && row.foto_url.startsWith('http')) {
+                        try {
+                            const img = new Image();
+                            img.crossOrigin = "Anonymous";
+                            img.src = row.foto_url;
+                            await new Promise((resolve) => {
+                                img.onload = () => {
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = img.width;
+                                    canvas.height = img.height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0);
+                                    imagesData[i] = canvas.toDataURL('image/jpeg', 0.6); 
+                                    resolve();
+                                };
+                                img.onerror = () => resolve();
+                            });
+                        } catch(e) { console.warn("Image load failed", e); }
+                    }
+                }
+
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 28,
+                    margin: { bottom: 15 },
+                    rowPageBreak: 'avoid',
+                    styles: { fontSize: 8, valign: 'middle', cellPadding: 2 },
+                    columnStyles: {
+                        7: { textColor: [220, 38, 38], fontStyle: 'bold' },
+                        8: { cellWidth: 18, minCellHeight: 25 }
+                    },
+                    didDrawCell: function(dataInfo) {
+                        if (dataInfo.column.index === 8 && dataInfo.cell.section === 'body') {
+                            const rowIndex = dataInfo.row.index;
+                            if (imagesData[rowIndex]) {
+                                const dimW = 12; 
+                                const dimH = 21.3; 
+                                const x = dataInfo.cell.x + (dataInfo.cell.width - dimW) / 2;
+                                const y = dataInfo.cell.y + (dataInfo.cell.height - dimH) / 2;
+                                doc.addImage(imagesData[rowIndex], 'JPEG', x, y, dimW, dimH);
+                            } else {
+                                doc.text("-", dataInfo.cell.x + dataInfo.cell.width / 2, dataInfo.cell.y + dataInfo.cell.height / 2, { align: 'center' });
+                            }
+                        }
+                    }
+                });
+
+                doc.addPage();
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text("REKAPITULASI KETERLAMBATAN IZIN KELUAR", 14, 20);
+
+                const downloadTime = new Date().toLocaleString('id-ID', { hour12: false });
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(9);
+                doc.text(`Waktu Unduh Laporan: ${downloadTime}`, 14, 26);
+
+                let currentY = 35;
+
+                ['Dinas/Sekolah', 'Pribadi'].forEach(kategori => {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(11);
+                    doc.setTextColor(30, 58, 138);
+                    doc.text(`KATEGORI: ${kategori.toUpperCase()}`, 14, currentY);
+                    currentY += 8;
+
+                    const names = Object.keys(summaryLate[kategori]);
+
+                    if (names.length === 0) {
+                        doc.setFont("helvetica", "italic");
+                        doc.setFontSize(9);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text("Tidak ada data keterlambatan pada kategori ini.", 14, currentY);
+                        currentY += 12;
+                    } else {
+                        let summaryRows = [];
+                        names.forEach(name => {
+                            let dates = summaryLate[kategori][name];
+                            summaryRows.push([
+                                name,
+                                `${dates.length} Kali`,
+                                dates.join(', ')
+                            ]);
+                        });
+
+                        doc.autoTable({
+                            head: [['Nama Pegawai', 'Jumlah Terlambat', 'Tanggal Terlambat']],
+                            body: summaryRows,
+                            startY: currentY,
+                            styles: { fontSize: 9 },
+                            headStyles: { fillColor: [220, 38, 38] },
+                            margin: { left: 14 }
+                        });
+                        currentY = doc.lastAutoTable.finalY + 15;
+                    }
+                });
+
+                currentY += 5;
+                if (currentY > 160) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.setTextColor(220, 38, 38);
+                doc.text("STATUS BELUM KEMBALI (SAAT LAPORAN DIUNDUH)", 14, currentY);
+                currentY += 8;
+
+                if (summaryBelumKembali.length === 0) {
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(9);
+                    doc.setTextColor(100, 116, 139);
+                    doc.text("Semua pemohon pada periode ini telah lapor kembali.", 14, currentY);
+                } else {
+                    doc.autoTable({
+                        head: [['Nama Pegawai', 'Kategori Izin', 'Waktu Keluar']],
+                        body: summaryBelumKembali,
+                        startY: currentY,
+                        styles: { fontSize: 9 },
+                        headStyles: { fillColor: [245, 158, 11] },
+                        margin: { left: 14 }
+                    });
+                }
+
+                doc.save(`Laporan_Izin_${startDate}_sd_${endDate}.pdf`);
+                
+            } catch (err) {
+                alert("Terjadi kesalahan saat mengunduh laporan PDF.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function deleteReportByPeriod() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+                alert("Silakan pilih rentang tanggal.");
+                return;
+            }
+
+            if (!confirm(`Hapus PERMANEN data pengajuan izin dari tanggal ${startDate} hingga ${endDate}?`)) return;
+
+            showLoading("Menghapus Data Laporan...");
+            try {
+                const endDateFull = new Date(endDate);
+                endDateFull.setHours(23, 59, 59, 999);
+
+                const { error = null } = await supabaseClient.from('izin')
+                    .delete()
+                    .gte('created_at', new Date(startDate).toISOString())
+                    .lte('created_at', endDateFull.toISOString());
+
+                if (error) throw error;
+                alert("Data berhasil dihapus dari sistem.");
+                await renderAdminContent();
+            } catch (err) {
+                alert("Gagal menghapus data.");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- UI & NAVIGATION LOGIC ---
+        function navTo(sec) {
+            ['layanan', 'piket', 'admin'].forEach(s => {
+                const el = document.getElementById(`sec-${s}`);
+                const nav = document.getElementById(`nav-${s}`);
+                if (el) el.classList.add('hidden');
+                if (nav) nav.classList.replace('text-red-600', 'text-slate-400');
+            });
+            
+            const targetEl = document.getElementById(`sec-${sec}`);
+            const targetNav = document.getElementById(`nav-${sec}`);
+            if (targetEl) targetEl.classList.remove('hidden');
+            if (targetNav) targetNav.classList.replace('text-slate-400', 'text-red-600');
+            
+            state.activeTab = sec;
+            if(sec === 'admin' && state.isAdmin) renderAdminContent();
+        }
+
+        function handleLogout() {
+            state.currentUser = null;
+            document.getElementById('piketPin').value = '';
+            document.getElementById('piketLogin').classList.remove('hidden');
+            document.getElementById('piketDashboard').classList.add('hidden');
+            navTo('layanan');
+        }
+
+        function handleAdminLogout() {
+            state.isAdmin = false;
+            document.getElementById('adminPass').value = '';
+            document.getElementById('adminLogin').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            state.selectedAdminItems = [];
+            navTo('layanan');
+        }
+
+        function handleAdminLogin() {
+            if (document.getElementById('adminPass').value === 'lm9595') {
+                state.isAdmin = true;
+                document.getElementById('adminLogin').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                switchAdminTab('pegawai');
+            } else { alert("Password Salah!"); }
+        }
+
+        function switchAdminTab(tab) {
+            state.adminActiveTab = tab;
+            state.currentPage = 1;
+            state.selectedAdminItems = [];
+            ['pegawai', 'petugas', 'laporan'].forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                if(t === tab) {
+                    btn.classList.add('bg-slate-900', 'text-white');
+                    btn.classList.remove('text-slate-100', 'text-slate-400');
+                } else {
+                    btn.classList.remove('bg-slate-900', 'text-white');
+                    btn.classList.add('bg-slate-100', 'text-slate-400');
+                }
+            });
+            renderAdminContent();
+        }
+
+        function changePage(dir) {
+            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
+            const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
+            const newPage = state.currentPage + dir;
+            if (newPage >= 1 && newPage <= totalPages) {
+                state.currentPage = newPage;
+                state.selectedAdminItems = [];
+                renderAdminContent();
+            }
+        }
+
+        function toggleSelection(id) {
+            const index = state.selectedAdminItems.indexOf(id);
+            if (index > -1) {
+                state.selectedAdminItems.splice(index, 1);
+            } else {
+                state.selectedAdminItems.push(id);
+            }
+            renderAdminContent();
+        }
+
+        function toggleAllSelection(idsArray) {
+            const allSelected = idsArray.every(id => state.selectedAdminItems.includes(id));
+            if (allSelected) {
+                state.selectedAdminItems = state.selectedAdminItems.filter(id => !idsArray.includes(id));
+            } else {
+                idsArray.forEach(id => {
+                    if (!state.selectedAdminItems.includes(id)) state.selectedAdminItems.push(id);
+                });
+            }
+            renderAdminContent();
+        }
+
+        async function renderAdminContent() {
+            const container = document.getElementById('adminContent');
+            const paginationEl = document.getElementById('adminPagination');
+
+            if (state.adminActiveTab === 'laporan') {
+                if(paginationEl) paginationEl.style.display = 'none';
+                
+                showLoading("Laporan...");
+                const { data } = await supabaseClient.from('izin').select('*').eq('status', 'Selesai').order('created_at', {ascending: false}).limit(30);
+                hideLoading();
+
+                state.tempLaporanData = data || [];
+
+                let laporanHtml = '';
+                if(data && data.length > 0) {
+                    laporanHtml = data.map(i => {
+                        const late = isTerlambat(i);
+                        const borderCls = late ? 'border-red-300 bg-red-50/50' : 'border-slate-100 bg-white';
+                        const nameCls = late ? 'text-red-700' : 'text-slate-900';
+                        const lateBadge = late ? '<div class="text-[8px] font-black text-red-600 mt-1 uppercase animate-pulse">Melebihi Izin Keluar</div>' : '';
+
+                        return `
+                            <div class="p-4 ${borderCls} border rounded-2xl flex items-center gap-3">
+                                <img src="${i.foto_url}" class="w-10 h-10 rounded-lg object-cover bg-slate-100" onerror="this.src='https://via.placeholder.com/100?text=No+Img'"/>
+                                <div class="flex-1">
+                                    <div class="text-[10px] font-black uppercase ${nameCls}">${i.nama}</div>
+                                    <div class="text-[7px] font-bold text-slate-400 uppercase">${i.tanggal} | ${formatTo24Hour(i.waktu_keluar) || '-'} - ${formatTo24Hour(i.waktu_kembali) || '-'}</div>
+                                    ${lateBadge}
+                                </div>
+                                <div class="flex gap-2">
+                                    <a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg active:scale-95 transition-all" title="Lihat Foto"><i class="fas fa-external-link-alt text-xs"></i></a>
+                                    <button onclick="openEditIzin('${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 rounded-lg active:scale-95 transition-all" title="Edit Data"><i class="fas fa-edit text-xs"></i></button>
+                                    <button onclick="deleteMasterData('izin', '${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 rounded-lg active:scale-95 transition-all" title="Hapus Data"><i class="fas fa-trash text-xs"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    laporanHtml = '<div class="text-center py-10 text-[9px] font-black text-slate-300">Laporan kosong</div>';
+                }
+
+                container.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-5 animate-slide-up mb-4">
+                        <div>
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-800">Manajemen Laporan Izin</h3>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Unduh Laporan (PDF) atau Hapus Data</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Mulai</label>
+                                <input type="date" id="startDate" class="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 transition-all text-slate-700">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">Tanggal Akhir</label>
+                                <input type="date" id="endDate" class="w-full p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:ring-2 focus:ring-red-100 transition-all text-slate-700">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <button onclick="downloadReport()" class="w-full py-4 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-rose-700">
+                                <i class="fas fa-file-pdf text-sm"></i> Unduh PDF
+                            </button>
+                            <button onclick="deleteReportByPeriod()" class="w-full py-4 bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-black">
+                                <i class="fas fa-trash-alt text-sm"></i> Hapus Data
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Pratinjau Data Terbaru</h4>
+                        ${laporanHtml}
+                    </div>
+                `;
+                return;
+            }
+
+            if(paginationEl) paginationEl.style.display = 'flex';
+            const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
+            
+            const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
+            if (state.currentPage > totalPages) state.currentPage = totalPages || 1;
+            
+            const start = (state.currentPage - 1) * state.itemsPerPage;
+            const paginatedItems = source.slice(start, start + state.itemsPerPage);
+            
+            const currentIds = paginatedItems.map(i => i.id);
+            const allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
+
+            document.getElementById('pageInfo').textContent = `Halaman ${state.currentPage} / ${totalPages}`;
+            document.getElementById('prevPage').disabled = state.currentPage <= 1;
+            document.getElementById('nextPage').disabled = state.currentPage >= totalPages;
+
+            let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `
+                <button onclick="deleteSelectedMasterData('${state.adminActiveTab}')" class="w-full mb-3 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 hover:bg-red-700">
+                    <i class="fas fa-trash"></i> Hapus ${state.selectedAdminItems.length} Data Terpilih
+                </button>
+            ` : '';
+
+            let html = `
+                <div class="grid grid-cols-2 gap-2 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm mb-3">
+                    <label class="flex items-center justify-center gap-2 p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl cursor-pointer active:bg-slate-100 transition-colors">
+                        <i class="fas fa-file-csv text-slate-400 text-xs"></i>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-slate-600">Import CSV</span>
+                        <input type="file" class="hidden" onchange="handleCSVUpload(event, '${state.adminActiveTab}')">
+                    </label>
+                    <button onclick="deleteAllMasterData('${state.adminActiveTab}')" class="flex items-center justify-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl active:bg-red-100 transition-colors">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                        <span class="text-[8px] font-black uppercase tracking-widest">Hapus Semua</span>
+                    </button>
+                    <button onclick="openForm('${state.adminActiveTab}')" class="col-span-2 py-3 bg-slate-900 text-white rounded-xl text-[8px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md">+ Tambah Manual</button>
+                </div>
+
+                ${bulkDeleteBtn}
+
+                <div class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="flex items-center p-4 bg-slate-50 border-b border-slate-100">
+                        <input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded border-slate-300 cursor-pointer">
+                        <span class="text-[9px] font-bold text-slate-500 uppercase ml-4 tracking-widest">Pilih Semua di Halaman Ini</span>
+                    </div>
+                    <div class="divide-y divide-slate-50">
+                        ${paginatedItems.length === 0 ? '<div class="p-10 text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">Belum ada data</div>' : ''}
+                        ${paginatedItems.map(item => `
+                            <label class="flex items-center p-4 cursor-pointer hover:bg-slate-50 transition-colors ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/40' : ''}">
+                                <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer">
+                                <div class="ml-4 truncate">
+                                    <div class="text-xs font-black uppercase text-slate-900 truncate">${item.nama}</div>
+                                    <div class="text-[8px] font-bold text-slate-400 uppercase mt-0.5 font-semibold">
+                                        ${state.adminActiveTab === 'pegawai' ? (item.jabatan || 'Staf') : 'PIN: ' + item.pin}
+                                    </div>
+                                </div>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Help UI functions
+        function syncSelects() {
+            const sP = document.getElementById('inputNama');
+            const sT = document.getElementById('piketUser');
+            if (sP) {
+                sP.innerHTML = '<option value="">Pilih Pegawai...</option>';
+                state.listPegawai.forEach((p, i) => { sP.innerHTML += `<option value="${i}">${p.nama}</option>`; });
+            }
+            if (sT) {
+                sT.innerHTML = '<option value="">Pilih Petugas...</option>';
+                state.listPetugas.forEach((p) => { sT.innerHTML += `<option value="${p.nama}">${p.nama}</option>`; });
+            }
+        }
+
+        function renderUserList() {
+            const container = document.getElementById('listAntrean');
+            if(!container) return;
+            const activeData = state.dataIzin.filter(i => i.status !== 'Selesai');
+            container.innerHTML = activeData.length === 0 ? '<div class="p-10 text-center text-[9px] font-black text-slate-300 uppercase border border-dashed rounded-3xl">Kosong</div>' : '';
+            
+            activeData.forEach(item => {
+                let waktuKeluarHtml = '';
+                const late = item.status === 'Keluar' && isTerlambat(item);
+                const borderCls = late ? 'border-red-400 bg-red-50' : 'border-slate-100 bg-white';
+                const shadowCls = late ? 'shadow-red-200/50' : 'shadow-sm';
+                
+                if (item.status === 'Keluar' && item.waktu_keluar) {
+                    waktuKeluarHtml = `<div class="text-[8px] font-bold ${late ? 'text-red-500' : 'text-slate-500'} mt-1.5"><i class="fas fa-clock mr-1"></i> Keluar: ${item.tanggal_keluar || item.tanggal} | ${formatTo24Hour(item.waktu_keluar)}</div>`;
+                }
+
+                const warningBox = late ? `
+                    <div class="mt-3 p-2 bg-red-100 border border-red-200 rounded-xl flex items-start gap-2 animate-pulse">
+                        <i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i>
+                        <p class="text-[8px] font-black text-red-700 leading-tight">WAKTU IZIN HABIS! Harap segera melapor ke Petugas Piket.</p>
+                    </div>
+                ` : '';
+
+                container.innerHTML += `
+                    <div class="p-5 ${borderCls} border rounded-3xl flex flex-col animate-slide-up shadow-md ${shadowCls} transition-all">
+                        <div class="flex justify-between items-center w-full">
+                            <div class="truncate pr-4">
+                                <div class="text-xs font-black uppercase truncate ${late ? 'text-red-800' : 'text-slate-900'}">${item.nama}</div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[7px] font-black px-2 py-0.5 ${late ? 'bg-red-200 text-red-800' : 'bg-slate-100 text-slate-500'} rounded uppercase">${item.id_izin}</span>
+                                    <span class="text-[8px] font-bold text-red-600 uppercase tracking-widest truncate">${item.keperluan}: ${item.tujuan}</span>
+                                </div>
+                                ${waktuKeluarHtml}
+                            </div>
+                            <div>
+                                ${item.status === 'Menunggu' ? 
+                                    '<span class="text-[7px] font-black uppercase px-3 py-1.5 bg-amber-50 text-amber-600 rounded-xl">Menunggu</span>' : 
+                                    `<button onclick="openFinish('${item.id_izin}')" class="text-[8px] font-black uppercase px-4 py-2 bg-red-700 text-white rounded-xl active:scale-95 transition-all shadow-lg shadow-red-700/20">Lapor</button>`}
+                            </div>
+                        </div>
+                        ${warningBox}
+                    </div>
+                `;
+            });
+        }
+
+        function renderPiketAntrean() {
+            const container = document.getElementById('antreanPiket');
+            if(!container) return;
+            container.innerHTML = '';
+            const waiting = state.dataIzin.filter(i => i.status === 'Menunggu');
+            
+            if(waiting.length === 0){
+                container.innerHTML = '<div class="p-10 text-center text-[9px] font-black text-slate-300 uppercase border border-dashed rounded-3xl">Tidak Ada Antrean</div>';
+            }
+
+            waiting.forEach(item => {
+                container.innerHTML += `
+                    <div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-4 animate-slide-up shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div class="truncate pr-2">
+                                <div class="text-sm font-black uppercase truncate">${item.nama}</div>
+                                <p class="text-[8px] font-bold text-slate-400 uppercase mt-1">Tujuan: ${item.tujuan}</p>
+                            </div>
+                            <span class="text-[9px] font-black text-red-700">${item.id_izin}</span>
+                        </div>
+                        <button onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-md active:scale-95 transition-all">Izinkan Keluar</button>
+                    </div>
+                `;
+            });
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('piketUser').value;
+            const pin = document.getElementById('piketPin').value;
+            const match = state.listPetugas.find(p => p.nama === user && p.pin === pin);
+            if (match) {
+                state.currentUser = match;
+                document.getElementById('piketLogin').classList.add('hidden');
+                document.getElementById('piketDashboard').classList.remove('hidden');
+                document.getElementById('petugasAktif').textContent = match.nama;
+                renderPiketAntrean();
+            } else { alert("Login Gagal! Pastikan Nama dan PIN sesuai."); }
+        }
+
+        function openForm(type) {
+            document.getElementById('modalTitle').textContent = `Tambah ${type}`;
+            document.getElementById('formVal1').placeholder = 'Nama Lengkap';
+            document.getElementById('formVal2').placeholder = type === 'pegawai' ? 'Jabatan/Bidang' : 'PIN (4 Digit)';
+            document.getElementById('modalForm').classList.replace('hidden', 'flex');
+            document.getElementById('btnSave').onclick = () => {
+                const v1 = document.getElementById('formVal1').value;
+                const v2 = document.getElementById('formVal2').value;
+                if(v1 && v2) saveMasterData(type, v1, v2);
+            };
+        }
+
+        function closeForm() { 
+            document.getElementById('modalForm').classList.replace('flex', 'hidden'); 
+            document.getElementById('formVal1').value = '';
+            document.getElementById('formVal2').value = '';
+        }
+        
+        function closeFinishModal() {
+            stopCamera();
+            document.getElementById('modalFinish').classList.replace('flex', 'hidden');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const cd = document.getElementById('clockDisplay');
+            const dd = document.getElementById('dateDisplay');
+            
+            const rawTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            if(cd) cd.textContent = formatTo24Hour(rawTime);
+            if(dd) dd.textContent = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+        }
+
+        function showLoading(txt) { 
+            const el = document.getElementById('loadingText');
+            if (el) el.textContent = txt; 
+            document.getElementById('loadingOverlay').classList.remove('hidden'); 
+        }
+        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+        window.onload = init;
+        document.getElementById('izinForm').onsubmit = handleIzinSubmit;
+    </script>
+
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => console.log('Service Worker terdaftar!', reg))
+        .catch((err) => console.error('Service Worker gagal daftar:', err));
+    });
+  }
+</script>
+</body>
+</html>
