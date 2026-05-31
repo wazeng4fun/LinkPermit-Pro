@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LinkPermit Pro</title>
     
-    <link rel="manifest" href="./manifest.json">
+    <link class="manifest" href="./manifest.json">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,6 +26,27 @@
     </style>
 </head>
 <body class="text-slate-900 antialiased">
+
+    <!-- Custom Toast Notifikasi Kustom -->
+    <div id="customToast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[3000] bg-slate-900/95 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-[0.2em] px-6 py-4 rounded-2xl shadow-2xl hidden items-center gap-3 transition-all border border-slate-800">
+        <i id="toastIcon" class="fas fa-info-circle text-red-500 text-xs"></i>
+        <span id="toastMsg">-</span>
+    </div>
+
+    <!-- Custom Modal Konfirmasi Kustom -->
+    <div id="customConfirmModal" class="fixed inset-0 z-[2500] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white p-6 rounded-[2rem] max-w-sm w-full text-center space-y-4 shadow-2xl scale-95 animate-slide-up">
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-lg">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">Konfirmasi Tindakan</h3>
+            <p id="confirmMessage" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+            <div class="flex gap-2 pt-2">
+                <button id="btnConfirmCancel" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all">Batal</button>
+                <button id="btnConfirmProceed" class="flex-1 py-3 bg-red-700 hover:bg-red-800 text-white rounded-xl font-black text-[9px] uppercase tracking-wider shadow-lg shadow-red-700/20 transition-all">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
 
     <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-md hidden flex flex-col items-center justify-center">
         <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
@@ -137,15 +158,23 @@
         </div>
 
         <div id="sec-admin" class="hidden animate-slide-up space-y-6">
+            <!-- Admin Login: Menggunakan Email & Password Terintegrasi Supabase Auth -->
             <div id="adminLogin" class="space-y-6 pt-10">
                 <div class="text-center">
                     <h3 class="text-xl font-black mb-2">Master Admin</h3>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Cloud</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Akses Supabase Auth</p>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-center outline-none text-slate-700">
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Email Admin</label>
+                        <input id="adminEmail" type="email" placeholder="admin@domain.com" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold outline-none text-slate-700 text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Password</label>
+                        <input id="adminPass" type="password" placeholder="••••••••" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold outline-none text-slate-700 text-sm">
+                    </div>
                 </div>
-                <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Buka Dashboard</button>
+                <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Masuk Aplikasi</button>
             </div>
 
             <div id="adminDashboard" class="hidden space-y-6">
@@ -180,12 +209,24 @@
         </div>
     </main>
 
+    <!-- Modal Form (Modifikasi Agar Mendukung Auto PIN & Manual Edit) -->
     <div id="modalForm" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up shadow-2xl">
             <h3 id="modalTitle" class="text-lg font-black uppercase tracking-tight">Tambah Data</h3>
             <div class="space-y-4">
-                <input id="formVal1" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
-                <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
+                <div class="space-y-1">
+                    <label id="labelVal1" class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Lengkap</label>
+                    <input id="formVal1" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
+                </div>
+                <div class="space-y-1 relative">
+                    <label id="labelVal2" class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">PIN / Jabatan</label>
+                    <div class="relative flex items-center">
+                        <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700 pr-24">
+                        <button id="btnGeneratePin" onclick="generateRandomPin()" class="absolute right-2 bg-slate-900 hover:bg-slate-800 text-white text-[8px] font-black uppercase px-3 py-2 rounded-lg tracking-wider transition-all hidden">
+                            Generate
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="flex gap-3">
                 <button onclick="closeForm()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400">Batal</button>
@@ -288,6 +329,53 @@
             tempLaporanData: [], currentEditIzinId: null
         };
 
+        let editState = {
+            isEditing: false,
+            editingType: null,
+            editingId: null
+        };
+
+        // --- CUSTOM TOAST & CONFIRM MODAL SYSTEM (Non-blocking) ---
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('customToast');
+            const icon = document.getElementById('toastIcon');
+            const text = document.getElementById('toastMsg');
+            
+            text.textContent = msg;
+            if (type === 'error') {
+                icon.className = 'fas fa-exclamation-circle text-red-500';
+            } else if (type === 'success') {
+                icon.className = 'fas fa-check-circle text-emerald-500';
+            } else {
+                icon.className = 'fas fa-info-circle text-blue-500';
+            }
+            
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 3000);
+        }
+
+        function showConfirm(msg, onConfirm) {
+            const modal = document.getElementById('customConfirmModal');
+            document.getElementById('confirmMessage').textContent = msg;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            document.getElementById('btnConfirmCancel').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            };
+            
+            document.getElementById('btnConfirmProceed').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                onConfirm();
+            };
+        }
+
         // --- 2. PWA SERVICE WORKER & NOTIFIKASI ---
         if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
             window.addEventListener('load', () => {
@@ -366,10 +454,24 @@
             if(!supabaseClient && window.supabase) {
                 supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
             }
-            if(!supabaseClient) return alert("Koneksi Supabase Gagal. Cek Internet Anda.");
+            if(!supabaseClient) return showToast("Koneksi database pusat terganggu. Silakan cek internet Anda.", "error");
 
             showLoading("Memuat data...");
             await Promise.all([fetchPegawai(), fetchPetugas(), fetchIzin()]);
+            
+            // Cek Auto Sesi Admin (Jika sudah login sebelumnya)
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    state.isAdmin = true;
+                    document.getElementById('adminLogin').classList.add('hidden');
+                    document.getElementById('adminDashboard').classList.remove('hidden');
+                    switchAdminTab('pegawai');
+                }
+            } catch (e) {
+                console.log("No saved session:", e);
+            }
+
             hideLoading();
             updateTime();
             setInterval(updateTime, 1000);
@@ -494,7 +596,10 @@
             if (!error) {
                 document.getElementById('inputTujuan').value = "";
                 await fetchIzin();
-            } else { alert("Gagal mengajukan izin."); }
+                showToast("Permohonan izin berhasil diajukan!", "success");
+            } else { 
+                showToast("Gagal mengajukan izin.", "error"); 
+            }
             hideLoading();
         }
 
@@ -506,7 +611,12 @@
                 status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl 
             }).eq('id_izin', id);
             
-            if(!error) await fetchIzin();
+            if(!error) {
+                await fetchIzin();
+                showToast("Izin keluar berhasil disetujui!", "success");
+            } else {
+                showToast("Gagal menyetujui izin.", "error");
+            }
             hideLoading();
         }
 
@@ -521,7 +631,6 @@
             startCamera();
         }
 
-        // INILAH FUNGSI YANG SEBELUMNYA HILANG:
         function closeFinishModal() {
             stopCamera();
             const modal = document.getElementById('modalFinish');
@@ -538,7 +647,7 @@
                 state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
                 document.getElementById('cameraVideo').srcObject = state.cameraStream;
             } catch (e) { 
-                alert("Gagal mengakses kamera: " + e.message); 
+                showToast("Gagal mengakses kamera: " + e.message, "error"); 
                 closeFinishModal();
             }
         }
@@ -605,7 +714,7 @@
             const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
             const tgl = new Date().toLocaleDateString('id-ID');
             
-            alert("Berhasil! Kehadiran terverifikasi. Foto diunggah senyap.");
+            showToast("Kehadiran terverifikasi. Menyinkronkan foto...", "success");
             closeFinishModal();
 
             const idx = state.dataIzin.findIndex(i => i.id_izin === targetId);
@@ -628,6 +737,7 @@
 
                     await supabaseClient.from('izin').update(updateData).eq('id_izin', targetId);
                     await fetchIzin();
+                    showToast("Laporan kembali berhasil disimpan!", "success");
                 } catch (err) { console.error("Upload error:", err); }
             }, 500);
         }
@@ -640,54 +750,83 @@
             return new Blob([ab], {type: mime});
         }
 
-        // --- 6. ADMIN & OTHER FUNCTIONS ---
-        async function saveMasterData(type, v1, v2) {
+        // --- 6. ADMIN & MASTER DATA OPERATIONS ---
+        // Penyesuaian Agar Mendukung Tambah & Edit
+        async function saveMasterData(type, v1, v2, isEdit = false, id = null) {
             showLoading("Menyimpan...");
             const table = type === 'pegawai' ? 'pegawai' : 'petugas';
             const payload = type === 'pegawai' ? { nama: v1, jabatan: v2 } : { nama: v1, pin: v2 };
-            const { error } = await supabaseClient.from(table).insert([payload]);
-            if (!error) { type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); closeForm(); }
-            else alert(`Gagal menyimpan data ${type}.`);
+            
+            let error;
+            if (isEdit) {
+                const { error: err } = await supabaseClient.from(table).update(payload).eq('id', id);
+                error = err;
+            } else {
+                const { error: err } = await supabaseClient.from(table).insert([payload]);
+                error = err;
+            }
+
+            if (!error) { 
+                type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); 
+                closeForm(); 
+                showToast(`Data ${type} berhasil disimpan!`, "success");
+            } else {
+                showToast(`Gagal menyimpan data ${type}.`, "error");
+            }
             hideLoading();
         }
 
         async function deleteMasterData(type, id) {
-            if (!confirm("Hapus data permanen?")) return;
-            showLoading("Menghapus...");
-            let table = type === 'pegawai' ? 'pegawai' : 'petugas';
-            let idField = 'id';
-            if (type === 'izin') { table = 'izin'; idField = 'id_izin'; }
-            
-            const { error } = await supabaseClient.from(table).delete().eq(idField, id);
-            if (!error) {
-                if (type === 'pegawai') await fetchPegawai();
-                else if (type === 'petugas') await fetchPetugas();
-                else if (type === 'izin') await renderAdminContent();
-            } else alert("Gagal menghapus.");
-            hideLoading();
+            showConfirm("Apakah Anda yakin ingin menghapus data ini secara permanen?", async () => {
+                showLoading("Menghapus...");
+                let table = type === 'pegawai' ? 'pegawai' : 'petugas';
+                let idField = 'id';
+                if (type === 'izin') { table = 'izin'; idField = 'id_izin'; }
+                
+                const { error } = await supabaseClient.from(table).delete().eq(idField, id);
+                if (!error) {
+                    showToast("Data berhasil dihapus.", "success");
+                    if (type === 'pegawai') await fetchPegawai();
+                    else if (type === 'petugas') await fetchPetugas();
+                    else if (type === 'izin') await renderAdminContent();
+                } else {
+                    showToast("Gagal menghapus data.", "error");
+                }
+                hideLoading();
+            });
         }
 
         async function deleteSelectedMasterData(type) {
             if (state.selectedAdminItems.length === 0) return;
-            if (!confirm(`Hapus ${state.selectedAdminItems.length} data?`)) return;
-            showLoading("Menghapus...");
-            const table = type === 'pegawai' ? 'pegawai' : 'petugas';
-            const { error } = await supabaseClient.from(table).delete().in('id', state.selectedAdminItems);
-            if (!error) { state.selectedAdminItems = []; type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); }
-            hideLoading();
+            showConfirm(`Hapus ${state.selectedAdminItems.length} data terpilih secara permanen?`, async () => {
+                showLoading("Menghapus...");
+                const table = type === 'pegawai' ? 'pegawai' : 'petugas';
+                const { error } = await supabaseClient.from(table).delete().in('id', state.selectedAdminItems);
+                if (!error) { 
+                    state.selectedAdminItems = []; 
+                    type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); 
+                    showToast("Data terpilih berhasil dihapus.", "success");
+                } else {
+                    showToast("Gagal menghapus data.", "error");
+                }
+                hideLoading();
+            });
         }
 
         async function deleteAllMasterData(type) {
-            if (confirm(`PERINGATAN: Hapus SELURUH DATA?`)) {
+            showConfirm(`PERINGATAN: Apakah Anda yakin ingin menghapus SELURUH data ${type}? Tindakan ini tidak bisa dibatalkan!`, async () => {
                 showLoading("Membersihkan...");
                 const table = type === 'pegawai' ? 'pegawai' : 'petugas';
                 const { error } = await supabaseClient.from(table).delete().gt('id', 0);
                 if (!error) {
                     state.currentPage = 1; state.selectedAdminItems = [];
                     type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                    showToast("Semua data berhasil dibersihkan.", "success");
+                } else {
+                    showToast("Gagal membersihkan data.", "error");
                 }
                 hideLoading();
-            }
+            });
         }
 
         async function handleCSVUpload(e, type) {
@@ -704,7 +843,12 @@
                 });
                 if (payloads.length > 0) {
                     const { error } = await supabaseClient.from(table).insert(payloads);
-                    if (!error) type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                    if (!error) {
+                        type === 'pegawai' ? await fetchPegawai() : await fetchPetugas();
+                        showToast("Impor CSV berhasil diselesaikan!", "success");
+                    } else {
+                        showToast("Beberapa baris gagal diimpor.", "error");
+                    }
                 }
                 hideLoading(); e.target.value = '';
             };
@@ -746,18 +890,24 @@
                 tanggal_kembali: toDDMMYYYY(document.getElementById('editTanggalKembali').value)
             };
             const { error } = await supabaseClient.from('izin').update(payload).eq('id_izin', state.currentEditIzinId);
-            if (!error) { closeEditIzin(); await renderAdminContent(); }
+            if (!error) { 
+                closeEditIzin(); 
+                await renderAdminContent(); 
+                showToast("Data laporan izin berhasil diperbarui!", "success");
+            } else {
+                showToast("Gagal memperbarui data izin.", "error");
+            }
             hideLoading();
         }
 
         async function downloadReport() {
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value;
-            if (!startDate || !endDate) return alert("Pilih rentang tanggal.");
+            if (!startDate || !endDate) return showToast("Harap tentukan rentang tanggal laporan.", "error");
             showLoading("Menyiapkan PDF...");
             try {
                 const endDateFull = new Date(endDate); endDateFull.setHours(23, 59, 59, 999);
                 const { data, error } = await supabaseClient.from('izin').select('*').gte('created_at', new Date(startDate).toISOString()).lte('created_at', endDateFull.toISOString()).order('created_at', { ascending: false });
-                if (error || !data || data.length === 0) { alert("Tidak ada data."); hideLoading(); return; }
+                if (error || !data || data.length === 0) { showToast("Tidak ditemukan data pada periode ini.", "error"); hideLoading(); return; }
 
                 const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); 
                 doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("LAPORAN PENGAJUAN IZIN KELUAR", 14, 15);
@@ -788,22 +938,29 @@
                     styles: { fontSize: 8, valign: 'middle', cellPadding: 2 }
                 });
                 doc.save(`Laporan_Izin_${startDate}_sd_${endDate}.pdf`);
-            } catch (err) { alert("Error saat unduh."); } finally { hideLoading(); }
+                showToast("Laporan berhasil diunduh!", "success");
+            } catch (err) { showToast("Gagal menghasilkan laporan.", "error"); } finally { hideLoading(); }
         }
 
         async function deleteReportByPeriod() {
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value;
-            if (!startDate || !endDate) return alert("Pilih tanggal.");
-            if (!confirm(`Hapus PERMANEN data?`)) return;
-            showLoading("Menghapus...");
-            try {
-                const endDateFull = new Date(endDate); endDateFull.setHours(23, 59, 59, 999);
-                await supabaseClient.from('izin').delete().gte('created_at', new Date(startDate).toISOString()).lte('created_at', endDateFull.toISOString());
-                await renderAdminContent();
-            } catch (err) { alert("Gagal hapus."); } finally { hideLoading(); }
+            if (!startDate || !endDate) return showToast("Pilih periode tanggal terlebih dahulu.", "error");
+            showConfirm(`PERINGATAN: Seluruh data izin pada periode ${startDate} s/d ${endDate} akan dihapus selamanya. Lanjutkan?`, async () => {
+                showLoading("Menghapus...");
+                try {
+                    const endDateFull = new Date(endDate); endDateFull.setHours(23, 59, 59, 999);
+                    const { error } = await supabaseClient.from('izin').delete().gte('created_at', new Date(startDate).toISOString()).lte('created_at', endDateFull.toISOString());
+                    if(!error) {
+                        showToast("Data periode berhasil dibersihkan.", "success");
+                        await renderAdminContent();
+                    } else {
+                        showToast("Gagal menghapus data.", "error");
+                    }
+                } catch (err) { showToast("Gagal menghapus data.", "error"); } finally { hideLoading(); }
+            });
         }
 
-        // --- 7. UI LOGIC (navTo, dll) ---
+        // --- 7. UI LOGIC (Navigasi & Rendering) ---
         function navTo(sec) {
             ['layanan', 'piket', 'admin'].forEach(s => {
                 const el = document.getElementById(`sec-${s}`), nav = document.getElementById(`nav-${s}`);
@@ -820,23 +977,61 @@
         function handleLogout() {
             state.currentUser = null; document.getElementById('piketPin').value = '';
             document.getElementById('piketLogin').classList.remove('hidden');
-            document.getElementById('piketDashboard').classList.add('hidden'); navTo('layanan');
+            document.getElementById('piketDashboard').classList.add('hidden'); 
+            showToast("Logout petugas berhasil.", "info");
+            navTo('layanan');
         }
 
-        function handleAdminLogout() {
-            state.isAdmin = false; document.getElementById('adminPass').value = '';
-            document.getElementById('adminLogin').classList.remove('hidden');
-            document.getElementById('adminDashboard').classList.add('hidden');
-            state.selectedAdminItems = []; navTo('layanan');
+        async function handleAdminLogout() {
+            showLoading("Mengakhiri Sesi...");
+            try {
+                await supabaseClient.auth.signOut();
+                state.isAdmin = false; 
+                document.getElementById('adminEmail').value = '';
+                document.getElementById('adminPass').value = '';
+                document.getElementById('adminLogin').classList.remove('hidden');
+                document.getElementById('adminDashboard').classList.add('hidden');
+                state.selectedAdminItems = []; 
+                showToast("Logout Master Admin berhasil.", "success");
+                navTo('layanan');
+            } catch (err) {
+                showToast("Gagal melakukan logout.", "error");
+            } finally {
+                hideLoading();
+            }
         }
 
-        function handleAdminLogin() {
-            if (document.getElementById('adminPass').value === 'lm9595') {
-                state.isAdmin = true;
-                document.getElementById('adminLogin').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                switchAdminTab('pegawai');
-            } else alert("Password Salah!");
+        // Penyesuaian Login Admin: Supabase Auth Terintegrasi
+        async function handleAdminLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPass').value;
+            
+            if (!email || !password) {
+                showToast("Lengkapi email dan password terlebih dahulu.", "error");
+                return;
+            }
+
+            showLoading("Memverifikasi Sesi...");
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    showToast("Gagal Masuk: " + error.message, "error");
+                } else {
+                    state.isAdmin = true;
+                    document.getElementById('adminLogin').classList.add('hidden');
+                    document.getElementById('adminDashboard').classList.remove('hidden');
+                    showToast("Sesi Master Admin Aktif!", "success");
+                    switchAdminTab('pegawai');
+                }
+            } catch (err) {
+                showToast("Kesalahan sistem: " + err.message, "error");
+            } finally {
+                hideLoading();
+            }
         }
 
         function handleLogin() {
@@ -847,8 +1042,11 @@
                 document.getElementById('piketLogin').classList.add('hidden');
                 document.getElementById('piketDashboard').classList.remove('hidden');
                 document.getElementById('petugasAktif').textContent = match.nama;
+                showToast("Sesi petugas aktif!", "success");
                 renderPiketAntrean();
-            } else alert("Login Gagal!");
+            } else {
+                showToast("PIN yang Anda masukkan salah.", "error");
+            }
         }
 
         function switchAdminTab(tab) {
@@ -938,20 +1136,31 @@
                         <input type="file" class="hidden" onchange="handleCSVUpload(event, '${state.adminActiveTab}')">
                     </label>
                     <button onclick="deleteAllMasterData('${state.adminActiveTab}')" class="flex items-center justify-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl"><i class="fas fa-trash-alt text-xs"></i><span class="text-[8px] font-black uppercase">Hapus Semua</span></button>
-                    <button onclick="openForm('${state.adminActiveTab}')" class="col-span-2 py-3 bg-slate-900 text-white rounded-xl text-[8px] font-black uppercase">+ Tambah Manual</button>
+                    <button onclick="openForm('${state.adminActiveTab}', false)" class="col-span-2 py-3 bg-slate-900 text-white rounded-xl text-[8px] font-black uppercase">+ Tambah Manual</button>
                 </div>
                 ${bulkDeleteBtn}
-                <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden">
+                <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                     <div class="flex items-center p-4 bg-slate-50 border-b border-slate-100">
-                        <input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600">
+                        <input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded">
                         <span class="text-[9px] font-bold text-slate-500 uppercase ml-4">Pilih Semua</span>
                     </div>
-                    <div class="divide-y divide-slate-50">
+                    <div class="divide-y divide-slate-100">
                         ${paginatedItems.map(item => `
-                            <label class="flex items-center p-4 cursor-pointer hover:bg-slate-50 ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/40' : ''}">
-                                <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600">
-                                <div class="ml-4 truncate"><div class="text-xs font-black uppercase text-slate-900">${item.nama}</div><div class="text-[8px] font-bold text-slate-400 uppercase mt-0.5">${state.adminActiveTab === 'pegawai' ? (item.jabatan || 'Staf') : 'PIN: ' + item.pin}</div></div>
-                            </label>
+                            <div class="flex items-center p-4 hover:bg-slate-50 transition-all ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/40' : ''}">
+                                <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded">
+                                <div class="ml-4 truncate flex-1" onclick="toggleSelection(${item.id})">
+                                    <div class="text-xs font-black uppercase text-slate-900">${item.nama}</div>
+                                    <div class="text-[8px] font-bold text-slate-400 uppercase mt-0.5">${state.adminActiveTab === 'pegawai' ? (item.jabatan || 'Staf') : 'PIN: ' + item.pin}</div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="openForm('${state.adminActiveTab}', true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </button>
+                                    <button onclick="deleteMasterData('${state.adminActiveTab}', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
                         `).join('')}
                     </div>
                 </div>`;
@@ -1004,18 +1213,70 @@
             });
         }
 
-        function openForm(type) {
-            document.getElementById('modalTitle').textContent = `Tambah ${type}`;
-            document.getElementById('formVal1').placeholder = 'Nama Lengkap';
-            document.getElementById('formVal2').placeholder = type === 'pegawai' ? 'Jabatan/Bidang' : 'PIN (4 Digit)';
+        // Fungsi Membangkitkan PIN Acak 4 Digit
+        function generateRandomPin() {
+            const pin = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('formVal2').value = pin;
+        }
+
+        // Modifikasi Form Master Agar Mendukung Auto PIN Generator & Manual Edit
+        function openForm(type, isEdit = false, id = null) {
+            editState.isEditing = isEdit;
+            editState.editingType = type;
+            editState.editingId = id;
+
+            const modalTitle = document.getElementById('modalTitle');
+            const formVal1 = document.getElementById('formVal1');
+            const formVal2 = document.getElementById('formVal2');
+            const btnGen = document.getElementById('btnGeneratePin');
+
+            modalTitle.textContent = isEdit ? `Edit ${type}` : `Tambah ${type}`;
+            formVal1.placeholder = 'Nama Lengkap';
+            
+            if (type === 'pegawai') {
+                document.getElementById('labelVal2').textContent = 'Jabatan / Bidang';
+                formVal2.placeholder = 'Jabatan/Bidang';
+                btnGen.classList.add('hidden');
+                
+                if (isEdit) {
+                    const item = state.listPegawai.find(p => p.id === id);
+                    if (item) {
+                        formVal1.value = item.nama;
+                        formVal2.value = item.jabatan || '';
+                    }
+                } else {
+                    formVal1.value = '';
+                    formVal2.value = '';
+                }
+            } else {
+                document.getElementById('labelVal2').textContent = 'PIN (4 Digit)';
+                formVal2.placeholder = 'PIN (4 Digit)';
+                btnGen.classList.remove('hidden');
+                
+                if (isEdit) {
+                    const item = state.listPetugas.find(p => p.id === id);
+                    if (item) {
+                        formVal1.value = item.nama;
+                        formVal2.value = item.pin || '';
+                    }
+                } else {
+                    formVal1.value = '';
+                    generateRandomPin(); // Pembuatan PIN otomatis saat tambah petugas baru
+                }
+            }
             
             const modal = document.getElementById('modalForm');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
             document.getElementById('btnSave').onclick = () => {
-                const v1 = document.getElementById('formVal1').value, v2 = document.getElementById('formVal2').value;
-                if(v1 && v2) saveMasterData(type, v1, v2);
+                const v1 = formVal1.value.trim();
+                const v2 = formVal2.value.trim();
+                if (v1 && v2) {
+                    saveMasterData(type, v1, v2, isEdit, id);
+                } else {
+                    showToast("Harap isi semua kolom.", "error");
+                }
             };
         }
 
