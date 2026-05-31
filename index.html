@@ -1208,8 +1208,29 @@
             else { drawWidth = c.width; drawHeight = (v.videoHeight * c.width) / v.videoWidth; startX = 0; startY = (c.height - drawHeight) / 2; }
             ctx.drawImage(v, startX, startY, drawWidth, drawHeight);
             
-            ctx.fillStyle = "rgba(255, 255, 255, 0.85)"; ctx.fillRect(0, c.height - 200, c.width, 200);
-            ctx.fillStyle = "#000"; ctx.font = "bold 30px sans-serif"; ctx.fillText(`LP PRO - ${new Date().toLocaleString('id-ID')}`, 40, c.height - 100);
+            const watermarkHeight = c.height * 0.20, startYWatermark = c.height - watermarkHeight;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+            ctx.fillRect(0, startYWatermark, c.width, watermarkHeight);
+            
+            const padding = 35, lh = (watermarkHeight - padding) / 5, fs = Math.floor(lh * 0.8);
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            const timeStr = formatTo24Hour(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+            
+            const lines = ["TITLE", "SMK Link and Match", `Tanggal: ${dateStr} | Jam: ${timeStr}`, "Support by HenSan"];
+            ctx.textBaseline = "middle";
+            
+            lines.forEach((line, i) => {
+                const y = startYWatermark + padding + (i * lh);
+                ctx.font = `bold ${fs}px 'Plus Jakarta Sans', sans-serif`;
+                if (i === 0) {
+                    ctx.fillStyle = "#000000"; ctx.fillText("LINKPERMIT ", padding, y);
+                    let tw = ctx.measureText("LINKPERMIT ").width;
+                    ctx.fillStyle = "#FF0000"; ctx.fillText("PRO", padding + tw, y);
+                } else {
+                    ctx.fillStyle = "#000000"; ctx.fillText(line, padding, y);
+                }
+            });
             
             document.getElementById('previewImg').src = c.toDataURL('image/jpeg', 0.8);
             document.getElementById('step-camera').classList.add('hidden'); document.getElementById('step-preview').classList.remove('hidden'); stopCamera();
