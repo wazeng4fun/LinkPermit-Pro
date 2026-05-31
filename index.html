@@ -503,7 +503,7 @@
             const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
             const tgl = new Date().toLocaleDateString('id-ID');
             const { error } = await supabaseClient.from('izin').update({ 
-            petugas_piket: state.currentUser ? state.currentUser.nama : 'Petugas', waktu_keluar: jam, tanggal_keluar: tgl 
+                status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl 
             }).eq('id_izin', id);
             
             if(!error) await fetchIzin();
