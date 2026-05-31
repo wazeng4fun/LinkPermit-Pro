@@ -260,7 +260,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODALS (Form, Edit Izin, Camera)           -->
+    <!-- MODALS (Form, Edit Izin, Camera, dll.)     -->
     <!-- ========================================== -->
     <div id="modalForm" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up shadow-2xl">
@@ -279,6 +279,15 @@
                         </button>
                     </div>
                 </div>
+                <!-- Tambahan Form Input Nomor HP (Otomatis +62) -->
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nomor HP</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-4 font-black text-slate-400 text-sm tracking-wider">+62</span>
+                        <input id="formValHP" type="text" placeholder="8123456789" oninput="formatHPInput(this)" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700 pl-14">
+                    </div>
+                    <p class="text-[8px] font-bold text-slate-400 uppercase tracking-wide ml-1">Ketik mulai dari angka 8 (cth: 812xxxx)</p>
+                </div>
             </div>
             <div class="flex gap-3 pt-4 border-t border-slate-100">
                 <button onclick="closeForm()" class="flex-1 py-4 text-[11px] font-black uppercase text-slate-500 hover:bg-slate-100 rounded-xl transition-all">Batal</button>
@@ -287,8 +296,7 @@
         </div>
     </div>
 
-    <!-- Modals lainnya disembunyikan kodenya untuk keterbacaan, tapi fungsinya tetap utuh -->
-    <!-- (Modal Edit Izin) -->
+    <!-- Modal Edit Izin -->
     <div id="modalEditIzin" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 space-y-5 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto custom-scroll shadow-2xl">
             <h3 class="text-xl font-black uppercase tracking-tight text-slate-900 border-b border-slate-100 pb-4">Edit Data Izin</h3>
@@ -334,7 +342,7 @@
         </div>
     </div>
 
-    <!-- (Modal Finish Camera) -->
+    <!-- Modal Finish Camera -->
     <div id="modalFinish" class="fixed inset-0 z-[5000] bg-slate-950/90 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white p-8 rounded-[2rem] max-w-sm w-full text-center scale-95 animate-slide-up shadow-2xl">
             <div id="step-camera" class="space-y-4">
@@ -411,8 +419,6 @@
             document.getElementById('btnConfirmProceed').onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); onConfirm(); };
         }
 
-        // --- PWA, NOTIFIKASI & CORE UTILS (SAMA SEPERTI SEBELUMNYA) ---
-        // (Saya biarkan fungsi utilitas waktu sama)
         function formatTo24Hour(timeStr) {
             if (!timeStr || timeStr === '-') return '';
             let str = timeStr.toString().toLowerCase().trim();
@@ -449,6 +455,17 @@
                 val = val.substring(0, 2) + ':' + val.substring(2, 4);
             }
             e.target.value = val;
+        }
+
+        // Membatasi dan membersihkan input nomor HP
+        function formatHPInput(el) {
+            let val = el.value.replace(/[^0-9]/g, '');
+            if (val.startsWith('62')) {
+                val = val.substring(2);
+            } else if (val.startsWith('0')) {
+                val = val.substring(1);
+            }
+            el.value = val;
         }
 
         function isTerlambat(item) {
@@ -494,7 +511,7 @@
             if (!error) { state.dataIzin = data || []; renderUserList(); renderPiketAntrean(); }
         }
 
-        // --- ADMIN VIEW & AUTH LOGIC (DESKTOP SWITCHER) ---
+        // --- ADMIN VIEW & AUTH LOGIC ---
         async function handleAdminLogin() {
             const email = document.getElementById('adminEmail').value.trim(), password = document.getElementById('adminPass').value;
             if (!email || !password) return showToast("Lengkapi email dan password terlebih dahulu.", "error");
@@ -529,30 +546,52 @@
             document.getElementById('desktopAdminView').classList.add('hidden');
             document.getElementById('mobileAppView').classList.remove('hidden');
             state.selectedAdminItems = [];
-            navTo('admin'); // Kembali ke form login mobile
+            navTo('admin');
         }
 
         function switchAdminTab(tab) {
             state.adminActiveTab = tab; state.currentPage = 1; state.selectedAdminItems = [];
             
-            // Update UI Sidebar
             ['pegawai', 'petugas', 'laporan'].forEach(t => {
                 const btn = document.getElementById(`deskTab-${t}`);
                 if(t === tab) { btn.classList.add('bg-white/10', 'text-white'); btn.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); } 
                 else { btn.classList.remove('bg-white/10', 'text-white'); btn.classList.add('text-slate-400', 'hover:bg-white/5', 'hover:text-white'); }
             });
 
-            // Update UI Header Title
             const titles = { 'pegawai': 'Manajemen Pegawai', 'petugas': 'Petugas Piket', 'laporan': 'Rekap Laporan Izin' };
             document.getElementById('adminPageTitle').textContent = titles[tab];
 
             renderAdminContent();
         }
 
+        // --- FITUR UNDUH TEMPLATE CSV ---
+        function downloadCSVTemplate(type) {
+            let csvContent = "\uFEFF"; // Byte Order Mark (BOM) untuk kompatibilitas Excel Bahasa Indonesia
+            if (type === 'pegawai') {
+                csvContent += "Nama Lengkap,Jabatan / Bidang,Nomor HP\n";
+                csvContent += "Andi Hermawan,Guru Kejuruan,081234567890\n";
+                csvContent += "Siti Aminah,Staff Tata Usaha,087788990011\n";
+            } else {
+                csvContent += "Nama Lengkap,PIN (4 Digit),Nomor HP\n";
+                csvContent += "Fajar Ramadhan,2580,085299887766\n";
+                csvContent += "Rendi Saputra,1470,089911223344\n";
+            }
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Template_Import_${type === 'pegawai' ? 'Pegawai' : 'Petugas'}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Template CSV ${type === 'pegawai' ? 'Pegawai' : 'Petugas'} berhasil diunduh!`, "success");
+        }
+
         // --- RENDER DESKTOP ADMIN CONTENT (TABLES) ---
         async function renderAdminContent() {
             const container = document.getElementById('desktopAdminContent');
-            container.innerHTML = ''; // Clear
+            container.innerHTML = '';
 
             if (state.adminActiveTab === 'laporan') {
                 showLoading("Memuat Laporan...");
@@ -632,7 +671,7 @@
 
             // --- TAMPILAN TABEL PEGAWAI / PETUGAS DESKTOP ---
             const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
-            state.itemsPerPage = 15; // Lebih banyak baris untuk desktop
+            state.itemsPerPage = 15;
             const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
             const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
             const currentIds = paginatedItems.map(i => i.id), allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
@@ -641,31 +680,41 @@
 
             let tbodyHtml = '';
             if (paginatedItems.length > 0) {
-                tbodyHtml = paginatedItems.map(item => `
+                tbodyHtml = paginatedItems.map(item => {
+                    const hpDisplay = item.no_hp ? `<span class="text-[10px] text-slate-500 block mt-1 font-bold"><i class="fas fa-phone text-[8px] text-slate-400 mr-1.5"></i> ${item.no_hp}</span>` : '<span class="text-[10px] text-slate-300 block mt-1">- No HP -</span>';
+                    return `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${state.selectedAdminItems.includes(item.id) ? 'bg-blue-50/30' : ''}">
                         <td class="p-4 w-12 text-center">
                             <input type="checkbox" onchange="toggleSelection(${item.id})" ${state.selectedAdminItems.includes(item.id) ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer">
                         </td>
                         <td class="p-4 text-xs font-black uppercase text-slate-900">${item.nama}</td>
-                        <td class="p-4 text-xs font-bold text-slate-500">${state.adminActiveTab === 'pegawai' ? (item.jabatan || 'Staf') : '<span class="font-mono bg-slate-100 px-2 py-1 rounded tracking-widest">' + item.pin + '</span>'}</td>
+                        <td class="p-4 text-xs font-bold text-slate-600">
+                            ${state.adminActiveTab === 'pegawai' ? (item.jabatan || 'Staf') : '<span class="font-mono bg-slate-100 px-2 py-1 rounded tracking-widest">' + item.pin + '</span>'}
+                            ${hpDisplay}
+                        </td>
                         <td class="p-4">
                             <div class="flex items-center gap-2">
                                 <button onclick="openForm('${state.adminActiveTab}', true, ${item.id})" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
                                 <button onclick="deleteMasterData('${state.adminActiveTab}', ${item.id})" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
                             </div>
                         </td>
-                    </tr>`).join('');
+                    </tr>`;
+                }).join('');
             } else {
                 tbodyHtml = '<tr><td colspan="4" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada data</td></tr>';
             }
 
+            // Integrasi tombol download template CSV & tombol import baru
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-6">
                     <div class="flex items-center gap-3">
                         <label class="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-xl cursor-pointer shadow-sm transition-all text-slate-600">
-                            <i class="fas fa-file-csv text-sm"></i><span class="text-[10px] font-black uppercase tracking-widest">Import CSV</span>
+                            <i class="fas fa-file-csv text-sm text-green-600"></i><span class="text-[10px] font-black uppercase tracking-widest">Import CSV</span>
                             <input type="file" class="hidden" onchange="handleCSVUpload(event, '${state.adminActiveTab}')">
                         </label>
+                        <button onclick="downloadCSVTemplate('${state.adminActiveTab}')" class="px-5 py-3 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all">
+                            <i class="fas fa-download mr-1.5 text-blue-600"></i> Unduh Template CSV
+                        </button>
                         <button onclick="deleteAllMasterData('${state.adminActiveTab}')" class="px-5 py-3 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm transition-all"><i class="fas fa-trash-alt mr-2"></i> Kosongkan</button>
                         ${bulkDeleteBtn}
                     </div>
@@ -678,7 +727,7 @@
                             <tr>
                                 <th class="p-4 w-12 text-center"><input type="checkbox" onchange='toggleAllSelection(${JSON.stringify(currentIds)})' ${allChecked ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded cursor-pointer"></th>
                                 <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Nama Lengkap</th>
-                                <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">${state.adminActiveTab === 'pegawai' ? 'Jabatan' : 'PIN Akses'}</th>
+                                <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">${state.adminActiveTab === 'pegawai' ? 'Jabatan & Nomor HP' : 'PIN Akses & Nomor HP'}</th>
                                 <th class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest w-24">Aksi</th>
                             </tr>
                         </thead>
@@ -717,7 +766,6 @@
             renderAdminContent();
         }
 
-        // Fungsi utilitas Mobile App lainnya (Submit Izin, Approve, dll) sama persis dan disingkat penulisannya agar tetap fokus
         async function handleIzinSubmit(e) {
             e.preventDefault(); const idx = document.getElementById('inputNama').value; if (!idx || !state.listPegawai[idx]) return;
             showLoading("Mengirim...");
@@ -729,7 +777,7 @@
         }
 
         function navTo(sec) {
-            if (state.isAdmin) deactivateDesktopAdmin(); // Jika di nav bawah diklik, paksa keluar desktop admin jika ada
+            if (state.isAdmin) deactivateDesktopAdmin();
             ['layanan', 'piket', 'admin'].forEach(s => {
                 const el = document.getElementById(`sec-${s}`), nav = document.getElementById(`nav-${s}`);
                 if (el) el.classList.add('hidden');
@@ -749,7 +797,6 @@
         }
         function handleLogout() { state.currentUser = null; document.getElementById('piketPin').value = ''; document.getElementById('piketLogin').classList.remove('hidden'); document.getElementById('piketDashboard').classList.add('hidden'); navTo('layanan'); }
 
-        // Logic Kamera & Izin sama (dihapus duplikat panjang agar efisien, sudah ada di versi sblmnya, tp disini wajib di load)
         async function approveIzin(id) {
             showLoading("Mengonfirmasi...");
             const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
@@ -783,7 +830,7 @@
             waiting.forEach(item => { container.innerHTML += `<div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-4 animate-slide-up shadow-sm"><div class="flex justify-between items-start"><div class="truncate pr-2"><div class="text-sm font-black uppercase truncate">${item.nama}</div><p class="text-[8px] font-bold text-slate-400 uppercase mt-1">Tujuan: ${item.tujuan}</p></div><span class="text-[9px] font-black text-red-700">${item.id_izin}</span></div><button onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase shadow-md">Izinkan Keluar</button></div>`; });
         }
 
-        // Boilerplate Kamera yang dibutuhkan
+        // Kamera & Bukti Foto
         function openFinish(id) { state.currentFinishId = id; const modal = document.getElementById('modalFinish'); modal.classList.remove('hidden'); modal.classList.add('flex'); document.getElementById('step-camera').classList.remove('hidden'); document.getElementById('step-preview').classList.add('hidden'); startCamera(); }
         function closeFinishModal() { stopCamera(); const modal = document.getElementById('modalFinish'); if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } document.getElementById('step-camera').classList.remove('hidden'); document.getElementById('step-preview').classList.add('hidden'); }
         async function startCamera() { try { state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }); document.getElementById('cameraVideo').srcObject = state.cameraStream; } catch (e) { showToast("Gagal mengakses kamera.", "error"); closeFinishModal(); } }
@@ -796,7 +843,6 @@
             else { drawWidth = c.width; drawHeight = (v.videoHeight * c.width) / v.videoWidth; startX = 0; startY = (c.height - drawHeight) / 2; }
             ctx.drawImage(v, startX, startY, drawWidth, drawHeight);
             
-            // Watermark sederhana
             ctx.fillStyle = "rgba(255, 255, 255, 0.85)"; ctx.fillRect(0, c.height - 200, c.width, 200);
             ctx.fillStyle = "#000"; ctx.font = "bold 30px sans-serif"; ctx.fillText(`LP PRO - ${new Date().toLocaleString('id-ID')}`, 40, c.height - 100);
             
@@ -823,36 +869,132 @@
             for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i); return new Blob([ab], {type: mime});
         }
 
-        // Logic Admin Database CRUD disederhanakan
+        // --- CRUD & DATABASE OPERATIONS ---
         function generateRandomPin() { document.getElementById('formVal2').value = Math.floor(1000 + Math.random() * 9000).toString(); }
+        
         function openForm(type, isEdit = false, id = null) {
             editState = { isEditing: isEdit, editingType: type, editingId: id };
-            const mTitle = document.getElementById('modalTitle'), v1 = document.getElementById('formVal1'), v2 = document.getElementById('formVal2'), btnGen = document.getElementById('btnGeneratePin');
-            mTitle.textContent = isEdit ? `Edit ${type}` : `Tambah ${type}`;
+            const mTitle = document.getElementById('modalTitle'), v1 = document.getElementById('formVal1'), v2 = document.getElementById('formVal2'), vHP = document.getElementById('formValHP'), btnGen = document.getElementById('btnGeneratePin');
+            
+            mTitle.textContent = isEdit ? `Edit Data ${type === 'pegawai' ? 'Pegawai' : 'Petugas'}` : `Tambah Data ${type === 'pegawai' ? 'Pegawai' : 'Petugas'}`;
+            
             if (type === 'pegawai') {
                 document.getElementById('labelVal2').textContent = 'Jabatan / Bidang'; btnGen.classList.add('hidden');
-                if (isEdit) { const i = state.listPegawai.find(p => p.id === id); if (i) { v1.value = i.nama; v2.value = i.jabatan || ''; } } else { v1.value = ''; v2.value = ''; }
+                if (isEdit) {
+                    const i = state.listPegawai.find(p => p.id === id);
+                    if (i) {
+                        v1.value = i.nama;
+                        v2.value = i.jabatan || '';
+                        let cleanHp = i.no_hp || '';
+                        if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3);
+                        vHP.value = cleanHp;
+                    }
+                } else { v1.value = ''; v2.value = ''; vHP.value = ''; }
             } else {
                 document.getElementById('labelVal2').textContent = 'PIN (4 Digit)'; btnGen.classList.remove('hidden');
-                if (isEdit) { const i = state.listPetugas.find(p => p.id === id); if (i) { v1.value = i.nama; v2.value = i.pin || ''; } } else { v1.value = ''; generateRandomPin(); }
+                if (isEdit) {
+                    const i = state.listPetugas.find(p => p.id === id);
+                    if (i) {
+                        v1.value = i.nama;
+                        v2.value = i.pin || '';
+                        let cleanHp = i.no_hp || '';
+                        if (cleanHp.startsWith('+62')) cleanHp = cleanHp.substring(3);
+                        vHP.value = cleanHp;
+                    }
+                } else { v1.value = ''; generateRandomPin(); vHP.value = ''; }
             }
+            
             const modal = document.getElementById('modalForm'); modal.classList.remove('hidden'); modal.classList.add('flex');
-            document.getElementById('btnSave').onclick = () => { if(v1.value && v2.value) saveMasterData(type, v1.value, v2.value, isEdit, id); else showToast("Isi semua kolom", "error"); };
+            
+            document.getElementById('btnSave').onclick = () => {
+                const nama = v1.value.trim();
+                const spec = v2.value.trim();
+                let rawHP = vHP.value.trim();
+                
+                // Tambahkan otomatis awalan +62 jika nomor HP dimasukkan
+                let formattedHP = '';
+                if (rawHP) {
+                    if (rawHP.startsWith('0')) {
+                        formattedHP = '+62' + rawHP.substring(1);
+                    } else if (rawHP.startsWith('62')) {
+                        formattedHP = '+62' + rawHP.substring(2);
+                    } else {
+                        formattedHP = '+62' + rawHP;
+                    }
+                }
+                
+                if(nama && spec) {
+                    saveMasterData(type, nama, spec, formattedHP, isEdit, id);
+                } else {
+                    showToast("Harap isi semua kolom wajib (Nama & Jabatan/PIN).", "error");
+                }
+            };
         }
+        
         function closeForm() { const m = document.getElementById('modalForm'); m.classList.add('hidden'); m.classList.remove('flex'); }
-        async function saveMasterData(type, v1, v2, isEdit, id) {
-            showLoading("Menyimpan..."); const t = type === 'pegawai' ? 'pegawai' : 'petugas', p = type === 'pegawai' ? { nama: v1, jabatan: v2 } : { nama: v1, pin: v2 };
+        
+        async function saveMasterData(type, v1, v2, v3, isEdit, id) {
+            showLoading("Menyimpan...");
+            const t = type === 'pegawai' ? 'pegawai' : 'petugas';
+            const p = type === 'pegawai' 
+                ? { nama: v1, jabatan: v2, no_hp: v3 } 
+                : { nama: v1, pin: v2, no_hp: v3 };
+                
             const { error } = isEdit ? await supabaseClient.from(t).update(p).eq('id', id) : await supabaseClient.from(t).insert([p]);
-            if (!error) { type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); closeForm(); showToast("Berhasil disimpan", "success"); } else showToast("Gagal", "error");
+            if (!error) { 
+                type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); 
+                closeForm(); 
+                showToast("Data master berhasil disimpan", "success"); 
+            } else {
+                showToast("Gagal menyimpan data master ke server.", "error");
+            }
             hideLoading();
         }
+        
         async function deleteMasterData(type, id) { showConfirm("Hapus data ini?", async () => { showLoading("Menghapus..."); const t = type === 'izin' ? 'izin' : type, f = type === 'izin' ? 'id_izin' : 'id'; const {error} = await supabaseClient.from(t).delete().eq(f, id); if(!error) { if(type==='pegawai') await fetchPegawai(); else if(type==='petugas') await fetchPetugas(); else await renderAdminContent(); showToast("Dihapus", "success"); } hideLoading(); }); }
         async function deleteSelectedMasterData(type) { if(state.selectedAdminItems.length===0) return; showConfirm(`Hapus ${state.selectedAdminItems.length} data?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().in('id', state.selectedAdminItems); if(!error){ state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : await fetchPetugas(); showToast("Berhasil dihapus", "success"); } hideLoading(); }); }
         async function deleteAllMasterData(type) { showConfirm(`Kosongkan semua data ${type}?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().gt('id', 0); if(!error){ state.currentPage=1; state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : await fetchPetugas(); showToast("Berhasil dikosongkan", "success"); } hideLoading(); }); }
-        async function handleCSVUpload(e, type) { const f=e.target.files[0]; if(!f) return; showLoading("Importing..."); const r = new FileReader(); r.onload=async(ev)=>{ const lines=ev.target.result.split('\n'), payloads=[]; lines.forEach(l=>{ const c=l.split(',').map(x=>x.trim()); if(c[0]&&c[1]) payloads.push(type==='pegawai'?{nama:c[0],jabatan:c[1]}:{nama:c[0],pin:c[1]}); }); if(payloads.length>0){ const {error} = await supabaseClient.from(type).insert(payloads); if(!error) { type==='pegawai'?await fetchPegawai():await fetchPetugas(); showToast("Import sukses", "success");} } hideLoading(); e.target.value=''; }; r.readAsText(f); }
+        
+        // Pembaruan parser CSV untuk menyaring dan memformat HP otomatis ke +62
+        async function handleCSVUpload(e, type) { 
+            const f=e.target.files[0]; if(!f) return; 
+            showLoading("Mengimpor CSV..."); 
+            const r = new FileReader(); 
+            r.onload=async(ev)=>{ 
+                const lines=ev.target.result.split('\n'), payloads=[]; 
+                lines.forEach((l, idx)=>{ 
+                    if(idx === 0) return; // Lewati baris header template
+                    const c=l.split(',').map(x=>x.trim()); 
+                    if(c[0]&&c[1]) {
+                        let hp = c[2] || '';
+                        if (hp) {
+                            hp = hp.replace(/[^0-9]/g, '');
+                            if (hp.startsWith('0')) hp = '+62' + hp.substring(1);
+                            else if (hp.startsWith('62')) hp = '+62' + hp.substring(2);
+                            else hp = '+62' + hp;
+                        }
+                        payloads.push(type==='pegawai' ? {nama:c[0], jabatan:c[1], no_hp: hp} : {nama:c[0], pin:c[1], no_hp: hp}); 
+                    }
+                }); 
+                if(payloads.length>0){ 
+                    const {error} = await supabaseClient.from(type).insert(payloads); 
+                    if(!error) { 
+                        type==='pegawai'?await fetchPegawai():await fetchPetugas(); 
+                        showToast("Impor data dari CSV berhasil diselesaikan!", "success");
+                    } else {
+                        showToast("Gagal menyimpan data dari berkas CSV.", "error");
+                    }
+                } else {
+                    showToast("Tidak ada baris data valid untuk diimpor.", "error");
+                }
+                hideLoading(); e.target.value=''; 
+            }; 
+            r.readAsText(f); 
+        }
 
         function showLoading(txt) { const el = document.getElementById('loadingText'); if (el) el.textContent = txt; document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+        
         function updateTime() {
             const now = new Date(), t = formatTo24Hour(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })), d = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
             const cd = document.getElementById('clockDisplay'), dd = document.getElementById('dateDisplay'); if(cd) cd.textContent = t; if(dd) dd.textContent = d;
