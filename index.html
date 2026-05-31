@@ -532,83 +532,110 @@ function checkNotificationSchedules() {
             }
         }
 
-        // --- DATABASE OPERATIONS (SUPABASE) ---
-        async function fetchPegawai() {
-            const { data, error = null } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
-            if (!error) {
-                state.listPegawai = data || [];
-                syncSelects();
-                if(state.isAdmin && state.adminActiveTab === 'pegawai') renderAdminContent();
-            }
-        }
+        // --- HELPERS UNTUK MENCEGAH ERROR 400 ---
+function getSafeDate() {
+    const d = new Date();
+    return d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+}
 
-        async function fetchPetugas() {
-            const { data, error = null } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
-            if (!error) {
-                state.listPetugas = data || [];
-                syncSelects();
-                if(state.isAdmin && state.adminActiveTab === 'petugas') renderAdminContent();
-            }
-        }
+function getSafeTime() {
+    const d = new Date();
+    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+}
 
-        async function fetchIzin() {
-            const { data, error = null } = await supabaseClient.from('izin')
-                .select('*')
-                .neq('status', 'Selesai')
-                .order('created_at', { ascending: false });
-            if (!error) {
-                state.dataIzin = data || [];
-                renderUserList();
-                renderPiketAntrean();
-            }
-        }
+// --- DATABASE OPERATIONS (SUPABASE) ---
+async function fetchPegawai() {
+    const { data, error = null } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
+    if (!error) {
+        state.listPegawai = data || [];
+        syncSelects();
+        if(state.isAdmin && state.adminActiveTab === 'pegawai') renderAdminContent();
+    }
+}
 
-        async function handleIzinSubmit(e) {
-            e.preventDefault();
-            const idx = document.getElementById('inputNama').value;
-            if (!idx || !state.listPegawai[idx]) return;
+async function fetchPetugas() {
+    const { data, error = null } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
+    if (!error) {
+        state.listPetugas = data || [];
+        syncSelects();
+        if(state.isAdmin && state.adminActiveTab === 'petugas') renderAdminContent();
+    }
+}
 
-            showLoading("Mengirim...");
-            const peg = state.listPegawai[idx];
-            const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
-            const fmtWaktu = formatTo24Hour(new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', hour12:false}));
+async function fetchIzin() {
+    const { data, error = null } = await supabaseClient.from('izin')
+        .select('*')
+        .neq('status', 'Selesai')
+        .order('created_at', { ascending: false });
+    if (!error) {
+        state.dataIzin = data || [];
+        // Pastikan fungsi render ini ada di file Anda
+        if (typeof renderUserList === "function") renderUserList();
+        if (typeof renderPiketAntrean === "function") renderPiketAntrean();
+    }
+}
 
-            const { error = null } = await supabaseClient.from('izin').insert([{
-                id_izin: reqId,
-                nama: peg.nama,
-                keperluan: document.getElementById('inputKategori').value,
-                tujuan: document.getElementById('inputTujuan').value,
-                waktu_daftar: fmtWaktu,
-                status: 'Menunggu',
-                tanggal: new Date().toLocaleDateString('id-ID')
-            }]);
+async function handleIzinSubmit(e) {
+    e.preventDefault();
+    const idx = document.getElementById('inputNama').value;
+    if (!idx || !state.listPegawai[idx]) return;
 
-            if (!error) {
-                // Jangan reset form agar localStorage di event submit sebelumnya bekerja
-                document.getElementById('inputTujuan').value = "";
-                await fetchIzin();
-            } else {
-                alert("Gagal mengajukan izin.");
-            }
-            hideLoading();
-        }
+    showLoading("Mengirim...");
+    const peg = state.listPegawai[idx];
+    const reqId = 'LP-' + Math.floor(1000 + Math.random() * 9000);
+    
+    // PERBAIKAN: Gunakan getSafeTime & getSafeDate
+    const fmtWaktu = getSafeTime();
+    const fmtTanggal = getSafeDate();
 
-        async function approveIzin(id) {
-            showLoading("Mengonfirmasi...");
-            const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
-            const tgl = new Date().toLocaleDateString('id-ID');
-            const { error = null } = await supabaseClient.from('izin')
-                .update({ 
-                    status: 'Keluar', 
-                    petugas_piket: state.currentUser.nama, 
-                    waktu_keluar: jam,
-                    tanggal_keluar: tgl
-                })
-                .eq('id_izin', id);
-            
-            if(!error) await fetchIzin();
-            hideLoading();
-        }
+    const { error = null } = await supabaseClient.from('izin').insert([{
+        id_izin: reqId,
+        nama: peg.nama,
+        keperluan: document.getElementById('inputKategori').value,
+        tujuan: document.getElementById('inputTujuan').value,
+        waktu_daftar: fmtWaktu,
+        status: 'Menunggu',
+        tanggal: fmtTanggal
+    }]);
+
+    if (!error) {
+        document.getElementById('inputTujuan').value = "";
+        await fetchIzin();
+    } else {
+        console.error("Error Detail:", error);
+        alert("Gagal mengajukan izin: " + (error.message || "Masalah Database"));
+    }
+    hideLoading();
+}
+
+async function approveIzin(id) {
+    if (!state.currentUser) {
+        alert("Sesi berakhir, silakan login ulang.");
+        return;
+    }
+    
+    showLoading("Mengonfirmasi...");
+    
+    // PERBAIKAN: Gunakan getSafeTime & getSafeDate
+    const jam = getSafeTime();
+    const tgl = getSafeDate();
+    
+    const { error = null } = await supabaseClient.from('izin')
+        .update({ 
+            status: 'Keluar', 
+            petugas_piket: state.currentUser.nama, 
+            waktu_keluar: jam,
+            tanggal_keluar: tgl
+        })
+        .eq('id_izin', id);
+    
+    if(!error) {
+        await fetchIzin();
+    } else {
+        alert("Gagal memproses izin.");
+    }
+    hideLoading();
+}
 
         // --- SISTEM FINISH SIMPEL TANPA GPS (LANGSUNG FOTO) ---
         function openFinish(id) { 
