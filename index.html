@@ -4,166 +4,181 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LinkPermit Pro</title>
+    
     <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
     </style>
 </head>
-<body class="text-slate-900">
+<body class="text-slate-900 antialiased">
 
-    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/90 flex flex-col items-center justify-center hidden">
+    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-md hidden flex flex-col items-center justify-center">
         <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
-        <p id="loadingText" class="text-[10px] font-black uppercase text-slate-400">Memproses...</p>
+        <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Sinkronisasi Data</p>
     </div>
 
-    <div id="authOverlay" class="fixed inset-0 z-[2000] bg-white hidden overflow-y-auto animate-slide-up p-8">
-        <div class="max-w-md mx-auto">
-            <button onclick="closeAuth()" class="mb-8 text-slate-400"><i class="fas fa-arrow-left text-xl"></i></button>
-            <h2 id="authTitle" class="text-2xl font-black uppercase italic mb-8">Piket <span class="text-red-700">Access</span></h2>
-            
-            <div id="authTabs" class="flex bg-slate-100 p-1 rounded-2xl mb-8">
-                <button id="tabLogin" onclick="toggleAuthTab('login')" class="flex-1 py-3 text-[10px] font-black uppercase rounded-xl bg-white shadow-sm">Login</button>
-                <button id="tabDaftar" onclick="toggleAuthTab('daftar')" class="flex-1 py-3 text-[10px] font-black uppercase text-slate-400">Daftar</button>
-            </div>
-
-            <div id="boxLogin" class="space-y-4">
-                <select id="loginNama" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm"></select>
-                <input type="password" id="loginPass" placeholder="Password" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm">
-                <button onclick="handleLoginPiket()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">Masuk</button>
-                <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-red-700">Login Admin</button>
-            </div>
-
-            <div id="boxDaftar" class="hidden space-y-4">
-                <select id="regNama" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm"></select>
-                <input type="email" id="regEmail" placeholder="Email" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm">
-                <input type="password" id="regPass" placeholder="Password" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm">
-                <button onclick="handleRegisterPiket()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">Daftar</button>
-            </div>
-
-            <div id="boxAdmin" class="hidden space-y-4">
-                <input type="email" id="adminEmail" placeholder="Email Admin" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm">
-                <input type="password" id="adminPass" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border rounded-2xl font-bold text-sm">
-                <button onclick="handleLoginAdmin()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl">Login Admin</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t z-[1000] px-6 py-4 shadow-lg">
-        <div class="max-w-md mx-auto flex justify-around">
-            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 text-red-600">
-                <i class="fas fa-home text-lg"></i><span class="text-[9px] font-black uppercase">Layanan</span>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[1000] px-4 py-2 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div class="max-w-md mx-auto flex justify-around items-center">
+            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-600">
+                <i class="fas fa-home-alt text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Beranda</span>
             </button>
-            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 text-slate-400">
-                <i class="fas fa-user-shield text-lg"></i><span class="text-[9px] font-black uppercase">Piket</span>
+            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 p-2 text-slate-400">
+                <i class="fas fa-user-shield text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Piket</span>
             </button>
-            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 text-slate-400">
-                <i class="fas fa-cog text-lg"></i><span class="text-[9px] font-black uppercase">Admin</span>
+            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-400">
+                <i class="fas fa-cog text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Admin</span>
             </button>
         </div>
     </nav>
 
-    <main class="max-w-md mx-auto p-6 pb-32">
+    <header class="sticky top-0 bg-white/80 backdrop-blur-md z-[900] px-6 py-4 border-b border-slate-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-red-700 rounded-lg flex items-center justify-center text-white shadow-lg shadow-red-700/20">
+                    <i class="fas fa-id-card text-xs"></i>
+                </div>
+                <h1 class="text-sm font-black tracking-tighter uppercase">LinkPermit <span class="text-red-700">Pro</span></h1>
+            </div>
+            <div class="text-right">
+                <div id="clockDisplay" class="text-xs font-black">00:00</div>
+                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">LOADING...</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-5 pb-24">
         <div id="sec-layanan" class="animate-slide-up space-y-6">
-            <h1 class="text-xl font-black italic">Form Izin Keluar</h1>
+            <div class="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-lg font-black leading-tight mb-1">Pengajuan Izin</h2>
+                    <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">SMK Link and Match</p>
+                </div>
+                <i class="fas fa-cloud absolute -right-2 -bottom-2 text-6xl text-white/5"></i>
+            </div>
+
             <form id="izinForm" class="space-y-4">
-                <select id="inputNama" required class="w-full p-4 border rounded-2xl font-bold text-sm"></select>
-                <input id="inputTujuan" type="text" placeholder="Keperluan" required class="w-full p-4 border rounded-2xl font-bold text-sm">
-                <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase">Kirim Izin</button>
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all text-slate-700">
+                        <option value="">Memuat data pegawai...</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Kategori</label>
+                        <select id="inputKategori" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
+                            <option value="Dinas/Sekolah">Dinas/Sekolah</option>
+                            <option value="Pribadi">Pribadi</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Keperluan</label>
+                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                    Kirim Permohonan <i class="fas fa-paper-plane ml-2"></i>
+                </button>
             </form>
         </div>
 
-        <div id="sec-piket" class="hidden animate-slide-up space-y-4">
-            <h2 class="font-black uppercase text-sm border-l-4 border-red-700 pl-2">Antrean Izin</h2>
-            <div id="listPiket" class="space-y-3"></div>
-        </div>
-
-        <div id="sec-admin" class="hidden animate-slide-up space-y-4">
-            <h2 class="font-black uppercase text-sm">Persetujuan Akun Piket</h2>
-            <div id="listApprovePiket" class="space-y-3"></div>
-        </div>
-    </main>
+        </main>
 
     <script>
+        // --- CONFIG SUPABASE ---
         const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
-        const SB_KEY = "MASUKKAN_KEY_ANDA_DISINI"; // Pastikan diisi!
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
+        const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
 
-        let currentSession = null;
+        let state = { dataIzin: [], listPegawai: [] };
 
-        // FUNGSI NAVIGASI (DIPERBAIKI AGAR TIDAK FREEZE)
-        function navTo(section) {
-            console.log("Navigasi ke:", section);
-            if (section === 'layanan') {
-                renderSection(section);
-            } else if (!currentSession) {
-                showAuth();
-            } else {
-                renderSection(section);
+        // --- SISTEM NOTIFIKASI PERSISTEN (MODIFIKASI UTAMA) ---
+        function kirimNotifikasi(pesan) {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification('LinkPermit Pro', {
+                        body: pesan,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+                        badge: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+                        vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500],
+                        tag: 'peringatan-izin',
+                        renotify: true,
+                        requireInteraction: true, // NOTIFIKASI TIDAK AKAN HILANG SAMPAI DI-SWIPE/KLIK
+                        data: { url: window.location.href }
+                    });
+                });
             }
         }
 
-        function renderSection(section) {
+        // Simpan Nama Pemohon saat Submit
+        document.getElementById('izinForm').addEventListener('submit', function() {
+            const namaSelect = document.getElementById('inputNama');
+            const namaText = namaSelect.options[namaSelect.selectedIndex].text;
+            localStorage.setItem('local_pemohon_pwa', namaText);
+        });
+
+        // Alarm Pengecekan (Sama seperti logika Anda, tapi memanggil kirimNotifikasi yang baru)
+        function checkNotificationSchedules() {
+            if (Notification.permission !== 'granted') return;
+            const myName = localStorage.getItem('local_pemohon_pwa');
+            const ticket = state.dataIzin.find(i => i.nama === myName && i.status === 'Keluar');
+            
+            if (ticket) {
+                // Logika sisa waktu Anda di sini...
+                // Contoh pemicu:
+                kirimNotifikasi("Waktu izin Anda hampir habis! Harap segera melapor kembali.");
+            }
+        }
+
+        setInterval(checkNotificationSchedules, 60000);
+
+        // Meminta Izin Notifikasi saat App Dibuka
+        function initNotifications() {
+            if ('Notification' in window) {
+                Notification.requestPermission();
+            }
+        }
+
+        // Integrasi dengan Navigasi & UI Anda
+        function navTo(section) {
             ['layanan', 'piket', 'admin'].forEach(s => {
                 document.getElementById(`sec-${s}`).classList.add('hidden');
                 document.getElementById(`nav-${s}`).classList.replace('text-red-600', 'text-slate-400');
             });
             document.getElementById(`sec-${section}`).classList.remove('hidden');
             document.getElementById(`nav-${section}`).classList.replace('text-slate-400', 'text-red-600');
-            
-            if (section === 'piket') loadDataIzin();
-            if (section === 'admin') loadPendaftaranPiket();
         }
 
-        function showAuth() { document.getElementById('authOverlay').classList.remove('hidden'); fetchMasterPiket(); }
-        function closeAuth() { document.getElementById('authOverlay').classList.add('hidden'); }
-
-        // AMBIL DATA DENGAN TRY-CATCH (ANTI-FREEZE)
-        async function fetchInitialData() {
-            try {
-                const { data } = await supabase.from('data_pegawai').select('nama').order('nama');
-                const sel = document.getElementById('inputNama');
-                sel.innerHTML = '<option value="">Pilih Nama Pegawai...</option>';
-                data?.forEach(p => sel.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
-            } catch (e) { console.error("Gagal muat pegawai:", e); }
+        // Clock & Start
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('id-ID', {weekday:'short', day:'numeric', month:'short'}).toUpperCase();
         }
 
-        async function fetchMasterPiket() {
-            try {
-                const { data } = await supabase.from('master_piket').select('nama_piket');
-                const sels = [document.getElementById('loginNama'), document.getElementById('regNama')];
-                sels.forEach(s => {
-                    s.innerHTML = '<option value="">Pilih Nama...</option>';
-                    data?.forEach(p => s.innerHTML += `<option value="${p.nama_piket}">${p.nama_piket}</option>`);
-                });
-            } catch (e) { console.error("Gagal muat master piket:", e); }
-        }
-
-        // LOGIN PIKET
-        async function handleLoginPiket() {
-            const nama = document.getElementById('loginNama').value;
-            const pass = document.getElementById('loginPass').value;
-            showLoading("Mengecek...");
-            const { data } = await supabase.from('users_piket').select('*').eq('nama_piket', nama).eq('password', pass).single();
-            hideLoading();
-            if (data?.is_approved) {
-                currentSession = { nama: data.nama_piket, role: 'piket' };
-                closeAuth();
-                navTo('piket');
-            } else {
-                alert(data ? "Akun belum disetujui Admin" : "Login Gagal");
-            }
-        }
-
-        // FUNGSI LAIN (LOADING)
-        function showLoading(t) { document.getElementById('loadingText').innerText = t; document.getElementById('loadingOverlay').classList.remove('hidden'); }
-        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
-
-        window.onload = fetchInitialData;
+        window.onload = () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            initNotifications();
+            // Panggil fungsi fetch data Supabase Anda di sini
+        };
     </script>
 </body>
 </html>
