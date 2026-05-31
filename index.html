@@ -1,201 +1,203 @@
-<script>
-        // --- KONFIGURASI ---
-        const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
-        const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
-        let supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LinkPermit Pro</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .modal-active { overflow: hidden; }
+    </style>
+</head>
+<body class="text-slate-900 antialiased">
 
-        let state = {
-            activeTab: 'layanan', 
-            adminActiveTab: 'pegawai', 
-            dataIzin: [], 
-            listPegawai: [], 
-            listPetugas: [],
-            currentUser: null, 
-            isAdmin: false, 
-            currentFinishId: null, 
-            cameraStream: null
-        };
+    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 backdrop-blur-md hidden flex flex-col items-center justify-center">
+        <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
+        <p id="loadingText" class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Sinkronisasi Data</p>
+    </div>
 
-        // --- NAVIGASI (Ditaruh di atas agar terbaca duluan) ---
-        function navTo(tab) {
-            console.log("Navigasi ke:", tab);
-            ['layanan', 'piket', 'admin'].forEach(t => {
-                const sec = document.getElementById(`sec-${t}`);
-                const nav = document.getElementById(`nav-${t}`);
-                if(sec) sec.classList.add('hidden');
-                if(nav) nav.classList.replace('text-red-600', 'text-slate-400');
-            });
-            
-            const targetSec = document.getElementById(`sec-${tab}`);
-            const targetNav = document.getElementById(`nav-${tab}`);
-            if(targetSec) targetSec.classList.remove('hidden');
-            if(targetNav) targetNav.classList.replace('text-slate-400', 'text-red-600');
-            state.activeTab = tab;
-        }
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[1000] px-4 py-2 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div class="max-w-md mx-auto flex justify-around items-center">
+            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-600">
+                <i class="fas fa-home-alt text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Beranda</span>
+            </button>
+            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 p-2 text-slate-400">
+                <i class="fas fa-user-shield text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Piket</span>
+            </button>
+            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-400">
+                <i class="fas fa-cog text-lg"></i>
+                <span class="text-[9px] font-bold uppercase tracking-tighter">Admin</span>
+            </button>
+        </div>
+    </nav>
 
-        // --- INISIALISASI ---
-        async function init() {
-            showLoading("Memuat data...");
-            try {
-                await Promise.all([fetchPegawai(), fetchPetugas(), fetchIzin()]);
-            } catch (err) {
-                console.error("Init Error:", err);
-            }
-            hideLoading();
-            updateTime();
-            setInterval(updateTime, 1000);
-        }
+    <header class="sticky top-0 bg-white/80 backdrop-blur-md z-[900] px-6 py-4 border-b border-slate-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-red-700 rounded-lg flex items-center justify-center text-white shadow-lg shadow-red-700/20">
+                    <i class="fas fa-id-card text-xs"></i>
+                </div>
+                <h1 class="text-sm font-black tracking-tighter uppercase">LinkPermit <span class="text-red-700">Pro</span></h1>
+            </div>
+            <div class="text-right">
+                <div id="clockDisplay" class="text-xs font-black">00:00</div>
+                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">LOADING...</div>
+            </div>
+        </div>
+    </header>
 
-        async function fetchPegawai() {
-            const { data, error } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
-            if (!error) { state.listPegawai = data || []; syncSelects(); }
-        }
+    <main class="max-w-md mx-auto p-5 pb-24">
+        
+        <div id="sec-layanan" class="animate-slide-up space-y-6">
+            <div class="bg-slate-900 rounded-[2rem] p-6 text-white relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-lg font-black leading-tight mb-1">Pengajuan Izin</h2>
+                    <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">Realtime Cloud Storage</p>
+                </div>
+                <i class="fas fa-cloud absolute -right-2 -bottom-2 text-6xl text-white/5"></i>
+            </div>
 
-        async function fetchPetugas() {
-            const { data, error } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
-            if (!error) { state.listPetugas = data || []; syncSelects(); }
-        }
+            <form id="izinForm" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none focus:border-red-600 transition-all text-slate-700">
+                        <option value="">Memuat data pegawai...</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Kategori</label>
+                        <select id="inputKategori" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
+                            <option value="Dinas/Sekolah">Dinas/Sekolah</option>
+                            <option value="Pribadi">Pribadi</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Keperluan</label>
+                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none text-slate-700">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                    Kirim Permohonan <i class="fas fa-paper-plane ml-2"></i>
+                </button>
+            </form>
 
-        async function fetchIzin() {
-            const { data, error } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
-            if (!error) {
-                state.dataIzin = data || [];
-                renderUserList();
-                renderPiketAntrean();
-            }
-        }
+            <div class="space-y-4 pt-4 border-t border-slate-100">
+                <div class="flex justify-between items-end">
+                    <h3 class="font-black text-sm uppercase tracking-tight">Status Pengajuan</h3>
+                    <button onclick="fetchIzin()" class="text-xs text-red-600 font-bold uppercase tracking-widest"><i class="fas fa-sync-alt mr-1"></i> Sync</button>
+                </div>
+                <div id="listAntrean" class="space-y-3"></div>
+            </div>
+        </div>
 
-        // --- HANDLERS ---
-        async function handleIzinSubmit(e) {
-            if(e) e.preventDefault();
-            const idx = document.getElementById('inputNama').value;
-            if(!idx) return alert("Pilih Nama!");
-            
-            showLoading("Mengirim...");
-            const peg = state.listPegawai[idx];
-            const now = new Date();
-            const { error } = await supabaseClient.from('izin').insert([{
-                id_izin: 'LP-' + Math.floor(1000 + Math.random() * 9000),
-                nama: peg.nama,
-                keperluan: document.getElementById('inputKategori').value,
-                tujuan: document.getElementById('inputTujuan').value,
-                status: 'Menunggu',
-                waktu_daftar: now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace('.',':'),
-                tanggal: now.toLocaleDateString('id-ID')
-            }]);
+        <div id="sec-piket" class="hidden animate-slide-up space-y-6">
+            <div id="piketLogin" class="space-y-6 pt-10">
+                <div class="text-center">
+                    <h3 class="text-xl font-black mb-2">Panel Petugas</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Akses Database Pusat</p>
+                </div>
+                <div class="space-y-3 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                    <select id="piketUser" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-sm outline-none text-slate-700">
+                        <option value="">Pilih Petugas...</option>
+                    </select>
+                    <input id="piketPin" type="password" maxlength="4" placeholder="PIN" class="w-full p-4 bg-slate-50 border-none rounded-xl font-mono text-center text-2xl tracking-[1em] outline-none text-slate-700">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Login Petugas</button>
+            </div>
 
-            if(!error) {
-                document.getElementById('inputTujuan').value = "";
-                await fetchIzin();
-                alert("Permohonan Terkirim!");
-            }
-            hideLoading();
-        }
+            <div id="piketDashboard" class="hidden space-y-4">
+                <div class="flex justify-between items-center bg-slate-900 p-4 rounded-2xl text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-[10px]"><i class="fas fa-user-shield"></i></div>
+                        <span id="petugasAktif" class="text-[10px] font-black uppercase tracking-widest">-</span>
+                    </div>
+                    <button onclick="handleLogout()" class="text-[9px] font-bold text-white/50 uppercase tracking-widest bg-white/10 px-3 py-1.5 rounded-lg">Logout</button>
+                </div>
+                <div id="antreanPiket" class="space-y-3"></div>
+            </div>
+        </div>
 
-        async function approveIzin(id) {
-            showLoading("Menyetujui...");
-            const now = new Date();
-            const { error } = await supabaseClient.from('izin').update({
-                status: 'Keluar',
-                waktu_keluar: now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace('.',':'),
-                tanggal_keluar: now.toLocaleDateString('id-ID')
-            }).eq('id_izin', id);
+        <div id="sec-admin" class="hidden animate-slide-up space-y-6">
+            <div id="adminLogin" class="space-y-6 pt-10">
+                <div class="text-center">
+                    <h3 class="text-xl font-black mb-2">Master Admin</h3>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Cloud</p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                    <input id="adminPass" type="password" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-xl font-bold text-center outline-none text-slate-700">
+                </div>
+                <button onclick="handleAdminLogin()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">Buka Dashboard</button>
+            </div>
 
-            if(!error) await fetchIzin();
-            hideLoading();
-        }
+            <div id="adminDashboard" class="hidden space-y-6">
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 bg-slate-900 text-white rounded-md flex items-center justify-center text-[10px]"><i class="fas fa-database"></i></div>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Supabase Cloud</span>
+                    </div>
+                    <button onclick="handleAdminLogout()" class="text-[9px] font-black text-red-600 uppercase tracking-widest border border-red-100 px-3 py-1 rounded-lg bg-red-50">Logout</button>
+                </div>
 
-        // --- LOGIN & ADMIN ---
-        function handleLogin() {
-            const user = document.getElementById('piketUser').value;
-            const pin = document.getElementById('piketPin').value;
-            const match = state.listPetugas.find(p => p.nama === user && p.pin === pin);
-            if(match) {
-                state.currentUser = match;
-                document.getElementById('piketLogin').classList.add('hidden');
-                document.getElementById('piketDashboard').classList.remove('hidden');
-                document.getElementById('petugasAktif').textContent = match.nama;
-            } else { alert("PIN Salah!"); }
-        }
+                <div class="flex gap-2 p-1 bg-slate-100 rounded-xl overflow-x-auto hide-scroll">
+                    <button id="tabBtn-pegawai" onclick="switchAdminTab('pegawai')" class="flex-none px-4 py-3 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Pegawai</button>
+                    <button id="tabBtn-petugas" onclick="switchAdminTab('petugas')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Petugas Piket</button>
+                    <button id="tabBtn-laporan" onclick="switchAdminTab('laporan')" class="flex-none px-4 py-3 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">Laporan</button>
+                </div>
 
-        function handleAdminLogin() {
-            const pass = document.getElementById('adminPass').value;
-            if(pass === 'lm9595') {
-                state.isAdmin = true;
-                document.getElementById('adminLogin').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-            } else { alert("Password Admin Salah!"); }
-        }
+                <div id="adminContent" class="space-y-4"></div>
 
-        function handleLogout() { location.reload(); }
+                <div id="adminPagination" class="flex justify-between items-center bg-white p-3 rounded-2xl border border-slate-100 shadow-sm">
+                    <button id="prevPage" onclick="changePage(-1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+                    <div class="text-center">
+                        <span id="pageInfo" class="text-[9px] font-black uppercase tracking-widest text-slate-900">Halaman 1 / 1</span>
+                    </div>
+                    <button id="nextPage" onclick="changePage(1)" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-xl text-slate-400 disabled:opacity-30">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
 
-        // --- UI RENDERERS ---
-        function renderUserList() {
-            const container = document.getElementById('listAntrean');
-            if(!container) return;
-            container.innerHTML = '';
-            state.dataIzin.forEach(item => {
-                const isOut = item.status === 'Keluar';
-                container.innerHTML += `
-                    <div class="p-5 border border-slate-100 bg-white rounded-3xl flex justify-between items-center shadow-sm">
-                        <div class="truncate pr-4">
-                            <div class="text-xs font-black uppercase">${item.nama}</div>
-                            <div class="text-[8px] font-bold text-slate-400 uppercase">${item.keperluan}: ${item.tujuan}</div>
-                        </div>
-                        ${isOut ? 
-                            `<button onclick="openFinish('${item.id_izin}')" class="px-4 py-2 bg-red-700 text-white rounded-xl text-[8px] font-black uppercase">Lapor</button>` : 
-                            `<span class="text-[7px] font-black uppercase px-2 py-1 bg-amber-50 text-amber-600 rounded">Menunggu</span>`}
-                    </div>`;
-            });
-        }
+    <div id="modalForm" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-6 scale-95 animate-slide-up">
+            <h3 id="modalTitle" class="text-lg font-black uppercase tracking-tight">Tambah Data</h3>
+            <div class="space-y-4">
+                <input id="formVal1" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
+                <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border-none outline-none focus:ring-2 ring-red-600/10 text-slate-700">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeForm()" class="flex-1 py-4 text-[10px] font-black uppercase text-slate-400">Batal</button>
+                <button id="btnSave" class="flex-1 bg-red-700 text-white py-4 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-red-700/20">Simpan</button>
+            </div>
+        </div>
+    </div>
 
-        function renderPiketAntrean() {
-            const container = document.getElementById('antreanPiket');
-            if(!container) return;
-            const waiting = state.dataIzin.filter(i => i.status === 'Menunggu');
-            container.innerHTML = waiting.length === 0 ? '<div class="text-center py-10 text-slate-300 uppercase text-[9px] font-black">Kosong</div>' : '';
-            waiting.forEach(item => {
-                container.innerHTML += `
-                    <div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-3">
-                        <div class="text-sm font-black uppercase">${item.nama}</div>
-                        <p class="text-[8px] font-bold text-slate-400 uppercase">Tujuan: ${item.tujuan}</p>
-                        <button onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase">Izinkan Keluar</button>
-                    </div>`;
-            });
-        }
-
-        function syncSelects() {
-            const sP = document.getElementById('inputNama');
-            const sT = document.getElementById('piketUser');
-            if(sP) {
-                sP.innerHTML = '<option value="">Pilih Pegawai...</option>';
-                state.listPegawai.forEach((p, i) => sP.innerHTML += `<option value="${i}">${p.nama}</option>`);
-            }
-            if(sT) {
-                sT.innerHTML = '<option value="">Pilih Petugas...</option>';
-                state.listPetugas.forEach(p => sT.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
-            }
-        }
-
-        function updateTime() {
-            const now = new Date();
-            const cd = document.getElementById('clockDisplay');
-            const dd = document.getElementById('dateDisplay');
-            if(cd) cd.textContent = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}).replace('.', ':');
-            if(dd) dd.textContent = now.toLocaleDateString('id-ID', {weekday:'short', day:'numeric', month:'short'}).toUpperCase();
-        }
-
-        function showLoading(txt) { 
-            const el = document.getElementById('loadingText');
-            if (el) el.textContent = txt; 
-            document.getElementById('loadingOverlay').classList.remove('hidden'); 
-        }
-        function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
-
-        // Camera functions...
-        function openFinish(id) { state.currentFinishId = id; document.getElementById('modalFinish').classList.remove('hidden'); }
-        function closeFinishModal() { document.getElementById('modalFinish').classList.add('hidden'); }
-
-        window.onload = init;
-        document.getElementById('izinForm').onsubmit = handleIzinSubmit;
-    </script>
+    <div id="modalEditIzin" class="fixed inset-0 z-[2000] bg-slate-900/90 backdrop-blur-sm hidden items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 space-y-4 scale-95 animate-slide-up h-auto max-h-[90vh] overflow-y-auto hide-scroll">
+            <h3 class="text-lg font-black uppercase tracking-tight mb-2">Edit Data Izin</h3>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="col-span-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase ml-1">
