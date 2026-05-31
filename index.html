@@ -1207,37 +1207,84 @@
         async function deleteAllMasterData(type) { showConfirm(`Kosongkan semua data ${type}?`, async () => { showLoading(); const {error} = await supabaseClient.from(type).delete().gt('id', 0); if(!error){ state.currentPage=1; state.selectedAdminItems=[]; type==='pegawai' ? await fetchPegawai() : (type==='petugas' ? await fetchPetugas() : await fetchJadwal()); showToast("Berhasil dikosongkan", "success"); } hideLoading(); }); }
         
         async function handleCSVUpload(e, type) { 
-            const f=e.target.files[0]; if(!f) return; 
-            showLoading("Mengimpor CSV..."); 
+            const f = e.target.files[0]; if(!f) return; 
+            showLoading("Mengimpor & Memproses CSV..."); 
             const r = new FileReader(); 
-            r.onload=async(ev)=>{ 
-                const lines=ev.target.result.split('\n'), payloads=[]; 
-                lines.forEach((l, idx)=>{ 
-                    if(idx === 0) return;
-                    const c=l.split(',').map(x=>x.trim()); 
-                    if(c[0]&&c[1]) {
-                        let hp = c[2] || '';
-                        if (hp) {
-                            hp = hp.replace(/[^0-9]/g, '');
-                            if (hp.startsWith('0')) hp = '+62' + hp.substring(1);
-                            else if (hp.startsWith('62')) hp = '+62' + hp.substring(2);
-                            else hp = '+62' + hp;
+            r.onload = async(ev) => { 
+                const lines = ev.target.result.split('\n');
+                const payloadsToInsert = [];
+                const promisesToUpdate = [];
+                const existingData = type === 'pegawai' ? state.listPegawai : state.listPetugas;
+
+                lines.forEach((l, idx) => { 
+                    if(idx === 0) return; // Lewati baris header
+                    const c = l.split(',').map(x => x.trim()); 
+                    if(!c[0]) return; // Lewati baris jika nama kosong
+
+                    const nama = c[0];
+                    const field2 = c[1] || ''; // Jabatan / PIN bisa kosong
+                    let hp = c[2] || '';
+                    
+                    // Format HP otomatis
+                    if (hp) {
+                        hp = hp.replace(/[^0-9]/g, '');
+                        if (hp.startsWith('0')) hp = '+62' + hp.substring(1);
+                        else if (hp.startsWith('62')) hp = '+62' + hp.substring(2);
+                        else hp = '+62' + hp;
+                    }
+
+                    // Cari apakah nama sudah ada (case-insensitive)
+                    const existingItem = existingData.find(item => item.nama.toLowerCase() === nama.toLowerCase());
+
+                    if (existingItem) {
+                        // Jika sudah ada, cek apakah ada data baru di CSV untuk menimpa yang lama
+                        let updatePayload = {};
+                        let hasChanges = false;
+
+                        if (type === 'pegawai') {
+                            if (field2 && field2 !== existingItem.jabatan) { updatePayload.jabatan = field2; hasChanges = true; }
+                            if (hp && hp !== existingItem.no_hp) { updatePayload.no_hp = hp; hasChanges = true; }
+                        } else {
+                            if (field2 && field2 !== existingItem.pin) { updatePayload.pin = field2; hasChanges = true; }
+                            if (hp && hp !== existingItem.no_hp) { updatePayload.no_hp = hp; hasChanges = true; }
                         }
-                        payloads.push(type==='pegawai' ? {nama:c[0], jabatan:c[1], no_hp: hp} : {nama:c[0], pin:c[1], no_hp: hp}); 
+
+                        if (hasChanges) {
+                            promisesToUpdate.push(supabaseClient.from(type).update(updatePayload).eq('id', existingItem.id));
+                        }
+                    } else {
+                        // Jika belum ada, buat payload data baru
+                        const insertPayload = { nama: nama, no_hp: hp };
+                        if (type === 'pegawai') {
+                            insertPayload.jabatan = field2; // Bisa dibiarkan kosong
+                        } else {
+                            insertPayload.pin = field2 || Math.floor(1000 + Math.random() * 9000).toString(); // Auto Generate PIN
+                        }
+                        payloadsToInsert.push(insertPayload);
                     }
                 }); 
-                if(payloads.length>0){ 
-                    const {error} = await supabaseClient.from(type).insert(payloads); 
-                    if(!error) { 
-                        type==='pegawai'?await fetchPegawai():await fetchPetugas(); 
-                        showToast("Impor data dari CSV berhasil diselesaikan!", "success");
-                    } else {
-                        showToast("Gagal menyimpan data dari berkas CSV.", "error");
+
+                try {
+                    // 1. Eksekusi pembaruan (update) untuk data yang sudah ada
+                    if (promisesToUpdate.length > 0) {
+                        await Promise.all(promisesToUpdate);
                     }
-                } else {
-                    showToast("Tidak ada baris data valid untuk diimpor.", "error");
+                    
+                    // 2. Eksekusi penambahan (insert) untuk nama-nama baru
+                    if (payloadsToInsert.length > 0) { 
+                        const {error} = await supabaseClient.from(type).insert(payloadsToInsert); 
+                        if(error) throw error;
+                    }
+
+                    type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); 
+                    showToast(`Selesai: ${payloadsToInsert.length} data baru ditambahkan & ${promisesToUpdate.length} data diperbarui!`, "success");
+                } catch (err) {
+                    console.error(err);
+                    showToast("Terjadi kesalahan sistem saat memproses data CSV.", "error");
+                } finally {
+                    hideLoading(); 
+                    e.target.value = ''; 
                 }
-                hideLoading(); e.target.value=''; 
             }; 
             r.readAsText(f); 
         }
