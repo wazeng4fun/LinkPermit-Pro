@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LinkPermit Pro - Stable Version</title>
+    <title>LinkPermit Pro - Ultra Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,8 +16,6 @@
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .hide-scroll::-webkit-scrollbar { display: none; }
-        
-        /* Solusi Anti-Freeze untuk Elemen yang di Toggle */
         .is-hidden { display: none !important; }
     </style>
 </head>
@@ -40,14 +38,14 @@
             </div>
             
             <div id="boxLogin" class="space-y-4 block">
-                <select id="loginNama" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none"></select>
+                <select id="loginNama" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none"><option value="">Pilih Petugas...</option></select>
                 <input type="password" id="loginPass" placeholder="Password PIN" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
                 <button onclick="handleLoginPiket()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl">Masuk Petugas</button>
                 <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-red-700 mt-4 underline">Login Master Admin</button>
             </div>
             
             <div id="boxDaftar" class="is-hidden space-y-4">
-                <select id="regNama" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none"></select>
+                <select id="regNama" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none"><option value="">Pilih Petugas...</option></select>
                 <input type="email" id="regEmail" placeholder="Email Aktif" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
                 <input type="password" id="regPass" placeholder="Buat Password" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
                 <button onclick="handleRegisterPiket()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl">Ajukan Akun</button>
@@ -75,7 +73,7 @@
             </div>
             <div class="text-right">
                 <div id="clockDisplay" class="text-xs font-black text-slate-800">00:00</div>
-                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">SINKRONISASI...</div>
+                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">MENYAMBUNG...</div>
             </div>
         </div>
     </header>
@@ -93,7 +91,9 @@
             <form id="izinForm" class="space-y-4">
                 <div class="space-y-2">
                     <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Pegawai</label>
-                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none"></select>
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm shadow-sm outline-none">
+                        <option value="">Mengambil data...</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
@@ -114,9 +114,11 @@
             <div class="pt-6 border-t border-slate-100 space-y-4">
                 <div class="flex justify-between items-end px-1">
                     <h3 class="font-black text-xs uppercase text-slate-400">Antrean Izin</h3>
-                    <button onclick="fetchIzin()" class="text-[9px] font-black text-red-600 uppercase tracking-widest"><i class="fas fa-sync-alt mr-1"></i> Perbarui</button>
+                    <button onclick="safeFetchIzin()" class="text-[9px] font-black text-red-600 uppercase tracking-widest"><i class="fas fa-sync-alt mr-1"></i> Perbarui</button>
                 </div>
-                <div id="listAntrean" class="space-y-3"></div>
+                <div id="listAntrean" class="space-y-3">
+                    <p class="text-center py-4 text-[9px] text-slate-400 italic">Mengambil data...</p>
+                </div>
             </div>
         </div>
 
@@ -143,20 +145,19 @@
                 <button onclick="switchAdminTab('master')" id="tab-master" class="flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase text-slate-400 transition-all">Daftar Piket</button>
                 <button onclick="switchAdminTab('history')" id="tab-history" class="flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase text-slate-400 transition-all">History</button>
             </div>
-
             <div id="adminContainer" class="animate-slide-up space-y-2"></div>
         </div>
     </main>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-50 z-[1000] px-4 py-2 safe-area-bottom shadow-lg">
         <div class="max-w-md mx-auto flex justify-around items-center">
-            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-700">
+            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 p-2 text-red-700 transition-colors">
                 <i class="fas fa-home-alt text-lg"></i><span class="text-[9px] font-black uppercase">Beranda</span>
             </button>
-            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 p-2 text-slate-300">
+            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 p-2 text-slate-300 transition-colors">
                 <i class="fas fa-user-shield text-lg"></i><span class="text-[9px] font-black uppercase">Piket</span>
             </button>
-            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-300">
+            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-300 transition-colors">
                 <i class="fas fa-cog text-lg"></i><span class="text-[9px] font-black uppercase">Admin</span>
             </button>
         </div>
@@ -175,4 +176,376 @@
             <div id="previewView" class="is-hidden">
                 <img id="photoPreview" class="w-full aspect-[3/4] object-cover rounded-3xl mb-4">
                 <button onclick="submitFinish()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase mb-2">Simpan Laporan</button>
-                <button onclick="retakePhoto()" class="w-full bg-slate-100 text-slate-600 py-3 rounded-2xl font-
+                <button onclick="retakePhoto()" class="w-full bg-slate-100 text-slate-600 py-3 rounded-2xl font-black text-[9px] uppercase">Ulangi Foto</button>
+            </div>
+            <button onclick="closeModal()" class="text-[9px] font-black text-slate-400 uppercase pt-4 w-full">Batalkan</button>
+        </div>
+    </div>
+
+    <div id="modalEdit" class="fixed inset-0 z-[2000] bg-slate-900/80 backdrop-blur-sm is-hidden items-center justify-center p-6">
+        <div class="bg-white p-6 rounded-3xl w-full max-w-sm space-y-4">
+            <h3 class="font-black uppercase text-xs">Edit Riwayat</h3>
+            <input id="editTujuan" type="text" class="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm outline-none">
+            <div class="grid grid-cols-2 gap-2">
+                <input id="editJamKeluar" type="text" placeholder="Jam Keluar" class="p-4 bg-slate-50 rounded-2xl font-bold text-xs outline-none">
+                <input id="editJamKembali" type="text" placeholder="Jam Kembali" class="p-4 bg-slate-50 rounded-2xl font-bold text-xs outline-none">
+            </div>
+            <button onclick="saveEdit()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase">Simpan</button>
+            <button onclick="closeEdit()" class="w-full text-slate-400 font-bold text-[9px] uppercase">Batal</button>
+        </div>
+    </div>
+
+    <script>
+        // -----------------------------------------------------
+        // 1. BLOK UI & JAM (Berjalan secara instan & tanpa syarat)
+        // -----------------------------------------------------
+        function updateTime() {
+            const now = new Date();
+            const jam = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const tgl = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+            
+            const clkEl = document.getElementById('clockDisplay');
+            const tglEl = document.getElementById('dateDisplay');
+            
+            if(clkEl) clkEl.innerText = jam;
+            // Hanya update tanggal jika belum ada error database
+            if(tglEl && tglEl.innerText !== "DB OFFLINE") tglEl.innerText = tgl; 
+        }
+        
+        // Panggil jam segera mungkin sebelum kode lain berjalan
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        function showLoading(text) {
+            document.getElementById('loadingText').innerText = text || "Memproses...";
+            document.getElementById('loadingOverlay').classList.remove('is-hidden');
+            document.getElementById('loadingOverlay').classList.add('flex');
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('is-hidden');
+            document.getElementById('loadingOverlay').classList.remove('flex');
+        }
+
+        // FUNGSI NAVIGASI YANG AMAN (Berjalan walaupun database rusak)
+        let currentSession = null;
+        let activeAdminTab = 'pendaftar';
+        let stream = null;
+        let activeIzinId = null;
+        let editId = null;
+
+        function navTo(sec) {
+            if (sec === 'layanan') { renderSec(sec); return; }
+            if (!currentSession) { showAuth(); } 
+            else {
+                if (sec === 'admin' && currentSession.role !== 'admin') { alert("Akses Ditolak. Hanya untuk Admin!"); return; }
+                renderSec(sec);
+            }
+        }
+
+        function renderSec(sec) {
+            ['layanan', 'piket', 'admin'].forEach(s => {
+                document.getElementById(`sec-${s}`).classList.add('is-hidden');
+                document.getElementById(`nav-${s}`).classList.replace('text-red-700', 'text-slate-300');
+            });
+            document.getElementById(`sec-${sec}`).classList.remove('is-hidden');
+            document.getElementById(`nav-${sec}`).classList.replace('text-slate-300', 'text-red-700');
+            
+            // Panggil data jika DB tersedia
+            if(dbActive) {
+                if (sec === 'piket') safeFetchOperasional();
+                if (sec === 'admin') switchAdminTab('pendaftar');
+            }
+        }
+
+        function showAuth() { document.getElementById('authOverlay').classList.remove('is-hidden'); safeFetchMasterList(); }
+        function closeAuth() { document.getElementById('authOverlay').classList.add('is-hidden'); }
+        function toggleAuthTab(t) {
+            const isLogin = t === 'login';
+            document.getElementById('boxLogin').classList.toggle('is-hidden', !isLogin);
+            document.getElementById('boxDaftar').classList.toggle('is-hidden', isLogin);
+            document.getElementById('tabLogin').classList.toggle('bg-white', isLogin);
+            document.getElementById('tabLogin').classList.toggle('shadow-sm', isLogin);
+            document.getElementById('tabDaftar').classList.toggle('bg-white', !isLogin);
+            document.getElementById('tabDaftar').classList.toggle('shadow-sm', !isLogin);
+        }
+        function switchAdminUI() {
+            document.getElementById('boxAdmin').classList.toggle('is-hidden');
+            document.getElementById('boxLogin').classList.toggle('is-hidden');
+            document.getElementById('authTabs').classList.toggle('is-hidden');
+        }
+        function handleLogout() { currentSession = null; document.getElementById('userStatus').innerText = "Guest Mode"; navTo('layanan'); }
+
+
+        // -----------------------------------------------------
+        // 2. BLOK DATABASE SUPABASE (Aman dari Crash/Error)
+        // -----------------------------------------------------
+        const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
+        const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx";
+        let supabase = null;
+        let dbActive = false;
+
+        // Tunggu halaman selesai dirender baru mulai nyalakan database
+        window.addEventListener('load', async () => {
+            try {
+                // Mengecek apakah script Supabase berhasil didownload oleh browser
+                if (typeof window.supabase !== 'undefined') {
+                    supabase = window.supabase.createClient(SB_URL, SB_KEY);
+                    dbActive = true;
+                    
+                    // Tarik Data Beranda
+                    await safeFetchPegawai();
+                    await safeFetchIzin();
+                } else {
+                    throw new Error("Supabase Library Blocked");
+                }
+            } catch (error) {
+                dbActive = false;
+                document.getElementById('dateDisplay').innerText = "DB OFFLINE";
+                document.getElementById('dateDisplay').classList.replace('text-slate-400', 'text-red-500');
+                document.getElementById('inputNama').innerHTML = '<option value="">Gagal: Database diblokir jaringan</option>';
+                document.getElementById('listAntrean').innerHTML = '<p class="text-center py-4 text-[9px] text-red-500 font-bold uppercase">Koneksi Database Terputus. Pastikan internet Anda tidak memblokir server.</p>';
+            }
+        });
+
+        // -----------------------------------------------------
+        // 3. FUNGSI DATABASE DENGAN PROTEKSI (Safe Mode)
+        // -----------------------------------------------------
+        async function safeFetchPegawai() {
+            if(!dbActive) return;
+            const { data } = await supabase.from('data_pegawai').select('nama').order('nama');
+            const s = document.getElementById('inputNama');
+            s.innerHTML = '<option value="">Pilih Nama...</option>';
+            data?.forEach(p => s.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
+        }
+
+        async function safeFetchIzin() {
+            if(!dbActive) return;
+            const { data } = await supabase.from('izin_keluar').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
+            const list = document.getElementById('listAntrean');
+            list.innerHTML = '';
+            if(!data || data.length === 0) list.innerHTML = '<p class="text-[9px] text-slate-400 text-center italic">Tidak ada antrean.</p>';
+            data?.forEach(i => {
+                list.innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center">
+                    <div><h4 class="font-black text-xs text-slate-800">${i.nama}</h4><p class="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-widest">${i.keperluan}</p></div>
+                    <span class="text-[8px] font-black uppercase ${i.status==='Keluar' ? 'text-red-600' : 'text-slate-400'}">${i.status}</span>
+                </div>`;
+            });
+        }
+
+        document.getElementById('izinForm').onsubmit = async (e) => {
+            e.preventDefault();
+            if(!dbActive) return alert("Database offline!");
+            const n = document.getElementById('inputNama').value;
+            const k = document.getElementById('inputKategori').value;
+            const t = document.getElementById('inputTujuan').value;
+            showLoading("Mengirim Data...");
+            await supabase.from('izin_keluar').insert([{ nama: n, kategori: k, keperluan: t, status: 'Pending' }]);
+            hideLoading();
+            alert("Permohonan Terkirim!"); document.getElementById('inputTujuan').value = ''; safeFetchIzin();
+        };
+
+        async function safeFetchMasterList() {
+            if(!dbActive) return;
+            const { data } = await supabase.from('master_piket').select('nama_piket').order('nama_piket');
+            const sels = [document.getElementById('loginNama'), document.getElementById('regNama')];
+            sels.forEach(s => {
+                s.innerHTML = '<option value="">Pilih Petugas...</option>';
+                data?.forEach(p => s.innerHTML += `<option value="${p.nama_piket}">${p.nama_piket}</option>`);
+            });
+        }
+
+        async function handleLoginPiket() {
+            if(!dbActive) return alert("Database offline!");
+            const n = document.getElementById('loginNama').value;
+            const p = document.getElementById('loginPass').value;
+            if(!n || !p) return alert("Isi semua data!");
+            
+            showLoading("Verifikasi...");
+            const { data } = await supabase.from('users_piket').select('*').eq('nama_piket', n).eq('password', p).single();
+            hideLoading();
+            
+            if (data?.is_approved) {
+                currentSession = { ...data, role: 'piket' };
+                document.getElementById('petugasAktif').innerText = data.nama_piket;
+                document.getElementById('userStatus').innerText = `Petugas: ${data.nama_piket}`;
+                closeAuth(); navTo('piket');
+            } else alert("Akun belum disetujui atau Password salah.");
+        }
+
+        async function handleRegisterPiket() {
+            if(!dbActive) return alert("Database offline!");
+            const n = document.getElementById('regNama').value;
+            const e = document.getElementById('regEmail').value;
+            const p = document.getElementById('regPass').value;
+            if(!n || !e || !p) return alert("Lengkapi data!");
+            
+            showLoading("Mendaftar...");
+            await supabase.from('users_piket').insert([{ nama_piket: n, email: e, password: p }]);
+            hideLoading();
+            alert("Berhasil mendaftar! Tunggu Admin menyetujui.");
+            toggleAuthTab('login');
+        }
+
+        async function handleLoginAdmin() {
+            if(!dbActive) return alert("Database offline!");
+            const e = document.getElementById('adminEmail').value;
+            const p = document.getElementById('adminPass').value;
+            showLoading("Masuk Sistem...");
+            const { data, error } = await supabase.auth.signInWithPassword({ email: e, password: p });
+            hideLoading();
+            if (data.user) {
+                currentSession = { role: 'admin' };
+                document.getElementById('userStatus').innerText = "Administrator";
+                closeAuth(); navTo('admin');
+            } else alert("Akses Ditolak!");
+        }
+
+        async function safeFetchOperasional() {
+            if(!dbActive) return;
+            const { data } = await supabase.from('izin_keluar').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
+            const list = document.getElementById('listOperasional');
+            list.innerHTML = '';
+            data?.forEach(i => {
+                list.innerHTML += `<div class="bg-white p-5 rounded-3xl border mb-2 space-y-3 shadow-sm">
+                    <div class="flex justify-between font-black text-sm"><span>${i.nama}</span><span class="text-[8px] bg-slate-100 px-3 py-1 rounded-full uppercase">${i.status}</span></div>
+                    <p class="text-[10px] text-slate-500">Tujuan: ${i.keperluan}</p>
+                    ${i.status === 'Pending' ? 
+                        `<button onclick="approveExit('${i.id}')" class="w-full bg-red-700 text-white py-3 rounded-2xl text-[9px] font-black uppercase">Izinkan Keluar</button>` :
+                        `<button onclick="openCam('${i.id}')" class="w-full bg-emerald-600 text-white py-3 rounded-2xl text-[9px] font-black uppercase">Lapor Kembali</button>`
+                    }
+                </div>`;
+            });
+        }
+
+        async function approveExit(id) {
+            if(!dbActive) return;
+            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            showLoading("Memproses...");
+            await supabase.from('izin_keluar').update({ status: 'Keluar', waktu_keluar: jam, disetujui_oleh: currentSession.nama_piket }).eq('id', id);
+            hideLoading(); safeFetchOperasional();
+        }
+
+        // FUNGSI KAMERA 
+        async function openCam(id) {
+            activeIzinId = id;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                document.getElementById('video').srcObject = stream;
+                
+                const modal = document.getElementById('modalFinish');
+                modal.classList.remove('is-hidden');
+                modal.classList.add('flex');
+                
+                document.getElementById('camView').classList.remove('is-hidden');
+                document.getElementById('previewView').classList.add('is-hidden');
+            } catch (err) {
+                alert("Kamera gagal diakses.");
+            }
+        }
+
+        function closeModal() {
+            if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            document.getElementById('modalFinish').classList.add('is-hidden');
+            document.getElementById('modalFinish').classList.remove('flex');
+        }
+
+        function takeSnapshot() {
+            const v = document.getElementById('video');
+            const c = document.getElementById('canvas');
+            const ctx = c.getContext('2d');
+            c.width = v.videoWidth || 720; c.height = v.videoHeight || 1080;
+            ctx.drawImage(v, 0, 0, c.width, c.height);
+            document.getElementById('photoPreview').src = c.toDataURL('image/jpeg');
+            document.getElementById('camView').classList.add('is-hidden');
+            document.getElementById('previewView').classList.remove('is-hidden');
+        }
+
+        function retakePhoto() {
+            document.getElementById('previewView').classList.add('is-hidden');
+            document.getElementById('camView').classList.remove('is-hidden');
+        }
+
+        async function submitFinish() {
+            if(!dbActive) return;
+            const jam = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+            showLoading("Menyimpan...");
+            await supabase.from('izin_keluar').update({ status: 'Selesai', waktu_kembali: jam }).eq('id', activeIzinId);
+            hideLoading(); closeModal(); safeFetchOperasional();
+        }
+
+        // FUNGSI ADMIN DENGAN PROTEKSI
+        async function switchAdminTab(t) {
+            activeAdminTab = t;
+            ['pendaftar', 'pegawai', 'master', 'history'].forEach(b => {
+                const el = document.getElementById(`tab-${b}`);
+                el.classList.toggle('bg-white', b === t);
+                el.classList.toggle('shadow-sm', b === t);
+                el.classList.toggle('text-slate-400', b !== t);
+            });
+            if(dbActive) renderAdminContent();
+        }
+
+        async function renderAdminContent() {
+            const container = document.getElementById('adminContainer');
+            container.innerHTML = '<p class="text-center py-10 font-bold text-[9px] text-slate-300">Mengambil Data...</p>';
+
+            if(activeAdminTab === 'pendaftar') {
+                const { data } = await supabase.from('users_piket').select('*').eq('is_approved', false);
+                container.innerHTML = data?.length ? '' : '<p class="text-center py-10 text-[9px] text-slate-400 italic">Antrean Kosong.</p>';
+                data?.forEach(u => container.innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center"><span class="text-xs font-black">${u.nama_piket}</span><button onclick="approveUser('${u.id}')" class="bg-red-700 text-white px-4 py-2 rounded-xl text-[8px] font-black uppercase">Approve</button></div>`);
+            } else if(activeAdminTab === 'pegawai') {
+                const { data } = await supabase.from('data_pegawai').select('*').order('nama');
+                container.innerHTML = `<div class="flex gap-2 mb-2"><input type="text" id="addN" placeholder="Pegawai Baru..." class="flex-1 p-4 bg-white border rounded-2xl text-xs font-bold outline-none"><button onclick="addPegawai()" class="bg-slate-900 text-white px-6 rounded-2xl text-xs"><i class="fas fa-plus"></i></button></div>`;
+                data?.forEach(p => container.innerHTML += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl border"><span class="text-xs font-bold">${p.nama}</span><button onclick="delPegawai(${p.id})" class="text-red-500"><i class="fas fa-trash"></i></button></div>`);
+            } else if(activeAdminTab === 'master') {
+                const { data } = await supabase.from('master_piket').select('*').order('nama_piket');
+                container.innerHTML = `<div class="flex gap-2 mb-2"><input type="text" id="addM" placeholder="Petugas Baru..." class="flex-1 p-4 bg-white border rounded-2xl text-xs font-bold outline-none"><button onclick="addMaster()" class="bg-slate-900 text-white px-6 rounded-2xl text-xs"><i class="fas fa-plus"></i></button></div>`;
+                data?.forEach(p => container.innerHTML += `<div class="flex justify-between items-center bg-white p-4 rounded-2xl border"><span class="text-xs font-bold">${p.nama_piket}</span><button onclick="delMaster(${p.id})" class="text-red-500"><i class="fas fa-trash"></i></button></div>`);
+            } else if(activeAdminTab === 'history') {
+                const { data } = await supabase.from('izin_keluar').select('*').order('created_at', { ascending: false }).limit(30);
+                container.innerHTML = '';
+                data?.forEach(i => container.innerHTML += `<div class="bg-white p-4 rounded-2xl border space-y-1"><div class="flex justify-between"><span class="text-[10px] font-black">${i.nama}</span><div class="flex gap-3"><button onclick="openEdit('${i.id}', '${i.keperluan}', '${i.waktu_keluar}', '${i.waktu_kembali}')" class="text-blue-500"><i class="fas fa-edit"></i></button><button onclick="delLog('${i.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></div></div><p class="text-[9px] text-slate-500">${i.keperluan} (${i.waktu_keluar || '-'} - ${i.waktu_kembali || '-'})</p></div>`);
+            }
+        }
+
+        async function approveUser(id) { await supabase.from('users_piket').update({ is_approved: true }).eq('id', id); renderAdminContent(); }
+        async function addPegawai() { const n = document.getElementById('addN').value; if(n) { await supabase.from('data_pegawai').insert([{nama:n}]); renderAdminContent(); } }
+        async function delPegawai(id) { if(confirm('Hapus?')) { await supabase.from('data_pegawai').delete().eq('id', id); renderAdminContent(); safeFetchPegawai(); } }
+        async function addMaster() { const n = document.getElementById('addM').value; if(n) { await supabase.from('master_piket').insert([{nama_piket:n}]); renderAdminContent(); } }
+        async function delMaster(id) { if(confirm('Hapus?')) { await supabase.from('master_piket').delete().eq('id', id); renderAdminContent(); } }
+        async function delLog(id) { if(confirm('Hapus Log?')) { await supabase.from('izin_keluar').delete().eq('id', id); renderAdminContent(); } }
+
+        function openEdit(id, tujuan, kl, km) {
+            editId = id;
+            document.getElementById('editTujuan').value = tujuan;
+            document.getElementById('editJamKeluar').value = kl || '';
+            document.getElementById('editJamKembali').value = km || '';
+            document.getElementById('modalEdit').classList.remove('is-hidden');
+            document.getElementById('modalEdit').classList.add('flex');
+        }
+        function closeEdit() { document.getElementById('modalEdit').classList.add('is-hidden'); document.getElementById('modalEdit').classList.remove('flex'); }
+        async function saveEdit() {
+            if(!dbActive) return;
+            const t = document.getElementById('editTujuan').value;
+            const kl = document.getElementById('editJamKeluar').value;
+            const km = document.getElementById('editJamKembali').value;
+            showLoading("Menyimpan...");
+            await supabase.from('izin_keluar').update({ keperluan: t, waktu_keluar: kl, waktu_kembali: km }).eq('id', editId);
+            hideLoading(); closeEdit(); renderAdminContent();
+        }
+
+        async function exportToPDF() {
+            if(!dbActive) return alert("Database offline!");
+            showLoading("Membuat PDF...");
+            const { data } = await supabase.from('izin_keluar').select('*').order('created_at', { ascending: false });
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("LAPORAN IZIN KELUAR", 14, 15);
+            const rows = data.map(i => [new Date(i.created_at).toLocaleDateString('id-ID'), i.nama, i.keperluan, i.waktu_keluar || '-', i.waktu_kembali || '-', i.disetujui_oleh || '-']);
+            doc.autoTable({ head: [['Tgl', 'Nama', 'Keperluan', 'Keluar', 'Kembali', 'Petugas']], body: rows, startY: 25 });
+            doc.save(`Laporan_Izin_${Date.now()}.pdf`);
+            hideLoading();
+        }
+    </script>
+</body>
+</html>
