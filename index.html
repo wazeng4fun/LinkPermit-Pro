@@ -1,158 +1,428 @@
-<div id="authOverlay" class="fixed inset-0 z-[2000] bg-slate-900 flex items-center justify-center p-6">
-    <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-slide-up">
-        <div class="text-center mb-8">
-            <h2 id="authTitle" class="text-2xl font-black tracking-tighter uppercase">Login <span class="text-red-700">Piket</span></h2>
-            <p id="authSub" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Silakan masuk untuk bertugas</p>
-        </div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LinkPermit Pro - SMK Link and Match</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#b91c1c">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        input:focus, select:focus { border-color: #b91c1c !important; }
+    </style>
+</head>
+<body class="text-slate-900 antialiased">
 
-        <div id="formLoginPiket" class="space-y-4">
-            <select id="loginPiketNama" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-                <option value="">Pilih Nama Anda...</option>
-            </select>
-            <input type="password" id="loginPiketPass" placeholder="Password" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-            <button onclick="handleLoginPiket()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">Masuk Piket</button>
-            <div class="flex justify-between px-2">
-                <button onclick="switchAuth('regPiket')" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-700">Daftar Akun</button>
-                <button onclick="switchAuth('loginAdmin')" class="text-[9px] font-black uppercase text-slate-400 hover:text-red-700">Login Admin</button>
+    <div id="loadingOverlay" class="fixed inset-0 z-[9999] bg-white/95 flex flex-col items-center justify-center hidden">
+        <div class="w-10 h-10 border-4 border-slate-100 border-t-red-600 rounded-full animate-spin mb-4"></div>
+        <p id="loadingText" class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Memproses...</p>
+    </div>
+
+    <div id="authOverlay" class="fixed inset-0 z-[2000] bg-white hidden overflow-y-auto animate-slide-up">
+        <div class="max-w-md mx-auto p-8 pt-16">
+            <button onclick="closeAuth()" class="mb-8 text-slate-400"><i class="fas fa-arrow-left text-xl"></i></button>
+            
+            <div id="authHeader" class="text-center mb-8">
+                <h2 id="authTitle" class="text-2xl font-black uppercase italic">Piket <span class="text-red-700">Access</span></h2>
+                <p id="authSub" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Masuk untuk mengelola izin</p>
+            </div>
+
+            <div id="authTabs" class="flex bg-slate-100 p-1 rounded-2xl mb-8">
+                <button id="tabLogin" onclick="toggleAuthTab('login')" class="flex-1 py-3 text-[10px] font-black uppercase rounded-xl bg-white shadow-sm transition-all">Login</button>
+                <button id="tabDaftar" onclick="toggleAuthTab('daftar')" class="flex-1 py-3 text-[10px] font-black uppercase text-slate-400 transition-all">Daftar</button>
+            </div>
+
+            <div id="boxLogin" class="space-y-4">
+                <select id="loginNama" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all"></select>
+                <input type="password" id="loginPass" placeholder="Password" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all">
+                <button onclick="handleLoginPiket()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Masuk Bertugas</button>
+                <div class="flex justify-between px-2">
+                    <button onclick="forgotPassword()" class="text-[9px] font-black uppercase text-slate-400">Lupa Password?</button>
+                    <button onclick="switchAdminUI()" class="text-[9px] font-black uppercase text-red-700">Login Admin</button>
+                </div>
+            </div>
+
+            <div id="boxDaftar" class="hidden space-y-4">
+                <select id="regNama" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all"></select>
+                <input type="email" id="regEmail" placeholder="Email Instansi" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all">
+                <input type="number" id="regWA" placeholder="WhatsApp (08...)" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all">
+                <input type="password" id="regPass" placeholder="Buat Password" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all">
+                <button onclick="handleRegisterPiket()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Ajukan Akun</button>
+            </div>
+
+            <div id="boxAdmin" class="hidden space-y-4">
+                <input type="email" id="adminEmail" placeholder="Email Admin" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all">
+                <input type="password" id="adminPass" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-sm outline-none transition-all">
+                <button onclick="handleLoginAdmin()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">Akses Root</button>
+                <button onclick="switchAdminUI()" class="w-full text-[9px] font-black uppercase text-slate-400">Kembali ke Piket</button>
             </div>
         </div>
-
-        <div id="formRegPiket" class="hidden space-y-4">
-            <select id="regPiketNama" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-                <option value="">Pilih Nama (Dari Admin)...</option>
-            </select>
-            <input type="email" id="regPiketEmail" placeholder="Email" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-            <input type="number" id="regPiketWA" placeholder="Nomor WhatsApp" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-            <input type="password" id="regPiketPass" placeholder="Buat Password" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-            <button onclick="handleRegisterPiket()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">Ajukan Pendaftaran</button>
-            <button onclick="switchAuth('loginPiket')" class="w-full text-[9px] font-black uppercase text-slate-400">Kembali ke Login</button>
-        </div>
-
-        <div id="formLoginAdmin" class="hidden space-y-4">
-            <input type="email" id="adminEmail" placeholder="Email Admin" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-            <input type="password" id="adminPass" placeholder="Password Admin" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-sm outline-none ring-2 ring-transparent focus:ring-red-600 transition-all">
-            <button onclick="handleLoginAdmin()" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">Login Administrator</button>
-            <button onclick="switchAuth('loginPiket')" class="w-full text-[9px] font-black uppercase text-slate-400">Login sebagai Piket</button>
-        </div>
     </div>
-</div>
 
-<script>
-    // --- STATE KEAMANAN ---
-    let currentUser = null; // Menyimpan data siapa yang login (Admin atau Nama Piket)
-    let userRole = null; // 'admin' atau 'piket'
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[1000] px-6 py-3 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div class="max-w-md mx-auto flex justify-around items-center">
+            <button onclick="navTo('layanan')" id="nav-layanan" class="flex flex-col items-center gap-1 text-red-600">
+                <i class="fas fa-home-alt text-lg"></i>
+                <span class="text-[9px] font-black uppercase tracking-tighter">Layanan</span>
+            </button>
+            <button onclick="navTo('piket')" id="nav-piket" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-user-shield text-lg"></i>
+                <span class="text-[9px] font-black uppercase tracking-tighter">Piket</span>
+            </button>
+            <button onclick="navTo('admin')" id="nav-admin" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-cog text-lg"></i>
+                <span class="text-[9px] font-black uppercase tracking-tighter">Admin</span>
+            </button>
+        </div>
+    </nav>
 
-    // 1. Fungsi Switch Tampilan Auth
-    function switchAuth(type) {
-        document.getElementById('formLoginPiket').classList.add('hidden');
-        document.getElementById('formRegPiket').classList.add('hidden');
-        document.getElementById('formLoginAdmin').classList.add('hidden');
-        
-        if(type === 'loginPiket') {
-            document.getElementById('formLoginPiket').classList.remove('hidden');
-            document.getElementById('authTitle').innerHTML = 'Login <span class="text-red-700">Piket</span>';
-        } else if(type === 'regPiket') {
-            document.getElementById('formRegPiket').classList.remove('hidden');
-            document.getElementById('authTitle').innerHTML = 'Daftar <span class="text-red-700">Piket</span>';
-        } else if(type === 'loginAdmin') {
-            document.getElementById('formLoginAdmin').classList.remove('hidden');
-            document.getElementById('authTitle').innerHTML = 'Login <span class="text-red-700">Admin</span>';
-        }
-    }
+    <header class="sticky top-0 bg-white/80 backdrop-blur-md z-[900] px-6 py-4 border-b border-slate-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-sm font-black tracking-tighter uppercase italic">LinkPermit <span class="text-red-700">Pro</span></h1>
+                <p id="userStatus" class="text-[8px] font-bold text-slate-400 uppercase tracking-[0.2em]">Guest Mode</p>
+            </div>
+            <div class="text-right">
+                <div id="clockDisplay" class="text-xs font-black tracking-tight">00:00</div>
+                <div id="dateDisplay" class="text-[7px] font-bold text-slate-400 uppercase tracking-widest">LOADING</div>
+            </div>
+        </div>
+    </header>
 
-    // 2. Fungsi Login Admin (Menggunakan Supabase Auth)
-    async function handleLoginAdmin() {
-        const email = document.getElementById('adminEmail').value;
-        const pass = document.getElementById('adminPass').value;
-        
-        showLoading("Verifikasi Admin...");
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: pass
-        });
+    <main class="max-w-md mx-auto p-6 pb-32">
+        <div id="sec-layanan" class="animate-slide-up space-y-6">
+            <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20">
+                <div class="relative z-10">
+                    <h2 class="text-xl font-black italic mb-1">Form Izin Keluar</h2>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em]">SMK Link and Match</p>
+                </div>
+                <i class="fas fa-paper-plane absolute -right-4 -bottom-4 text-7xl text-white/5 rotate-12"></i>
+            </div>
 
-        if (error) {
-            alert("Login Admin Gagal: " + error.message);
-        } else {
-            currentUser = "Administrator";
-            userRole = "admin";
-            document.getElementById('authOverlay').classList.add('hidden');
-            navTo('admin'); // Langsung ke menu admin
-        }
-        hideLoading();
-    }
+            <form id="izinForm" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Lengkap</label>
+                    <select id="inputNama" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none transition-all"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Kategori</label>
+                        <select id="inputKategori" required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none">
+                            <option value="Dinas/Sekolah">Dinas</option>
+                            <option value="Pribadi">Pribadi</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Keperluan</label>
+                        <input id="inputTujuan" type="text" placeholder="..." required class="w-full p-4 bg-white border border-slate-200 rounded-2xl font-bold text-sm shadow-sm outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-red-700 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-700/20 active:scale-95 transition-all">
+                    Ajukan Izin <i class="fas fa-chevron-right ml-2"></i>
+                </button>
+            </form>
+        </div>
 
-    // 3. Fungsi Registrasi Piket (Simpan ke tabel users_piket dengan status is_approved = false)
-    async function handleRegisterPiket() {
-        const nama = document.getElementById('regPiketNama').value;
-        const email = document.getElementById('regPiketEmail').value;
-        const wa = document.getElementById('regPiketWA').value;
-        const pass = document.getElementById('regPiketPass').value;
+        <div id="sec-piket" class="hidden animate-slide-up space-y-6">
+            <h2 class="text-sm font-black uppercase tracking-widest border-l-4 border-red-700 pl-3">Daftar Antrean Izin</h2>
+            <div id="listPiket" class="space-y-4">
+                </div>
+        </div>
 
-        if(!nama || !email || !pass) return alert("Lengkapi data!");
+        <div id="sec-admin" class="hidden animate-slide-up space-y-6">
+            <div class="bg-red-700 p-6 rounded-3xl text-white shadow-xl shadow-red-700/20">
+                <h2 class="text-sm font-black uppercase">Admin Dashboard</h2>
+                <p id="adminGreeting" class="text-[9px] opacity-70 mt-1">Mengelola Petugas & Akses</p>
+            </div>
+            
+            <div class="space-y-4">
+                <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Persetujuan Petugas Piket</h3>
+                <div id="listApprovePiket" class="space-y-3">
+                    </div>
+            </div>
+        </div>
+    </main>
 
-        showLoading("Mengirim Pendaftaran...");
-        const { error } = await supabaseClient.from('users_piket').insert([
-            { nama_piket: nama, email: email, whatsapp: wa, password: pass, is_approved: false }
-        ]);
+    <script>
+        // --- KONFIGURASI SUPABASE ---
+        const SB_URL = "https://isgzhypglpxjirjrnvnf.supabase.co";
+        const SB_KEY = "sb_publishable_r5PbD3I5xBPwFCOpoOvnSg_gY8e3nIx"; // Ganti dengan key asli Anda
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        if (error) {
-            alert("Gagal Daftar: " + error.message);
-        } else {
-            alert("Pendaftaran Berhasil! Silakan hubungi Admin untuk persetujuan akun Anda.");
-            switchAuth('loginPiket');
-        }
-        hideLoading();
-    }
+        let currentSession = null; // { nama, role }
+        let state = { dataIzin: [], masterPegawai: [], masterPiket: [] };
 
-    // 4. Fungsi Login Piket (Cek ke tabel users_piket & is_approved)
-    async function handleLoginPiket() {
-        const nama = document.getElementById('loginPiketNama').value;
-        const pass = document.getElementById('loginPiketPass').value;
-
-        showLoading("Mengecek Akun...");
-        const { data, error } = await supabaseClient
-            .from('users_piket')
-            .select('*')
-            .eq('nama_piket', nama)
-            .eq('password', pass)
-            .single();
-
-        if (data) {
-            if (data.is_approved) {
-                currentUser = data.nama_piket;
-                userRole = "piket";
-                document.getElementById('authOverlay').classList.add('hidden');
-                navTo('piket');
-            } else {
-                alert("Akun Anda belum disetujui oleh Admin.");
+        // --- SISTEM NAVIGASI & AUTH CHECK ---
+        function navTo(section) {
+            if (section === 'layanan') {
+                renderSection(section);
+                return;
             }
-        } else {
-            alert("Nama atau Password salah.");
+
+            if (!currentSession) {
+                showAuth(section);
+            } else {
+                if (section === 'admin' && currentSession.role !== 'admin') {
+                    alert("Akses ditolak! Hanya Admin yang diperbolehkan.");
+                    return;
+                }
+                renderSection(section);
+            }
         }
-        hideLoading();
-    }
 
-    // 5. Fitur Persetujuan (Hanya muncul di menu Admin)
-    async function setujuiPiket(id) {
-        showLoading("Menyetujui...");
-        await supabaseClient.from('users_piket').update({ is_approved: true }).eq('id', id);
-        alert("Petugas telah disetujui!");
-        // Refresh data pendaftaran di UI Admin
-        hideLoading();
-    }
+        function renderSection(section) {
+            ['layanan', 'piket', 'admin'].forEach(s => {
+                const sec = document.getElementById(`sec-${s}`);
+                const nav = document.getElementById(`nav-${s}`);
+                if (sec) sec.classList.add('hidden');
+                if (nav) nav.classList.replace('text-red-600', 'text-slate-400');
+            });
+            document.getElementById(`sec-${section}`).classList.remove('hidden');
+            document.getElementById(`nav-${section}`).classList.replace('text-slate-400', 'text-red-600');
+            
+            if (section === 'piket') loadPiketData();
+            if (section === 'admin') loadAdminData();
+        }
 
-    // 6. Audit Trail saat Menyetujui Izin Keluar
-    async function approveIzin(idTiket) {
-        // Saat piket menyetujui izin keluar
-        const { error } = await supabaseClient
-            .from('izin_keluar')
-            .update({ 
-                status: 'Keluar', 
-                disetujui_oleh: currentUser // Mencatat siapa yang klik setuju
-            })
-            .eq('id', idTiket);
-        
-        if(!error) alert(`Izin disetujui oleh ${currentUser}`);
-    }
-</script>
+        // --- SISTEM AUTHENTICATION ---
+        function showAuth() {
+            document.getElementById('authOverlay').classList.remove('hidden');
+            fetchMasterPiket(); // Ambil nama piket dari tabel master_piket
+        }
+
+        function closeAuth() {
+            document.getElementById('authOverlay').classList.add('hidden');
+        }
+
+        function toggleAuthTab(type) {
+            const isLogin = type === 'login';
+            document.getElementById('boxLogin').classList.toggle('hidden', !isLogin);
+            document.getElementById('boxDaftar').classList.toggle('hidden', isLogin);
+            document.getElementById('tabLogin').classList.toggle('bg-white', isLogin);
+            document.getElementById('tabLogin').classList.toggle('shadow-sm', isLogin);
+            document.getElementById('tabDaftar').classList.toggle('bg-white', !isLogin);
+            document.getElementById('tabDaftar').classList.toggle('shadow-sm', !isLogin);
+        }
+
+        function switchAdminUI() {
+            document.getElementById('boxAdmin').classList.toggle('hidden');
+            document.getElementById('boxLogin').classList.toggle('hidden');
+            document.getElementById('authTabs').classList.toggle('hidden');
+            document.getElementById('authTitle').innerText = 
+                document.getElementById('boxAdmin').classList.contains('hidden') ? 'PIKET ACCESS' : 'ADMIN ROOT';
+        }
+
+        async function fetchMasterPiket() {
+            const { data } = await supabase.from('master_piket').select('nama_piket').order('nama_piket');
+            const sels = [document.getElementById('loginNama'), document.getElementById('regNama')];
+            sels.forEach(s => {
+                s.innerHTML = '<option value="">Pilih Nama Petugas...</option>';
+                data?.forEach(p => s.innerHTML += `<option value="${p.nama_piket}">${p.nama_piket}</option>`);
+            });
+        }
+
+        // --- HANDLER LOGIN/REGISTER ---
+        async function handleLoginPiket() {
+            const nama = document.getElementById('loginNama').value;
+            const pass = document.getElementById('loginPass').value;
+            if(!nama || !pass) return alert("Lengkapi data!");
+
+            showLoading("Verifikasi Akun...");
+            const { data, error } = await supabase.from('users_piket')
+                .select('*').eq('nama_piket', nama).eq('password', pass).single();
+
+            hideLoading();
+            if (data) {
+                if (data.is_approved) {
+                    currentSession = { nama: data.nama_piket, role: 'piket' };
+                    updateStatusUI();
+                    closeAuth();
+                    navTo('piket');
+                } else {
+                    alert("Akun Anda belum disetujui oleh Admin.");
+                }
+            } else {
+                alert("Nama atau Password salah!");
+            }
+        }
+
+        async function handleRegisterPiket() {
+            const nama = document.getElementById('regNama').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+            const wa = document.getElementById('regWA').value;
+
+            if(!nama || !email || !pass) return alert("Data wajib diisi!");
+
+            showLoading("Mengajukan Akun...");
+            const { error } = await supabase.from('users_piket').insert([{
+                nama_piket: nama, email, password: pass, whatsapp: wa, is_approved: false
+            }]);
+
+            hideLoading();
+            if (error) alert("Pendaftaran gagal: " + error.message);
+            else {
+                alert("Berhasil Terdaftar! Hubungi Admin untuk aktivasi.");
+                toggleAuthTab('login');
+            }
+        }
+
+        async function handleLoginAdmin() {
+            const email = document.getElementById('adminEmail').value;
+            const pass = document.getElementById('adminPass').value;
+
+            showLoading("Authenticating Admin...");
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+
+            hideLoading();
+            if (data.user) {
+                currentSession = { nama: 'Administrator', role: 'admin' };
+                updateStatusUI();
+                closeAuth();
+                navTo('admin');
+            } else {
+                alert("Login Admin Gagal!");
+            }
+        }
+
+        function updateStatusUI() {
+            document.getElementById('userStatus').innerText = 
+                currentSession ? `${currentSession.role.toUpperCase()}: ${currentSession.nama}` : 'GUEST MODE';
+            document.getElementById('userStatus').classList.toggle('text-red-700', !!currentSession);
+        }
+
+        function forgotPassword() {
+            alert("Silakan hubungi Administrator IT Sekolah untuk melakukan reset password akun Piket Anda.");
+        }
+
+        // --- SISTEM NOTIFIKASI PERSISTEN ---
+        function kirimNotifikasi(pesan) {
+            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification('LinkPermit Pro', {
+                        body: pesan,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1162/1162456.png',
+                        vibrate: [300, 100, 300],
+                        requireInteraction: true, // Notifikasi menggantung
+                        tag: 'izin-alert',
+                        renotify: true
+                    });
+                });
+            }
+        }
+
+        // --- CORE FEATURES: IZIN & APPROVAL ---
+        async function loadPiketData() {
+            const { data } = await supabase.from('izin_keluar').select('*').order('created_at', { ascending: false });
+            const list = document.getElementById('listPiket');
+            list.innerHTML = '';
+            
+            data?.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[8px] font-black uppercase text-slate-400 tracking-widest">${item.kategori}</p>
+                            <h4 class="font-black text-sm">${item.nama}</h4>
+                        </div>
+                        <span class="text-[8px] font-black px-3 py-1 rounded-full ${item.status === 'Keluar' ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'} uppercase">
+                            ${item.status}
+                        </span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-medium">Tujuan: ${item.keperluan}</p>
+                    ${item.status === 'Pending' ? `
+                        <button onclick="setujuiIzin('${item.id}')" class="w-full bg-slate-900 text-white py-3 rounded-xl text-[9px] font-black uppercase tracking-widest">
+                            Setujui Keluar
+                        </button>
+                    ` : `<p class="text-[8px] font-bold text-slate-300 italic uppercase tracking-tighter">Disetujui oleh: ${item.disetujui_oleh || 'System'}</p>`}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        async function setujuiIzin(id) {
+            showLoading("Memproses Izin...");
+            const { error } = await supabase.from('izin_keluar').update({
+                status: 'Keluar',
+                disetujui_oleh: currentSession.nama // AUDIT TRAIL
+            }).eq('id', id);
+
+            if (!error) loadPiketData();
+            hideLoading();
+        }
+
+        async function loadAdminData() {
+            const { data } = await supabase.from('users_piket').select('*').eq('is_approved', false);
+            const list = document.getElementById('listApprovePiket');
+            list.innerHTML = data?.length ? '' : '<p class="text-[9px] text-slate-400 italic">Tidak ada pendaftaran baru.</p>';
+            
+            data?.forEach(p => {
+                const row = document.createElement('div');
+                row.className = "flex justify-between items-center bg-slate-50 p-4 rounded-2xl";
+                row.innerHTML = `
+                    <div>
+                        <p class="text-[10px] font-black">${p.nama_piket}</p>
+                        <p class="text-[8px] text-slate-400">${p.email}</p>
+                    </div>
+                    <button onclick="approveAkun('${p.id}')" class="bg-red-700 text-white px-4 py-2 rounded-lg text-[8px] font-black uppercase">Approve</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        async function approveAkun(id) {
+            await supabase.from('users_piket').update({ is_approved: true }).eq('id', id);
+            loadAdminData();
+        }
+
+        // --- UTILS ---
+        function showLoading(txt) {
+            document.getElementById('loadingText').innerText = txt;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('clockDisplay').textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+        }
+
+        // --- INIT ---
+        window.onload = async () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // Load Pegawai untuk Form
+            const { data } = await supabase.from('data_pegawai').select('nama').order('nama');
+            const sel = document.getElementById('inputNama');
+            sel.innerHTML = '<option value="">Pilih Nama...</option>';
+            data?.forEach(p => sel.innerHTML += `<option value="${p.nama}">${p.nama}</option>`);
+
+            if ('Notification' in window) Notification.requestPermission();
+        };
+
+        // Service Worker Reg
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then(reg => console.log('PWA Active'));
+        }
+    </script>
+</body>
+</html>
