@@ -180,7 +180,7 @@
                             <div class="pt-3 border-t border-slate-200">
                                 <p class="font-black text-slate-700 uppercase tracking-wide mb-1">Agenda Transisi (Overlap)</p>
                                 <p><span class="font-black text-slate-700">Waktu Bersama:</span> 12.00 – 12.30 (Durasi: 30 menit)</p>
-                                <p class="mt-1">Selama pukul 12.00 hingga 12.30, petugas dari Shift 1 dan Shift 2 akan berada di lokasi secara bersamaan. Waktu ini digunakan untuk briefing atau serah terima tugas (handover).</p>
+                                <p class="mt-1">Selama pukul 12.00 hingga 12.30, petugas dari Shift 1 and Shift 2 akan berada di lokasi secara bersamaan. Waktu ini digunakan untuk briefing atau serah terima tugas (handover).</p>
                             </div>
                         </div>
                     </div>
@@ -305,12 +305,12 @@
                 <div class="space-y-5">
                     <div class="space-y-1.5">
                         <label id="labelVal1" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Nama Lengkap</label>
-                        <input id="formVal1" type="text" placeholder="Masukkan Teks" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700">
+                        <input id="formVal1" type="text" placeholder="Masukkan Teks" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700" required>
                     </div>
                     <div class="space-y-1.5 relative" id="containerVal2">
                         <label id="labelVal2" class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">PIN / Jabatan</label>
                         <div class="relative flex items-center">
-                            <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700">
+                            <input id="formVal2" type="text" placeholder="PIN / Jabatan" class="w-full p-4 bg-slate-50 rounded-xl text-sm font-bold border border-slate-200 outline-none focus:border-red-600 focus:bg-white transition-all text-slate-700" required>
                             <button id="btnGeneratePin" type="button" onclick="generateRandomPin()" class="absolute right-2 bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-black uppercase px-4 py-2.5 rounded-lg tracking-wider transition-all hidden shadow-md">
                                 <i class="fas fa-random mr-1"></i> Generate
                             </button>
@@ -417,7 +417,7 @@
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-black text-slate-400 uppercase ml-1 tracking-wider">Jam Kembali</label>
-                            <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700">
+                            <input id="editWaktuKembali" type="text" inputmode="numeric" oninput="formatTimeInput(event)" maxlength="5" placeholder="15:45" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-blue-600 text-slate-700" required>
                         </div>
                     </div>
                 </div>
@@ -584,6 +584,7 @@
             return (parts.length === 3) ? `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` : '';
         }
 
+        // Format Tanggal ISO Ke Format Tampilan DD/MM/YYYY
         function toDDMMYYYY(dateStr) {
             if (!dateStr || dateStr === '-') return '';
             const parts = dateStr.split('-');
@@ -875,6 +876,48 @@
                 const { data } = await supabaseClient.from('izin').select('*').eq('status', 'Selesai').order('created_at', {ascending: false}).limit(100);
                 hideLoading(); state.tempLaporanData = data || [];
                 
+                // Menghitung statistik keterlambatan pegawai yang dibedakan berdasarkan jenis izin
+                const rekapKeterlambatan = {};
+                (data || []).forEach(i => {
+                    if (isTerlambat(i)) {
+                        if (!rekapKeterlambatan[i.nama]) {
+                            rekapKeterlambatan[i.nama] = { dinas: 0, pribadi: 0 };
+                        }
+                        const kategoriNorm = (i.keperluan || '').toLowerCase();
+                        if (kategoriNorm.includes('dinas') || kategoriNorm.includes('sekolah')) {
+                            rekapKeterlambatan[i.nama].dinas++;
+                        } else {
+                            rekapKeterlambatan[i.nama].pribadi++;
+                        }
+                    }
+                });
+
+                // Generate HTML untuk Panel Ringkasan Keterlambatan Pegawai
+                let rekapCardsHtml = '';
+                const pegawaiTerlambat = Object.keys(rekapKeterlambatan).sort();
+                if (pegawaiTerlambat.length > 0) {
+                    rekapCardsHtml = pegawaiTerlambat.map(nama => {
+                        const d = rekapKeterlambatan[nama].dinas;
+                        const p = rekapKeterlambatan[nama].pribadi;
+                        return `
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                            <div class="text-xs font-black uppercase text-slate-800 truncate mb-2">${nama}</div>
+                            <div class="grid grid-cols-2 gap-2 text-[10px] font-bold">
+                                <div class="bg-rose-50 text-rose-700 p-2 rounded-lg text-center">
+                                    <span class="block text-xs font-black">${d}x</span>
+                                    <span>Izin Dinas</span>
+                                </div>
+                                <div class="bg-amber-50 text-amber-700 p-2 rounded-lg text-center">
+                                    <span class="block text-xs font-black">${p}x</span>
+                                    <span>Izin Pribadi</span>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    rekapCardsHtml = `<div class="col-span-full py-6 text-center text-xs font-black text-slate-300 uppercase tracking-widest"><i class="fas fa-check-circle text-emerald-500 mr-2"></i> Semua Pegawai Disiplin (0 Keterlambatan)</div>`;
+                }
+
                 let tbodyHtml = '';
                 if (data && data.length > 0) {
                     tbodyHtml = data.map(i => {
@@ -911,6 +954,7 @@
                 }
 
                 container.innerHTML = `
+                    <!-- Row Atas: Filter Tanggal dan Ekspor PDF -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6 flex justify-between items-end shrink-0">
                         <div class="flex gap-4 items-end">
                             <div class="space-y-2">
@@ -927,8 +971,17 @@
                             <button type="button" onclick="downloadReport()" class="px-6 py-3 bg-red-700 hover:bg-red-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-700/20 transition-all"><i class="fas fa-file-pdf mr-2"></i> Unduh PDF</button>
                         </div>
                     </div>
-                    <!-- Tabel yang bisa di scroll berkat h-[calc...] -->
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-250px)]">
+
+                    <!-- Row Tengah: Ringkasan Jumlah Keterlambatan Pegawai -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6 shrink-0">
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="fas fa-user-clock text-red-600 text-sm"></i> Ringkasan Keterlambatan Pegawai (Dinas vs Pribadi)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[160px] overflow-y-auto custom-scroll pr-2">
+                            ${rekapCardsHtml}
+                        </div>
+                    </div>
+
+                    <!-- Row Bawah: Detail Tabel Riwayat -->
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-420px)] min-h-[250px]">
                         <div class="flex-1 overflow-y-auto custom-scroll">
                             <table class="w-full text-left border-collapse relative">
                                 <thead class="bg-slate-50 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
@@ -1641,6 +1694,24 @@
             r.readAsText(f); 
         }
 
+        async function saveMasterData(type, v1, v2, v3, isEdit, id) {
+            showLoading("Menyimpan...");
+            const t = type === 'pegawai' ? 'pegawai' : 'petugas';
+            const p = type === 'pegawai' 
+                ? { nama: v1, jabatan: v2, no_hp: v3 } 
+                : { nama: v1, pin: v2, no_hp: v3 };
+                
+            const { error } = isEdit ? await supabaseClient.from(t).update(p).eq('id', id) : await supabaseClient.from(t).insert([p]);
+            if (!error) { 
+                type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); 
+                closeForm(); 
+                showToast("Data master berhasil disimpan", "success"); 
+            } else {
+                showToast("Gagal menyimpan data master.", "error");
+            }
+            hideLoading();
+        }
+
         function showLoading(txt) { const el = document.getElementById('loadingText'); if (el) el.textContent = txt; document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
         
@@ -1657,6 +1728,9 @@
             hideLoading(); updateTime(); setInterval(updateTime, 1000);
         }
         window.onload = init;
+        
+        // Form Edit Laporan Izin Handling
+        document.getElementById('editIzinForm').onsubmit = (e) => { e.preventDefault(); saveEditIzin(); };
     </script>
 </body>
 </html>
