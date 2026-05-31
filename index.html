@@ -1508,17 +1508,89 @@
                 const { data, error } = await supabaseClient.from('izin').select('*').gte('created_at', new Date(startDate).toISOString()).lte('created_at', endDateFull.toISOString()).order('created_at', { ascending: false });
                 if (error || !data || data.length === 0) { showToast("Tidak ditemukan data pada periode ini.", "error"); hideLoading(); return; }
 
-                const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); 
-                doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("LAPORAN PENGAJUAN IZIN KELUAR", 14, 15);
-                doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text(`Periode: ${startDate} s/d ${endDate}`, 14, 22);
+                const { jsPDF } = window.jspdf; 
+                const doc = new jsPDF('l', 'mm', 'a4'); // Mode Landscape A4
+                
+                // --- HALAMAN 1: RINGKASAN REKAPITULASI KETERLAMBATAN ---
+                doc.setFont("helvetica", "bold"); 
+                doc.setFontSize(16); 
+                doc.setTextColor(127, 29, 29); // Tema Premium Maroon
+                doc.text("LINKPERMIT PRO - RINGKASAN REKAPITULASI KETERLAMBATAN", 14, 15);
+                
+                doc.setFont("helvetica", "normal"); 
+                doc.setFontSize(10); 
+                doc.setTextColor(30, 41, 59); // Slate-800
+                doc.text(`Periode Rekap: ${startDate} s/d ${endDate}`, 14, 21);
+                doc.text("Halaman pertama ini berisi akumulasi jumlah keterlambatan yang dipisah berdasarkan jenis keperluan.", 14, 26);
 
-                const tableColumn = ["ID Izin", "Nama Pegawai", "Kategori", "Tanggal Pengajuan", "Keluar", "Kembali", "Durasi", "Keterangan"];
-                const tableRows = [];
+                // Hitung statistik keterlambatan per pegawai secara dinamis
+                const rekapKeterlambatan = {};
+                data.forEach(i => {
+                    if (isTerlambat(i)) {
+                        if (!rekapKeterlambatan[i.nama]) {
+                            rekapKeterlambatan[i.nama] = { dinas: 0, pribadi: 0, total: 0 };
+                        }
+                        const kategoriNorm = (i.keperluan || '').toLowerCase();
+                        if (kategoriNorm.includes('dinas') || kategoriNorm.includes('sekolah')) {
+                            rekapKeterlambatan[i.nama].dinas++;
+                        } else {
+                            rekapKeterlambatan[i.nama].pribadi++;
+                        }
+                        rekapKeterlambatan[i.nama].total++;
+                    }
+                });
+
+                const summaryColumns = ["No", "Nama Pegawai / Guru", "Keterlambatan Dinas / Sekolah", "Keterlambatan Kepentingan Pribadi", "Total Akumulasi Keterlambatan"];
+                const summaryRows = [];
+                let indexNo = 1;
+                Object.keys(rekapKeterlambatan).sort().forEach(nama => {
+                    summaryRows.push([
+                        indexNo++,
+                        nama.toUpperCase(),
+                        `${rekapKeterlambatan[nama].dinas} Kali`,
+                        `${rekapKeterlambatan[nama].pribadi} Kali`,
+                        `${rekapKeterlambatan[nama].total} Kali`
+                    ]);
+                });
+
+                if (summaryRows.length === 0) {
+                    summaryRows.push(["-", "Semua Guru & Karyawan Tepat Waktu", "0 Kali", "0 Kali", "0 Kali"]);
+                }
+
+                // Render Tabel Ringkasan (Tema Maroon)
+                doc.autoTable({
+                    head: [summaryColumns],
+                    body: summaryRows,
+                    startY: 32,
+                    theme: 'grid',
+                    headStyles: { fillColor: [127, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' }, // Maroon Header
+                    alternateRowStyles: { fillColor: [248, 250, 252] },
+                    styles: { fontSize: 9, valign: 'middle', cellPadding: 3.5 }
+                });
+
+                // --- HALAMAN 2 & SETERUSNYA: LOG FILE AKTIVITAS DETAIL ---
+                doc.addPage();
+                
+                doc.setFont("helvetica", "bold"); 
+                doc.setFontSize(14);
+                doc.setTextColor(30, 41, 59); // Slate Dark
+                doc.text("LOG FILE AKTIVITAS DETAIL PENGAJUAN IZIN KELUAR", 14, 15);
+                
+                doc.setFont("helvetica", "normal"); 
+                doc.setFontSize(10);
+                doc.text(`Daftar lengkap riwayat izin keluar yang tercatat pada sistem LinkPermit Pro periode ${startDate} s/d ${endDate}`, 14, 21);
+
+                const detailColumns = ["ID Izin", "Nama Pegawai", "Kategori", "Tujuan / Keperluan", "Waktu Keluar", "Waktu Kembali", "Durasi", "Petugas Approval", "Keterangan"];
+                const detailRows = [];
+
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
-                    let out24 = formatTo24Hour(row.waktu_keluar) || '-', in24 = formatTo24Hour(row.waktu_kembali) || '-';
-                    let tglK = row.tanggal_keluar || row.tanggal || '-', tglKm = row.tanggal_kembali || row.tanggal || '-';
+                    let out24 = formatTo24Hour(row.waktu_keluar) || '-';
+                    let in24 = formatTo24Hour(row.waktu_kembali) || '-';
+                    let tglK = row.tanggal_keluar || row.tanggal || '-';
+                    let tglKm = row.tanggal_kembali || row.tanggal || '-';
                     let durasi = "-";
+
                     if (out24 !== '-' && in24 !== '-') {
                         const [kh, km] = out24.split(':').map(Number), [eh, em] = in24.split(':').map(Number);
                         if (!isNaN(kh) && !isNaN(km) && !isNaN(eh) && !isNaN(em)) {
@@ -1528,14 +1600,50 @@
                             durasi = jam > 0 && sisaMenit > 0 ? `${jam} Jam ${sisaMenit} Mnt` : (jam > 0 ? `${jam} Jam` : `${sisaMenit} Menit`);
                         }
                     }
-                    const isLate = isTerlambat(row), keterangan = isLate ? "MELEBIHI IZIN KELUAR" : "";
-                    tableRows.push([row.id_izin || '', row.nama || '', row.keperluan || '-', row.tanggal || '', `${tglK}\n${out24}`, `${tglKm}\n${in24}`, durasi, keterangan]);
+
+                    const isLate = isTerlambat(row);
+                    const keterangan = isLate ? "MELEBIHI BATAS IZIN" : "TEPAT WAKTU";
+                    const approvalStaff = row.petugas_piket || '-';
+
+                    detailRows.push([
+                        row.id_izin || '', 
+                        row.nama || '', 
+                        row.keperluan || '-', 
+                        row.tujuan || '-', 
+                        `${tglK}\n${out24}`, 
+                        `${tglKm}\n${in24}`, 
+                        durasi, 
+                        approvalStaff,
+                        keterangan
+                    ]);
                 }
 
-                doc.autoTable({ head: [tableColumn], body: tableRows, startY: 28, margin: { bottom: 15 }, styles: { fontSize: 8, valign: 'middle', cellPadding: 2 } });
+                // Render Tabel Log Riwayat (Tema Slate Gelap)
+                doc.autoTable({
+                    head: [detailColumns],
+                    body: detailRows,
+                    startY: 28,
+                    theme: 'grid',
+                    headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' }, // Dark Slate Header
+                    alternateRowStyles: { fillColor: [248, 250, 252] },
+                    styles: { fontSize: 8, valign: 'middle', cellPadding: 2.5 },
+                    didParseCell: function(cellData) {
+                        // Highlight text jika terlambat
+                        if (cellData.column.index === 8 && cellData.cell.text[0] === 'MELEBIHI BATAS IZIN') {
+                            cellData.cell.styles.textColor = [185, 28, 28]; // Bold Red
+                            cellData.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                });
+
                 doc.save(`Laporan_Izin_${startDate}_sd_${endDate}.pdf`);
-                showToast("Laporan berhasil diunduh!", "success");
-            } catch (err) { showToast("Gagal menghasilkan laporan.", "error"); } finally { hideLoading(); }
+                showToast("Laporan PDF berhasil diunduh!", "success");
+            } catch (err) { 
+                console.error(err);
+                showToast("Gagal menghasilkan laporan.", "error"); 
+            } finally { 
+                hideLoading(); 
+            }
         }
 
         async function deleteReportByPeriod() {
@@ -1686,7 +1794,7 @@
                     if (promisesToUpdate.length > 0) await Promise.all(promisesToUpdate);
                     if (payloadsToInsert.length > 0) { const {error} = await supabaseClient.from(type).insert(payloadsToInsert); if(error) throw error; }
                     type === 'pegawai' ? await fetchPegawai() : await fetchPetugas(); 
-                    showToast(`Selesai: ${payloadsToInsert.length} data baru & ${promisesToUpdate.length} diperbarui!`, "success");
+                    showToast("Selesai diproses!", "success");
                 } catch (err) {
                     showToast("Kesalahan sistem saat memproses CSV.", "error");
                 } finally { hideLoading(); e.target.value = ''; }
