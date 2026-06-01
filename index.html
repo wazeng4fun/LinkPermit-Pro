@@ -29,6 +29,33 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Responsive Khusus Admin Dashboard Mobile (Maks. 768px) */
+        @media screen and (max-width: 768px) {
+            #desktopAdminView { flex-direction: column !important; overflow-y: auto !important; }
+            #desktopAdminView aside { width: 100% !important; height: auto !important; flex-shrink: 0 !important; }
+            #desktopAdminView aside nav { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; padding: 16px !important; }
+            #desktopAdminView aside nav button { padding: 12px !important; flex-direction: column !important; justify-content: center !important; text-align: center !important; gap: 6px !important; }
+            #desktopAdminView aside nav button i { margin-right: 0 !important; font-size: 1.25rem !important; }
+            #desktopAdminView main { height: auto !important; min-height: 100vh !important; overflow-y: visible !important; }
+            #desktopAdminView header { flex-direction: column !important; align-items: flex-start !important; height: auto !important; padding: 20px !important; gap: 15px !important; }
+            #desktopAdminView header > div:last-child { width: 100% !important; justify-content: space-between !important; }
+            #desktopAdminContent { padding: 16px !important; overflow-y: visible !important; height: auto !important; }
+            #desktopAdminContent > div { height: auto !important; min-height: max-content !important; }
+            
+            /* Responsive Utilities untuk Konten Admin */
+            #desktopAdminContent .flex.justify-between.items-end { flex-direction: column !important; align-items: stretch !important; gap: 15px !important; }
+            #desktopAdminContent .flex.gap-4.items-end { flex-direction: column !important; align-items: stretch !important; width: 100% !important; }
+            #desktopAdminContent .flex.gap-4.items-end > div { width: 100% !important; }
+            #desktopAdminContent .flex.gap-4.items-end input { width: 100% !important; }
+            #desktopAdminContent .flex.gap-3 { flex-direction: column !important; width: 100% !important; }
+            #desktopAdminContent .flex.gap-3 button, #desktopAdminContent .flex.gap-3 label { width: 100% !important; justify-content: center !important; }
+            #desktopAdminContent > div > button { width: 100% !important; margin-top: 10px !important; }
+            
+            /* Tabel Data Responsive */
+            table { display: block !important; overflow-x: auto !important; white-space: nowrap !important; border-width: 0 !important; }
+            .overflow-y-auto { overflow-x: auto !important; }
+        }
     </style>
 </head>
 <body class="text-slate-900 antialiased h-screen overflow-hidden flex flex-col">
@@ -733,6 +760,12 @@
             const list = document.getElementById('listPetugasHariIni');
             if(!container || !list) return;
 
+            // Menyembunyikan tampilan On Duty jika Petugas sudah berhasil login
+            if (state.currentUser) {
+                container.classList.add('hidden');
+                return;
+            }
+
             const hariMasehi = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const now = new Date();
             const today = hariMasehi[now.getDay()];
@@ -1259,10 +1292,25 @@
         function handleLogin() {
             const user = document.getElementById('piketUser').value, pin = document.getElementById('piketPin').value;
             const match = state.listPetugas.find(p => p.nama === user && p.pin === pin);
-            if (match) { state.currentUser = match; document.getElementById('piketLoginForm').classList.add('hidden'); document.getElementById('piketDashboard').classList.remove('hidden'); document.getElementById('petugasAktif').textContent = match.nama; showToast("Petugas aktif!", "success"); renderPiketAntrean(); } 
+            if (match) { 
+                state.currentUser = match; 
+                document.getElementById('piketLoginForm').classList.add('hidden'); 
+                document.getElementById('piketDashboard').classList.remove('hidden'); 
+                document.getElementById('petugasAktif').textContent = match.nama; 
+                document.getElementById('petugasHariIniContainer').classList.add('hidden'); // Sembunyikan seketika
+                showToast("Petugas aktif!", "success"); 
+                renderPiketAntrean(); 
+            } 
             else showToast("PIN salah.", "error");
         }
-        function handleLogout() { state.currentUser = null; document.getElementById('piketPin').value = ''; document.getElementById('piketLoginForm').classList.remove('hidden'); document.getElementById('piketDashboard').classList.add('hidden'); navTo('layanan'); }
+        function handleLogout() { 
+            state.currentUser = null; 
+            document.getElementById('piketPin').value = ''; 
+            document.getElementById('piketLoginForm').classList.remove('hidden'); 
+            document.getElementById('piketDashboard').classList.add('hidden'); 
+            renderPetugasHariIni(); // Munculkan kembali saat logout
+            navTo('layanan'); 
+        }
 
         async function approveIzin(id) {
             showLoading("Mengonfirmasi...");
