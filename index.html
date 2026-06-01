@@ -256,11 +256,14 @@
     <!-- ========================================== -->
     <!-- TAMPILAN DESKTOP ADMIN (Dashboard)         -->
     <!-- ========================================== -->
-    <div id="desktopAdminView" class="hidden h-full w-full bg-slate-50 flex flex-row overflow-hidden animate-slide-up">
+    <div id="desktopAdminView" class="hidden h-full w-full bg-slate-50 flex flex-row overflow-hidden animate-slide-up relative">
         
+        <!-- BACKDROP COVER UNTUK MENU HAMBURGER (MOBILE ONLY) -->
+        <div id="mobileSidebarBackdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[4400] hidden md:hidden"></div>
+
         <!-- SIDEBAR -->
-        <aside class="w-72 bg-slate-900 text-white flex flex-col shadow-2xl z-20 shrink-0">
-            <div class="p-8 border-b border-white/5">
+        <aside id="adminSidebar" class="w-72 bg-slate-900 text-white flex flex-col shadow-2xl z-[4500] shrink-0 fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:relative transition-transform duration-300 ease-in-out">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-red-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-700/20">
                         <i class="fas fa-id-card text-sm"></i>
@@ -270,6 +273,10 @@
                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Admin Dashboard</p>
                     </div>
                 </div>
+                <!-- Tombol Close Sidebar (Hanya Muncul di Mobile) -->
+                <button type="button" onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-400 hover:text-white rounded-lg">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
             </div>
             
             <nav class="flex-1 p-6 space-y-2 overflow-y-auto hide-scroll">
@@ -298,10 +305,16 @@
         <!-- MAIN CONTENT AREA -->
         <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-screen">
             <!-- Desktop Header -->
-            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shrink-0 z-10 shadow-sm">
-                <div>
-                    <h1 id="adminPageTitle" class="text-2xl font-black text-slate-800 tracking-tight">Manajemen Pegawai</h1>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Kelola data master sistem</p>
+            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-10 shrink-0 z-10 shadow-sm">
+                <div class="flex items-center gap-4">
+                    <!-- Tombol Hamburger (Hanya muncul di Mobile) -->
+                    <button type="button" onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl transition-all">
+                        <i class="fas fa-bars text-lg"></i>
+                    </button>
+                    <div>
+                        <h1 id="adminPageTitle" class="text-lg md:text-2xl font-black text-slate-800 tracking-tight">Manajemen Pegawai</h1>
+                        <p class="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Kelola data master sistem</p>
+                    </div>
                 </div>
                 <div class="flex items-center gap-4 bg-slate-50 p-2 pl-4 pr-2 rounded-2xl border border-slate-100">
                     <div class="text-right mr-2">
@@ -326,7 +339,6 @@
     <!-- Modal Input Master Data (Pegawai, Petugas, Shift) -->
     <div id="modalForm" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up shadow-2xl">
-            <!-- Menggunakan fungsi terpisah handleMasterDataSubmit untuk menghindari stale closure -->
             <form id="masterDataForm" onsubmit="handleMasterDataSubmit(event)" class="space-y-6">
                 <h3 id="modalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Tambah Data</h3>
                 <div class="space-y-5">
@@ -520,6 +532,18 @@
             });
         }
 
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('adminSidebar');
+            const backdrop = document.getElementById('mobileSidebarBackdrop');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
         setInterval(checkNotificationSchedules, 60000);
 
         function checkNotificationSchedules() {
@@ -565,8 +589,6 @@
             }
         }
 
-
-        // --- CUSTOM TOAST & CONFIRM MODAL SYSTEM ---
         function showToast(msg, type = 'info') {
             const toast = document.getElementById('customToast');
             const icon = document.getElementById('toastIcon');
@@ -611,7 +633,6 @@
             return (parts.length === 3) ? `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` : '';
         }
 
-        // Format Tanggal ISO Ke Format Tampilan DD/MM/YYYY
         function toDDMMYYYY(dateStr) {
             if (!dateStr || dateStr === '-') return '';
             const parts = dateStr.split('-');
@@ -706,7 +727,6 @@
             window.open(`https://wa.me/${hp}?text=${encodeURIComponent(pesan)}`, '_blank');
         }
 
-        // --- FETCH DATA ---
         async function fetchPegawai() {
             const { data, error } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
             if (!error) { state.listPegawai = data || []; syncSelects(); if(state.isAdmin && state.adminActiveTab === 'pegawai') renderAdminContent(); }
@@ -754,13 +774,11 @@
             if (!error) { state.dataIzin = data || []; renderUserList(); renderPiketAntrean(); }
         }
 
-        // --- RENDER PETUGAS HARI INI (BERANDA) - HANYA ON DUTY ---
         function renderPetugasHariIni() {
             const container = document.getElementById('petugasHariIniContainer');
             const list = document.getElementById('listPetugasHariIni');
             if(!container || !list) return;
 
-            // Menyembunyikan tampilan On Duty jika Petugas sudah berhasil login
             if (state.currentUser) {
                 container.classList.add('hidden');
                 return;
@@ -820,9 +838,7 @@
                 list.innerHTML = `<div class="text-center py-5"><i class="fas fa-moon text-slate-300 text-2xl mb-2"></i><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Tidak ada petugas yang sedang<br>berjaga pada jam ini.</p></div>`;
             }
         }
-        setInterval(renderPetugasHariIni, 60000);
 
-        // --- AUTH LOGIC (Admin & Petugas) ---
         async function handleAdminLogin() {
             const email = document.getElementById('adminEmail').value.trim(), password = document.getElementById('adminPass').value;
             if (!email || !password) return showToast("Lengkapi email dan password terlebih dahulu.", "error");
@@ -872,10 +888,16 @@
             const titles = { 'pegawai': 'Manajemen Pegawai', 'petugas': 'Petugas Piket', 'jadwal': 'Pengaturan Jadwal & Shift Piket', 'laporan': 'Rekap Laporan Izin' };
             document.getElementById('adminPageTitle').textContent = titles[tab];
 
+            const sidebar = document.getElementById('adminSidebar');
+            const backdrop = document.getElementById('mobileSidebarBackdrop');
+            if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+
             renderAdminContent();
         }
 
-        // --- FITUR UNDUH TEMPLATE CSV ---
         function downloadCSVTemplate(type) {
             let csvContent = "\uFEFF"; 
             if (type === 'pegawai') {
@@ -899,7 +921,6 @@
             showToast(`Template CSV ${type === 'pegawai' ? 'Pegawai' : 'Petugas'} berhasil diunduh!`, "success");
         }
 
-        // --- RENDER DESKTOP ADMIN CONTENT (TABLES WITH SCROLL) ---
         async function renderAdminContent() {
             const container = document.getElementById('desktopAdminContent');
             container.innerHTML = '';
@@ -909,7 +930,6 @@
                 const { data } = await supabaseClient.from('izin').select('*').eq('status', 'Selesai').order('created_at', {ascending: false}).limit(100);
                 hideLoading(); state.tempLaporanData = data || [];
                 
-                // Menghitung statistik keterlambatan pegawai yang dibedakan berdasarkan jenis izin
                 const rekapKeterlambatan = {};
                 (data || []).forEach(i => {
                     if (isTerlambat(i)) {
@@ -925,7 +945,6 @@
                     }
                 });
 
-                // Generate HTML untuk Panel Ringkasan Keterlambatan Pegawai
                 let rekapCardsHtml = '';
                 const pegawaiTerlambat = Object.keys(rekapKeterlambatan).sort();
                 if (pegawaiTerlambat.length > 0) {
@@ -988,7 +1007,6 @@
                 }
 
                 container.innerHTML = `
-                    <!-- Row Atas: Filter Tanggal dan Ekspor PDF -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6 flex justify-between items-end shrink-0">
                         <div class="flex gap-4 items-end">
                             <div class="space-y-2">
@@ -1006,7 +1024,6 @@
                         </div>
                     </div>
 
-                    <!-- Row Tengah: Ringkasan Jumlah Keterlambatan Pegawai -->
                     <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm mb-6 shrink-0">
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="fas fa-user-clock text-red-600 text-sm"></i> Ringkasan Keterlambatan Pegawai (Dinas vs Pribadi)</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-h-[160px] overflow-y-auto custom-scroll pr-2">
@@ -1014,7 +1031,6 @@
                         </div>
                     </div>
 
-                    <!-- Row Bawah: Detail Tabel Riwayat -->
                     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-420px)] min-h-[250px]">
                         <div class="flex-1 overflow-y-auto custom-scroll">
                             <table class="w-full text-left border-collapse relative">
@@ -1037,7 +1053,6 @@
                 return;
             }
 
-            // --- TABEL JADWAL & SHIFT (DISATUKAN) ---
             if (state.adminActiveTab === 'jadwal') {
                 const source = state.listJadwal;
                 const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
@@ -1046,7 +1061,6 @@
                 const allChecked = paginatedItems.length > 0 && currentIds.every(id => state.selectedAdminItems.includes(id));
                 let bulkDeleteBtn = state.selectedAdminItems.length > 0 ? `<button type="button" onclick="deleteSelectedMasterData('jadwal_piket')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md transition-all"><i class="fas fa-trash mr-1"></i> Hapus ${state.selectedAdminItems.length} Data</button>` : '';
 
-                // Generate Data Tabel Jadwal
                 let jadwalHtml = '';
                 if (paginatedItems.length > 0) {
                     jadwalHtml = paginatedItems.map(item => {
@@ -1070,7 +1084,6 @@
                     jadwalHtml = '<tr><td colspan="5" class="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">Tidak ada jadwal tercatat</td></tr>';
                 }
 
-                // Generate Data Tabel Shift
                 let shiftHtml = state.listShift.map(s => `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                         <td class="p-3 text-[11px] font-black text-blue-800 uppercase">${s.nama_shift}</td>
@@ -1092,7 +1105,6 @@
                                 <h3 class="text-sm font-black uppercase tracking-tight text-slate-800">Master Shift</h3>
                                 <button type="button" onclick="openForm('shift', false)" class="px-3 py-2 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase hover:bg-slate-800 transition-all shadow-md"><i class="fas fa-plus mr-1"></i> Shift</button>
                             </div>
-                            <!-- Tabel dengan batas tinggi -->
                             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
                                 <div class="flex-1 overflow-y-auto custom-scroll">
                                     <table class="w-full text-left relative">
@@ -1134,7 +1146,6 @@
                                     </table>
                                 </div>
                                 
-                                <!-- Pagination -->
                                 <div class="mt-auto border-t border-slate-100 bg-slate-50 p-3 px-4 flex justify-between items-center shrink-0">
                                     <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Jadwal: ${source.length}</span>
                                     <div class="flex items-center gap-3">
@@ -1149,7 +1160,6 @@
                 return;
             }
 
-            // --- TAMPILAN TABEL PEGAWAI / PETUGAS DESKTOP ---
             const source = state.adminActiveTab === 'pegawai' ? state.listPegawai : state.listPetugas;
             const totalPages = Math.ceil(source.length / state.itemsPerPage) || 1;
             const start = (state.currentPage - 1) * state.itemsPerPage, paginatedItems = source.slice(start, start + state.itemsPerPage);
@@ -1226,7 +1236,6 @@
                         </table>
                     </div>
                     
-                    <!-- Pagination Desktop -->
                     <div class="mt-auto border-t border-slate-100 bg-slate-50 p-4 flex justify-between items-center shrink-0">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Data: ${source.length}</span>
                         <div class="flex items-center gap-4">
@@ -1265,7 +1274,6 @@
             showLoading("Mengirim...");
             const peg = state.listPegawai[idx];
             
-            // PWA Notification Permission
             localStorage.setItem('local_pemohon_pwa', peg.nama);
             if ('Notification' in window && Notification.permission !== 'granted') Notification.requestPermission();
 
@@ -1297,18 +1305,19 @@
                 document.getElementById('piketLoginForm').classList.add('hidden'); 
                 document.getElementById('piketDashboard').classList.remove('hidden'); 
                 document.getElementById('petugasAktif').textContent = match.nama; 
-                document.getElementById('petugasHariIniContainer').classList.add('hidden'); // Sembunyikan seketika
+                document.getElementById('petugasHariIniContainer').classList.add('hidden');
                 showToast("Petugas aktif!", "success"); 
                 renderPiketAntrean(); 
             } 
             else showToast("PIN salah.", "error");
         }
+
         function handleLogout() { 
             state.currentUser = null; 
             document.getElementById('piketPin').value = ''; 
             document.getElementById('piketLoginForm').classList.remove('hidden'); 
             document.getElementById('piketDashboard').classList.add('hidden'); 
-            renderPetugasHariIni(); // Munculkan kembali saat logout
+            renderPetugasHariIni(); 
             navTo('layanan'); 
         }
 
@@ -1316,8 +1325,9 @@
             showLoading("Mengonfirmasi...");
             const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
             const tgl = new Date().toLocaleDateString('id-ID');
-            const { error } = await supabaseClient.from('izin').update({ status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl }).eq('id_izin', id);
-            if(!error) { await fetchIzin(); showToast("Izin keluar disetujui!", "success"); } else showToast("Gagal menyetujui.", "error");
+            
+            const { error: dbError } = await supabaseClient.from('izin').update({ status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl }).eq('id_izin', id);
+            if(!dbError) { await fetchIzin(); showToast("Izin keluar disetujui!", "success"); } else showToast("Gagal menyetujui.", "error");
             hideLoading();
         }
         
@@ -1426,7 +1436,6 @@
             for (let i = 0; i < byteStr.length; i++) ia[i] = byteStr.charCodeAt(i); return new Blob([ab], {type: mime});
         }
 
-        // --- CRUD & DATABASE OPERATIONS ---
         function generateRandomPin() { document.getElementById('formVal2').value = Math.floor(1000 + Math.random() * 9000).toString(); }
         
         function openForm(type, isEdit = false, id = null) {
@@ -1468,7 +1477,6 @@
             const modal = document.getElementById('modalForm'); modal.classList.remove('hidden'); modal.classList.add('flex');
         }
 
-        // Logic Penanganan Submit yang terisolasi sempurna
         function handleMasterDataSubmit(e) {
             e.preventDefault();
             const type = editState.editingType;
@@ -1496,7 +1504,6 @@
         
         function closeForm() { const m = document.getElementById('modalForm'); m.classList.add('hidden'); m.classList.remove('flex'); document.getElementById('masterDataForm').reset(); }
 
-        // --- FUNGSI EDIT IZIN ---
         function openEditIzin(id) {
             const item = state.tempLaporanData.find(i => i.id_izin === id);
             if(!item) return;
@@ -1548,7 +1555,6 @@
             hideLoading();
         }
 
-        // --- PDF & REPORTING ---
         async function downloadReport() {
             const startDate = document.getElementById('startDate').value, endDate = document.getElementById('endDate').value;
             if (!startDate || !endDate) return showToast("Harap tentukan rentang tanggal laporan.", "error");
@@ -1559,21 +1565,19 @@
                 if (error || !data || data.length === 0) { showToast("Tidak ditemukan data pada periode ini.", "error"); hideLoading(); return; }
 
                 const { jsPDF } = window.jspdf; 
-                const doc = new jsPDF('l', 'mm', 'a4'); // Mode Landscape A4
+                const doc = new jsPDF('l', 'mm', 'a4'); 
                 
-                // --- HALAMAN 1: RINGKASAN REKAPITULASI KETERLAMBATAN ---
                 doc.setFont("helvetica", "bold"); 
                 doc.setFontSize(16); 
-                doc.setTextColor(127, 29, 29); // Tema Premium Maroon
+                doc.setTextColor(127, 29, 29); 
                 doc.text("LINKPERMIT PRO - RINGKASAN REKAPITULASI KETERLAMBATAN", 14, 15);
                 
                 doc.setFont("helvetica", "normal"); 
                 doc.setFontSize(10); 
-                doc.setTextColor(30, 41, 59); // Slate-800
+                doc.setTextColor(30, 41, 59); 
                 doc.text(`Periode Rekap: ${startDate} s/d ${endDate}`, 14, 21);
                 doc.text("Halaman pertama ini berisi akumulasi jumlah keterlambatan yang dipisah berdasarkan jenis keperluan.", 14, 26);
 
-                // Hitung statistik keterlambatan per pegawai secara dinamis
                 const rekapPribadi = {};
                 const rekapDinas = {};
                 data.forEach(i => {
@@ -1591,7 +1595,6 @@
                     }
                 });
 
-                // Tabel 1: Rekap Keterlambatan Izin Pribadi
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(11);
                 doc.setTextColor(127, 29, 29);
@@ -1613,20 +1616,18 @@
                     summaryRowsPribadi.push(["-", "Semua Guru & Karyawan Tepat Waktu", "0 Kali", "-"]);
                 }
 
-                // Render Tabel Ringkasan Pribadi (Tema Maroon)
                 doc.autoTable({
                     head: [summaryColumnsPribadi],
                     body: summaryRowsPribadi,
                     startY: 36,
                     theme: 'grid',
-                    headStyles: { fillColor: [127, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' }, // Maroon Header
+                    headStyles: { fillColor: [127, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' },
                     alternateRowStyles: { fillColor: [248, 250, 252] },
                     styles: { fontSize: 8.5, valign: 'middle', cellPadding: 3 }
                 });
 
                 let nextY = doc.lastAutoTable.finalY + 12;
 
-                // Tabel 2: Rekap Keterlambatan Izin Dinas
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(11);
                 doc.setTextColor(127, 29, 29);
@@ -1648,23 +1649,21 @@
                     summaryRowsDinas.push(["-", "Semua Guru & Karyawan Tepat Waktu", "0 Kali", "-"]);
                 }
 
-                // Render Tabel Ringkasan Dinas (Tema Maroon)
                 doc.autoTable({
                     head: [summaryColumnsDinas],
                     body: summaryRowsDinas,
                     startY: nextY + 4,
                     theme: 'grid',
-                    headStyles: { fillColor: [127, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' }, // Maroon Header
+                    headStyles: { fillColor: [127, 29, 29], textColor: [255, 255, 255], fontStyle: 'bold' }, 
                     alternateRowStyles: { fillColor: [248, 250, 252] },
                     styles: { fontSize: 8.5, valign: 'middle', cellPadding: 3 }
                 });
 
-                // --- HALAMAN 2 & SETERUSNYA: LOG FILE AKTIVITAS DETAIL ---
                 doc.addPage();
                 
                 doc.setFont("helvetica", "bold"); 
                 doc.setFontSize(14);
-                doc.setTextColor(30, 41, 59); // Slate Dark
+                doc.setTextColor(30, 41, 59); 
                 doc.text("LOG FILE AKTIVITAS DETAIL PENGAJUAN IZIN KELUAR", 14, 15);
                 
                 doc.setFont("helvetica", "normal"); 
@@ -1709,19 +1708,17 @@
                     ]);
                 }
 
-                // Render Tabel Log Riwayat (Tema Slate Gelap)
                 doc.autoTable({
                     head: [detailColumns],
                     body: detailRows,
                     startY: 28,
                     theme: 'grid',
-                    headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' }, // Dark Slate Header
+                    headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: 'bold' }, 
                     alternateRowStyles: { fillColor: [248, 250, 252] },
                     styles: { fontSize: 8, valign: 'middle', cellPadding: 2.5 },
                     didParseCell: function(cellData) {
-                        // Highlight text jika terlambat
                         if (cellData.column.index === 8 && cellData.cell.text[0] === 'MELEBIHI BATAS IZIN') {
-                            cellData.cell.styles.textColor = [185, 28, 28]; // Bold Red
+                            cellData.cell.styles.textColor = [185, 28, 28]; 
                             cellData.cell.styles.fontStyle = 'bold';
                         }
                     }
@@ -1760,7 +1757,6 @@
             hideLoading();
         }
         
-        // --- JADWAL PIKET LOGIC ---
         function openModalJadwal(isEdit = false, id = null) {
             if (state.listShift.length === 0) return showToast("Buat Data Shift terlebih dahulu!", "error");
 
@@ -1914,14 +1910,11 @@
         function showLoading(txt) { const el = document.getElementById('loadingText'); if (el) el.textContent = txt; document.getElementById('loadingOverlay').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
         
-        // --- INTEGRASI ENTER KEY DI SELURUH FORMULIR MODAL ---
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
-                // Cegah aksi default jika fokus berada di area input multi-petugas atau select
                 const activeElement = document.activeElement;
                 if (activeElement && activeElement.tagName === 'TEXTAREA') return;
 
-                // Cek modal form mana yang sedang aktif dan submit programmatically
                 const modalForm = document.getElementById('modalForm');
                 const modalJadwal = document.getElementById('modalJadwal');
                 const modalEditIzin = document.getElementById('modalEditIzin');
@@ -1946,15 +1939,26 @@
         }
 
         async function init() {
-            if(!supabaseClient && window.supabase) supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-            showLoading("Memuat data..."); await Promise.all([fetchPegawai(), fetchPetugas(), fetchShift(), fetchJadwal(), fetchIzin()]);
-            try { const { data: { session } } = await supabaseClient.auth.getSession(); if (session) activateDesktopAdmin(); } catch (e) { console.log(e); }
-            hideLoading(); updateTime(); setInterval(updateTime, 1000);
+            try {
+                if(!supabaseClient && window.supabase) supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+                showLoading("Memuat data..."); 
+                await Promise.all([fetchPegawai(), fetchPetugas(), fetchShift(), fetchJadwal(), fetchIzin()]);
+                try { 
+                    const { data: { session } } = await supabaseClient.auth.getSession(); 
+                    if (session) activateDesktopAdmin(); 
+                } catch (e) { 
+                    console.log("Auth session check skipped or failed."); 
+                }
+            } catch (globalInitError) {
+                console.error("Initialization failed: ", globalInitError);
+                showToast("Sistem gagal memuat data. Mohon hubungi administrator.", "error");
+            } finally {
+                hideLoading(); 
+                updateTime(); 
+                setInterval(updateTime, 1000);
+            }
         }
         window.onload = init;
-        
-        // Form Edit Laporan Izin Handling
-        document.getElementById('editIzinForm').onsubmit = (e) => { e.preventDefault(); saveEditIzin(); };
     </script>
 </body>
 </html>
