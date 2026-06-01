@@ -6,14 +6,14 @@
     <title>LinkPermit Pro</title>
     
     <link class="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    <link class="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link class="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
@@ -32,16 +32,9 @@
         
         /* Responsive Khusus Admin Dashboard Mobile (Maks. 768px) */
         @media screen and (max-width: 768px) {
-            #desktopAdminView { flex-direction: column !important; overflow-y: auto !important; }
-            #desktopAdminView aside { width: 100% !important; height: auto !important; flex-shrink: 0 !important; }
-            #desktopAdminView aside nav { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; padding: 16px !important; }
-            #desktopAdminView aside nav button { padding: 12px !important; flex-direction: column !important; justify-content: center !important; text-align: center !important; gap: 6px !important; }
-            #desktopAdminView aside nav button i { margin-right: 0 !important; font-size: 1.25rem !important; }
-            #desktopAdminView main { height: auto !important; min-height: 100vh !important; overflow-y: visible !important; }
-            #desktopAdminView header { flex-direction: column !important; align-items: flex-start !important; height: auto !important; padding: 20px !important; gap: 15px !important; }
-            #desktopAdminView header > div:last-child { width: 100% !important; justify-content: space-between !important; }
-            #desktopAdminContent { padding: 16px !important; overflow-y: visible !important; height: auto !important; }
-            #desktopAdminContent > div { height: auto !important; min-height: max-content !important; }
+            #desktopAdminView { flex-direction: column !important; }
+            #desktopAdminView main { height: 100vh !important; display: flex !important; flex-direction: column !important; }
+            #desktopAdminContent { padding: 16px !important; }
             
             /* Responsive Utilities untuk Konten Admin */
             #desktopAdminContent .flex.justify-between.items-end { flex-direction: column !important; align-items: stretch !important; gap: 15px !important; }
@@ -681,6 +674,32 @@
                 else if (kH === 12) { let limit = new Date(start); limit.setHours(14, 10, 0, 0); return end > limit; } 
                 else return diffMins > 70;
             }
+        }
+
+        // Fungsi khusus untuk menghitung sisa waktu izin aktif (dalam menit)
+        function getSisaWaktuMenit(item) {
+            if (!item.waktu_keluar || item.waktu_keluar === '-') return null;
+            let parsedK = formatTo24Hour(item.waktu_keluar);
+            if (!parsedK.includes(':')) return null;
+            let [kH, kM] = parsedK.split(':').map(Number);
+            if (isNaN(kH)) return null;
+
+            let start = item.created_at ? new Date(item.created_at) : new Date();
+            start.setHours(kH, kM, 0, 0);
+            let end = new Date();
+
+            const diffMins = (end - start) / 60000;
+            let limit = 0;
+            if (item.keperluan !== 'Pribadi') return null; 
+            else {
+                if (kH === 11) limit = 130;
+                else if (kH === 12) { 
+                    let limitDate = new Date(start); limitDate.setHours(14, 10, 0, 0); 
+                    limit = (limitDate - start) / 60000; 
+                } 
+                else limit = 70;
+            }
+            return Math.floor(limit - diffMins);
         }
 
         function hubungiPemohon(id_izin) {
@@ -1353,15 +1372,63 @@
             const container = document.getElementById('listAntrean'); if(!container) return;
             const activeData = state.dataIzin.filter(i => i.status !== 'Selesai');
             container.innerHTML = activeData.length === 0 ? '<div class="p-10 text-center text-[9px] font-black text-slate-300 uppercase border border-dashed rounded-3xl">Kosong</div>' : '';
+            
             activeData.forEach(item => {
-                let wKHtml = ''; const late = item.status === 'Keluar' && isTerlambat(item);
-                if (item.status === 'Keluar' && item.waktu_keluar) wKHtml = `<div class="text-[8px] font-bold ${late ? 'text-red-500' : 'text-slate-500'} mt-1.5"><i class="fas fa-clock mr-1"></i> Keluar: ${item.tanggal_keluar || item.tanggal} | ${formatTo24Hour(item.waktu_keluar)}</div>`;
-                const warnBox = late ? `<div class="mt-3 p-2 bg-red-100 border border-red-200 rounded-xl flex items-start gap-2 animate-pulse"><i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i><p class="text-[8px] font-black text-red-700 leading-tight">WAKTU IZIN HABIS!</p></div>` : '';
+                let wKHtml = ''; 
+                let isLate = item.status === 'Keluar' && isTerlambat(item);
+                let isWarning = false;
+                let sisaMnt = null;
+
+                if (item.status === 'Keluar' && item.keperluan === 'Pribadi' && !isLate) {
+                    sisaMnt = getSisaWaktuMenit(item);
+                    if (sisaMnt !== null && sisaMnt >= 0 && sisaMnt <= 10) {
+                        isWarning = true;
+                    }
+                }
+
+                let cardClass = 'border-slate-100 bg-white shadow-sm';
+                let textNameClass = 'text-slate-900';
+                let badgeClass = 'bg-slate-100 text-slate-500';
+                let timeClass = 'text-slate-500';
+                let warnBox = '';
+
+                if (isLate) {
+                    cardClass = 'border-red-400 bg-red-50 shadow-red-200/50';
+                    textNameClass = 'text-red-800';
+                    badgeClass = 'bg-red-200 text-red-800';
+                    timeClass = 'text-red-500';
+                    warnBox = `<div class="mt-3 p-2 bg-red-100 border border-red-200 rounded-xl flex items-start gap-2 animate-pulse"><i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i><p class="text-[8px] font-black text-red-700 leading-tight">WAKTU IZIN HABIS!</p></div>`;
+                } else if (isWarning) {
+                    cardClass = 'border-orange-400 bg-orange-50 shadow-orange-200/50';
+                    textNameClass = 'text-orange-800';
+                    badgeClass = 'bg-orange-200 text-orange-800';
+                    timeClass = 'text-orange-600';
+                    warnBox = `<div class="mt-3 p-2 bg-orange-100 border border-orange-300 rounded-xl flex items-start gap-2 animate-pulse"><i class="fas fa-clock text-orange-600 mt-0.5"></i><div class="text-[8px] font-black text-orange-800 leading-tight">WAKTU IZIN SEGERA BERAKHIR!<br>Sisa: ${sisaMnt} menit. Harap segera kembali.</div></div>`;
+                }
+
+                if (item.status === 'Keluar' && item.waktu_keluar) {
+                    wKHtml = `<div class="text-[8px] font-bold ${timeClass} mt-1.5"><i class="fas fa-clock mr-1"></i> Keluar: ${item.tanggal_keluar || item.tanggal} | ${formatTo24Hour(item.waktu_keluar)}</div>`;
+                }
                 
                 const pegawai = state.listPegawai.find(p => p.nama === item.nama);
                 const waBtnHtml = pegawai && pegawai.no_hp ? `<button type="button" onclick="hubungiPemohon('${item.id_izin}')" class="text-emerald-500 hover:text-emerald-600 transition-all p-1 ml-1 flex-shrink-0" title="Hubungi via WA"><i class="fab fa-whatsapp text-[10px]"></i></button>` : '';
 
-                container.innerHTML += `<div class="p-5 ${late ? 'border-red-400 bg-red-50 shadow-red-200/50' : 'border-slate-100 bg-white shadow-sm'} border rounded-3xl flex flex-col animate-slide-up transition-all"><div class="flex justify-between items-center w-full"><div class="truncate pr-4"><div class="text-xs font-black uppercase ${late ? 'text-red-800' : 'text-slate-900'}">${item.nama}</div><div class="flex items-center gap-2 mt-1"><span class="text-[7px] font-black px-2 py-0.5 ${late ? 'bg-red-200 text-red-800' : 'bg-slate-100 text-slate-500'} rounded uppercase flex-shrink-0">${item.id_izin}</span><span class="text-[8px] font-bold text-red-600 uppercase tracking-widest truncate flex items-center">${item.keperluan}: ${item.tujuan} ${waBtnHtml}</span></div>${wKHtml}</div><div>${item.status === 'Menunggu' ? '<span class="text-[7px] font-black uppercase px-3 py-1.5 bg-amber-50 text-amber-600 rounded-xl">Menunggu</span>' : `<button type="button" onclick="openFinish('${item.id_izin}')" class="text-[8px] font-black uppercase px-4 py-2 bg-red-700 text-white rounded-xl shadow-lg">Lapor</button>`}</div></div>${warnBox}</div>`;
+                container.innerHTML += `<div class="p-5 ${cardClass} border rounded-3xl flex flex-col animate-slide-up transition-all">
+                    <div class="flex justify-between items-center w-full">
+                        <div class="truncate pr-4">
+                            <div class="text-xs font-black uppercase ${textNameClass}">${item.nama}</div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-[7px] font-black px-2 py-0.5 ${badgeClass} rounded uppercase flex-shrink-0">${item.id_izin}</span>
+                                <span class="text-[8px] font-bold text-red-600 uppercase tracking-widest truncate flex items-center">${item.keperluan}: ${item.tujuan} ${waBtnHtml}</span>
+                            </div>
+                            ${wKHtml}
+                        </div>
+                        <div>
+                            ${item.status === 'Menunggu' ? '<span class="text-[7px] font-black uppercase px-3 py-1.5 bg-amber-50 text-amber-600 rounded-xl">Menunggu</span>' : `<button type="button" onclick="openFinish('${item.id_izin}')" class="text-[8px] font-black uppercase px-4 py-2 bg-red-700 text-white rounded-xl shadow-lg">Lapor</button>`}
+                        </div>
+                    </div>
+                    ${warnBox}
+                </div>`;
             });
         }
         function renderPiketAntrean() {
@@ -1956,6 +2023,7 @@
                 hideLoading(); 
                 updateTime(); 
                 setInterval(updateTime, 1000);
+                setInterval(renderUserList, 60000); // REFRESH UI SETIAP MENIT SECARA LOKAL
             }
         }
         window.onload = init;
