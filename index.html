@@ -6,14 +6,14 @@
     <title>LinkPermit Pro</title>
     
     <link class="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    <link class="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link class="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
@@ -254,7 +254,7 @@
         <!-- BACKDROP COVER UNTUK MENU HAMBURGER (MOBILE ONLY) -->
         <div id="mobileSidebarBackdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[4400] hidden md:hidden"></div>
 
-        <!-- SIDEBAR (Ditambahkan class responsive fixed & translate-x untuk Mobile slide-in) -->
+        <!-- SIDEBAR -->
         <aside id="adminSidebar" class="w-72 bg-slate-900 text-white flex flex-col shadow-2xl z-[4500] shrink-0 fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:relative transition-transform duration-300 ease-in-out">
             <div class="p-8 border-b border-white/5 flex justify-between items-center">
                 <div class="flex items-center gap-3">
@@ -297,7 +297,7 @@
 
         <!-- MAIN CONTENT AREA -->
         <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-screen">
-            <!-- Desktop Header (Ditambahkan tombol Hamburger di Sebelah Kiri Judul) -->
+            <!-- Desktop Header -->
             <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-10 shrink-0 z-10 shadow-sm">
                 <div class="flex items-center gap-4">
                     <!-- Tombol Hamburger (Hanya muncul di Mobile) -->
@@ -332,7 +332,6 @@
     <!-- Modal Input Master Data (Pegawai, Petugas, Shift) -->
     <div id="modalForm" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up shadow-2xl">
-            <!-- Menggunakan fungsi terpisah handleMasterDataSubmit untuk menghindari stale closure -->
             <form id="masterDataForm" onsubmit="handleMasterDataSubmit(event)" class="space-y-6">
                 <h3 id="modalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Tambah Data</h3>
                 <div class="space-y-5">
@@ -600,6 +599,179 @@
             setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('flex'); }, 3000);
         }
 
+        function showConfirm(msg, onConfirm) {
+            const modal = document.getElementById('customConfirmModal');
+            document.getElementById('confirmMessage').textContent = msg;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            
+            document.getElementById('btnConfirmCancel').onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+            document.getElementById('btnConfirmProceed').onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); onConfirm(); };
+        }
+
+        function formatTo24Hour(timeStr) {
+            if (!timeStr || timeStr === '-') return '';
+            let str = timeStr.toString().toLowerCase().trim();
+            let isPM = str.includes('pm'), isAM = str.includes('am');
+            let parts = str.replace(/[a-z]/g, '').trim().replace(/\./g, ':').split(':');
+            let h = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+            let s = parts.length > 2 ? parseInt(parts[2], 10) : null;
+            if (isNaN(h)) return timeStr; if (isNaN(m)) m = 0;
+            if (isPM && h < 12) h += 12; if (isAM && h === 12) h = 0;
+            let res = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+            if (s !== null && !isNaN(s)) res += `:${s.toString().padStart(2, '0')}`;
+            return res;
+        }
+
+        function toDateInputFormat(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            if (dateStr.includes('-') && dateStr.length === 10) return dateStr;
+            const parts = dateStr.split('/');
+            return (parts.length === 3) ? `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` : '';
+        }
+
+        // Format Tanggal ISO Ke Format Tampilan DD/MM/YYYY
+        function toDDMMYYYY(dateStr) {
+            if (!dateStr || dateStr === '-') return '';
+            const parts = dateStr.split('-');
+            return (parts.length === 3) ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
+        }
+
+        function formatTimeInput(e) {
+            let val = e.target.value.replace(/[^0-9]/g, '');
+            if (val.length >= 3) {
+                let h = parseInt(val.substring(0, 2));
+                if (h > 23) val = '23' + val.substring(2);
+                if (val.length >= 4) { let m = parseInt(val.substring(2, 4)); if (m > 59) val = val.substring(0, 2) + '59'; }
+                val = val.substring(0, 2) + ':' + val.substring(2, 4);
+            }
+            e.target.value = val;
+        }
+
+        function formatHPInput(el) {
+            let val = el.value.replace(/[^0-9]/g, '');
+            if (val.startsWith('62')) { val = val.substring(2); } else if (val.startsWith('0')) { val = val.substring(1); }
+            el.value = val;
+        }
+
+        function isTerlambat(item) {
+            if (!item.waktu_keluar || item.waktu_keluar === '-') return false;
+            let parsedK = formatTo24Hour(item.waktu_keluar);
+            if (!parsedK.includes(':')) return false;
+            let [kH, kM] = parsedK.split(':').map(Number);
+            if (isNaN(kH)) return false;
+
+            let start = item.created_at ? new Date(item.created_at) : new Date();
+            start.setHours(kH, kM, 0, 0);
+            let end = item.created_at ? new Date(item.created_at) : new Date();
+            if (item.status === 'Selesai' && item.waktu_kembali) {
+                let parsedE = formatTo24Hour(item.waktu_kembali);
+                if (parsedE.includes(':')) {
+                    let [eH, eM] = parsedE.split(':').map(Number);
+                    if (!isNaN(eH)) { end.setHours(eH, eM, 0, 0); if (end < start) end.setDate(end.getDate() + 1); }
+                }
+            } else { end = new Date(); }
+
+            const diffMins = (end - start) / 60000;
+            if (item.keperluan !== 'Pribadi') return diffMins > 1440; 
+            else {
+                if (kH === 11) return diffMins > 130;
+                else if (kH === 12) { let limit = new Date(start); limit.setHours(14, 10, 0, 0); return end > limit; } 
+                else return diffMins > 70;
+            }
+        }
+
+        function hubungiPemohon(id_izin) {
+            const item = state.dataIzin.find(i => i.id_izin === id_izin);
+            if (!item) return;
+            const pegawai = state.listPegawai.find(p => p.nama === item.nama);
+            if (!pegawai || !pegawai.no_hp) return showToast("Nomor HP pemohon tidak ditemukan.", "error");
+
+            let hp = pegawai.no_hp.replace(/\D/g, '');
+            let pesan = `Halo *${item.nama}*,\n\n`;
+
+            if (item.status === 'Keluar' && item.waktu_keluar && item.waktu_keluar !== '-') {
+                let parsedK = formatTo24Hour(item.waktu_keluar);
+                if (parsedK.includes(':')) {
+                    let [kH, kM] = parsedK.split(':').map(Number);
+                    let start = item.created_at ? new Date(item.created_at) : new Date();
+                    start.setHours(kH, kM, 0, 0);
+                    let end = new Date();
+                    
+                    const diffMins = (end - start) / 60000;
+                    let limit = 0;
+                    if (item.keperluan !== 'Pribadi') {
+                        limit = 1440; 
+                    } else {
+                        if (kH === 11) limit = 130;
+                        else if (kH === 12) {
+                            let limitDate = new Date(start); limitDate.setHours(14, 10, 0, 0); 
+                            limit = (limitDate - start) / 60000;
+                        } 
+                        else limit = 70;
+                    }
+                    
+                    let sisaMenit = Math.floor(limit - diffMins);
+                    if (sisaMenit < 0) {
+                        pesan += `Mohon segera kembali! Waktu izin Anda sudah habis sejak *${Math.abs(sisaMenit)} menit* yang lalu.`;
+                    } else {
+                        pesan += `Mengingatkan bahwa sisa waktu izin Anda tinggal *${sisaMenit} menit* lagi.`;
+                    }
+                }
+            } else {
+                pesan += `Terkait pengajuan izin Anda...`;
+            }
+
+            window.open(`https://wa.me/${hp}?text=${encodeURIComponent(pesan)}`, '_blank');
+        }
+
+        // --- FETCH DATA ---
+        async function fetchPegawai() {
+            const { data, error } = await supabaseClient.from('pegawai').select('*').order('nama', { ascending: true });
+            if (!error) { state.listPegawai = data || []; syncSelects(); if(state.isAdmin && state.adminActiveTab === 'pegawai') renderAdminContent(); }
+        }
+
+        async function fetchPetugas() {
+            const { data, error } = await supabaseClient.from('petugas').select('*').order('nama', { ascending: true });
+            if (!error) { state.listPetugas = data || []; syncSelects(); if(state.isAdmin && state.adminActiveTab === 'petugas') renderAdminContent(); renderPetugasHariIni(); }
+        }
+
+        async function fetchShift() {
+            const { data, error } = await supabaseClient.from('shift_piket').select('*').order('jam_mulai', { ascending: true });
+            if (!error) {
+                state.listShift = data || [];
+                if(state.isAdmin && state.adminActiveTab === 'jadwal') renderAdminContent();
+                syncSelects();
+            }
+        }
+
+        async function fetchJadwal() {
+            const { data, error } = await supabaseClient.from('jadwal_piket').select('*');
+            if (!error) { 
+                const hariOrder = { 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6, 'Minggu': 7 };
+                let sortedData = (data || []).sort((a, b) => {
+                    let hA = hariOrder[a.hari] || 99;
+                    let hB = hariOrder[b.hari] || 99;
+                    if (hA !== hB) return hA - hB;
+                    
+                    let sA = a.nama_shift || '';
+                    let sB = b.nama_shift || '';
+                    if (sA !== sB) return sA.localeCompare(sB);
+                    
+                    let pA = a.nama_petugas || '';
+                    let pB = b.nama_petugas || '';
+                    return pA.localeCompare(pB);
+                });
+                state.listJadwal = sortedData; 
+                if(state.isAdmin && state.adminActiveTab === 'jadwal') renderAdminContent(); 
+                renderPetugasHariIni();
+            }
+        }
+
+        async function fetchIzin() {
+            const { data, error } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
+            if (!error) { state.dataIzin = data || []; renderUserList(); renderPiketAntrean(); }
+        }
+
         // --- RENDER PETUGAS HARI INI (BERANDA) - HANYA ON DUTY ---
         function renderPetugasHariIni() {
             const container = document.getElementById('petugasHariIniContainer');
@@ -666,30 +838,8 @@
                 list.innerHTML = `<div class="text-center py-5"><i class="fas fa-moon text-slate-300 text-2xl mb-2"></i><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Tidak ada petugas yang sedang<br>berjaga pada jam ini.</p></div>`;
             }
         }
-        setInterval(renderPetugasHariIni, 60000);
 
         // --- AUTH LOGIC (Admin & Petugas) ---
-        async function handleAdminLogin() {
-            const email = document.getElementById('adminEmail').value.trim(), password = document.getElementById('adminPass').value;
-            if (!email || !password) return showToast("Lengkapi email dan password terlebih dahulu.", "error");
-
-            showLoading("Memverifikasi Sesi...");
-            try {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-                if (error) showToast("Gagal Masuk: " + error.message, "error");
-                else { activateDesktopAdmin(); showToast("Sesi Master Admin Aktif!", "success"); }
-            } catch (err) { showToast("Kesalahan sistem: " + err.message, "error"); } finally { hideLoading(); }
-        }
-
-        async function handleAdminLogout() {
-            showLoading("Mengakhiri Sesi...");
-            try {
-                await supabaseClient.auth.signOut();
-                deactivateDesktopAdmin();
-                showToast("Logout Master Admin berhasil.", "success");
-            } catch (err) { showToast("Gagal melakukan logout.", "error"); } finally { hideLoading(); }
-        }
-
         function activateDesktopAdmin() {
             state.isAdmin = true;
             document.getElementById('mobileAppView').classList.add('hidden');
@@ -727,30 +877,6 @@
             }
 
             renderAdminContent();
-        }
-
-        // --- FITUR UNDUH TEMPLATE CSV ---
-        function downloadCSVTemplate(type) {
-            let csvContent = "\uFEFF"; 
-            if (type === 'pegawai') {
-                csvContent += "Nama Lengkap,Jabatan / Bidang,Nomor HP\n";
-                csvContent += "Andi Hermawan,Guru Kejuruan,081234567890\n";
-                csvContent += "Siti Aminah,Staff Tata Usaha,087788990011\n";
-            } else {
-                csvContent += "Nama Lengkap,PIN (4 Digit),Nomor HP\n";
-                csvContent += "Fajar Ramadhan,2580,085299887766\n";
-                csvContent += "Rendi Saputra,1470,089911223344\n";
-            }
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Template_Import_${type === 'pegawai' ? 'Pegawai' : 'Petugas'}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast(`Template CSV ${type === 'pegawai' ? 'Pegawai' : 'Petugas'} berhasil diunduh!`, "success");
         }
 
         // --- RENDER DESKTOP ADMIN CONTENT (TABLES WITH SCROLL) ---
@@ -1170,8 +1296,10 @@
             showLoading("Mengonfirmasi...");
             const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
             const tgl = new Date().toLocaleDateString('id-ID');
-            const { error = null } = await supabaseClient.from('izin').update({ status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl }).eq('id_izin', id);
-            if(!error) { await fetchIzin(); showToast("Izin keluar disetujui!", "success"); } else showToast("Gagal menyetujui.", "error");
+            
+            // Perbaikan pendefinisian variabel Supabase error
+            const { error: dbError } = await supabaseClient.from('izin').update({ status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl }).eq('id_izin', id);
+            if(!dbError) { await fetchIzin(); showToast("Izin keluar disetujui!", "success"); } else showToast("Gagal menyetujui.", "error");
             hideLoading();
         }
         
@@ -1408,10 +1536,6 @@
             if (!startDate || !endDate) return showToast("Harap tentukan rentang tanggal laporan.", "error");
             showLoading("Menyiapkan PDF...");
             try {
-                const endDateFull = new Date(endDate); endDateFull.setHours(23, 59, 59, 999);
-                const { data, error } = await supabaseClient.from('izin').select('*').gte('created_at', new Date(startDate).toISOString()).lte('created_at', endDateFull.toISOString()).order('created_at', { ascending: false });
-                if (error || !data || data.length === 0) { showToast("Tidak ditemukan data pada periode ini.", "error"); hideLoading(); return; }
-
                 const { jsPDF } = window.jspdf; 
                 const doc = new jsPDF('l', 'mm', 'a4'); // Mode Landscape A4
                 
@@ -1430,7 +1554,7 @@
                 // Hitung statistik keterlambatan per pegawai secara dinamis
                 const rekapPribadi = {};
                 const rekapDinas = {};
-                data.forEach(i => {
+                state.tempLaporanData.forEach(i => {
                     if (isTerlambat(i)) {
                         const kategoriNorm = (i.keperluan || '').toLowerCase();
                         const targetRekap = (kategoriNorm.includes('dinas') || kategoriNorm.includes('sekolah')) ? rekapDinas : rekapPribadi;
@@ -1528,8 +1652,8 @@
                 const detailColumns = ["ID Izin", "Nama Pegawai", "Kategori", "Tujuan / Keperluan", "Waktu Keluar", "Waktu Kembali", "Durasi", "Petugas Approval", "Keterangan"];
                 const detailRows = [];
 
-                for (let i = 0; i < data.length; i++) {
-                    const row = data[i];
+                for (let i = 0; i < state.tempLaporanData.length; i++) {
+                    const row = state.tempLaporanData[i];
                     let out24 = formatTo24Hour(row.waktu_keluar) || '-';
                     let in24 = formatTo24Hour(row.waktu_kembali) || '-';
                     let tglK = row.tanggal_keluar || row.tanggal || '-';
@@ -1800,10 +1924,24 @@
         }
 
         async function init() {
-            if(!supabaseClient && window.supabase) supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-            showLoading("Memuat data..."); await Promise.all([fetchPegawai(), fetchPetugas(), fetchShift(), fetchJadwal(), fetchIzin()]);
-            try { const { data: { session } } = await supabaseClient.auth.getSession(); if (session) activateDesktopAdmin(); } catch (e) { console.log(e); }
-            hideLoading(); updateTime(); setInterval(updateTime, 1000);
+            try {
+                if(!supabaseClient && window.supabase) supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+                showLoading("Memuat data..."); 
+                await Promise.all([fetchPegawai(), fetchPetugas(), fetchShift(), fetchJadwal(), fetchIzin()]);
+                try { 
+                    const { data: { session } } = await supabaseClient.auth.getSession(); 
+                    if (session) activateDesktopAdmin(); 
+                } catch (e) { 
+                    console.log("Auth session check skipped or failed."); 
+                }
+            } catch (globalInitError) {
+                console.error("Initialization failed: ", globalInitError);
+                showToast("Sistem gagal memuat data. Mohon hubungi administrator.", "error");
+            } finally {
+                hideLoading(); 
+                updateTime(); 
+                setInterval(updateTime, 1000);
+            }
         }
         window.onload = init;
         
