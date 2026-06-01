@@ -946,7 +946,7 @@
 
             if (state.adminActiveTab === 'laporan') {
                 showLoading("Memuat Laporan...");
-                const { data } = await supabaseClient.from('izin').select('*').eq('status', 'Selesai').order('created_at', {ascending: false}).limit(100);
+                const { data } = await supabaseClient.from('izin').select('*').order('created_at', {ascending: false}).limit(100);
                 hideLoading(); state.tempLaporanData = data || [];
                 
                 const rekapKeterlambatan = {};
@@ -992,12 +992,44 @@
                 let tbodyHtml = '';
                 if (data && data.length > 0) {
                     tbodyHtml = data.map(i => {
-                        const late = isTerlambat(i);
+                        const isLate = isTerlambat(i);
+                        
+                        let rowBg = '';
+                        if (i.status === 'Selesai' && isLate) rowBg = 'bg-red-50/30';
+                        else if (i.status === 'Keluar' && isLate) rowBg = 'bg-orange-50/30';
+
+                        let statusBadge = '';
+                        if (i.status === 'Menunggu') {
+                            statusBadge = '<span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Menunggu</span>';
+                        } else if (i.status === 'Keluar') {
+                            statusBadge = isLate 
+                                ? '<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Terlambat</span>'
+                                : '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Keluar</span>';
+                        } else {
+                            statusBadge = isLate 
+                                ? '<span class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Melebihi Waktu</span>' 
+                                : '<span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Selesai</span>';
+                        }
+
+                        let imgHtml = '';
+                        if (i.status === 'Selesai' && i.foto_url) {
+                            imgHtml = `<img src="${i.foto_url}" class="w-10 h-10 rounded-lg object-cover border border-slate-200" onerror="this.src='https://via.placeholder.com/100?text=No+Img'"/>`;
+                        } else {
+                            const iconClass = i.status === 'Menunggu' ? 'fa-hourglass-half' : 'fa-walking';
+                            imgHtml = `<div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><i class="fas ${iconClass}"></i></div>`;
+                        }
+
+                        let wKeluar = (i.status === 'Keluar' || i.status === 'Selesai') && i.waktu_keluar && i.waktu_keluar !== '-' ? formatTo24Hour(i.waktu_keluar) : '-';
+                        let wKembali = i.status === 'Selesai' && i.waktu_kembali && i.waktu_kembali !== '-' ? formatTo24Hour(i.waktu_kembali) : '-';
+                        let petugasDisplay = (i.status === 'Keluar' || i.status === 'Selesai') && i.petugas_piket ? i.petugas_piket : '-';
+
+                        let btnImg = i.status === 'Selesai' && i.foto_url ? `<a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-all" title="Lihat Foto"><i class="fas fa-image text-xs"></i></a>` : `<div class="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-300 rounded-lg cursor-not-allowed"><i class="fas fa-image text-xs opacity-50"></i></div>`;
+
                         return `
-                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${late ? 'bg-red-50/30' : ''}">
+                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${rowBg}">
                             <td class="p-4">
                                 <div class="flex items-center gap-3">
-                                    <img src="${i.foto_url}" class="w-10 h-10 rounded-lg object-cover border border-slate-200" onerror="this.src='https://via.placeholder.com/100?text=No+Img'"/>
+                                    ${imgHtml}
                                     <div>
                                         <div class="text-xs font-black uppercase text-slate-900">${i.nama}</div>
                                         <div class="text-[9px] font-bold text-slate-500 uppercase mt-0.5">ID: ${i.id_izin}</div>
@@ -1005,16 +1037,16 @@
                                 </div>
                             </td>
                             <td class="p-4 text-xs font-bold text-slate-600">${i.keperluan}<br><span class="text-[9px] font-normal text-slate-400">${i.tujuan}</span></td>
-                            <td class="p-4 text-xs font-bold text-slate-600">${i.tanggal}</td>
-                            <td class="p-4 text-xs font-bold text-slate-600">${formatTo24Hour(i.waktu_keluar) || '-'}</td>
-                            <td class="p-4 text-xs font-bold text-slate-600">${formatTo24Hour(i.waktu_kembali) || '-'}</td>
-                            <td class="p-4 text-xs font-bold text-slate-600">${i.petugas_piket || '-'}</td>
+                            <td class="p-4 text-xs font-bold text-slate-600">${i.tanggal || '-'}</td>
+                            <td class="p-4 text-xs font-bold text-slate-600">${wKeluar}</td>
+                            <td class="p-4 text-xs font-bold text-slate-600">${wKembali}</td>
+                            <td class="p-4 text-xs font-bold text-slate-600">${petugasDisplay}</td>
                             <td class="p-4">
-                                ${late ? '<span class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Melebihi Waktu</span>' : '<span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Tepat Waktu</span>'}
+                                ${statusBadge}
                             </td>
                             <td class="p-4">
                                 <div class="flex items-center gap-2">
-                                    <a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-all" title="Lihat Foto"><i class="fas fa-image text-xs"></i></a>
+                                    ${btnImg}
                                     <button type="button" onclick="openEditIzin('${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-all" title="Edit"><i class="fas fa-edit text-xs"></i></button>
                                     <button type="button" onclick="deleteMasterData('izin', '${i.id_izin}')" class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-all" title="Hapus"><i class="fas fa-trash text-xs"></i></button>
                                 </div>
@@ -1742,10 +1774,10 @@
 
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
-                    let out24 = formatTo24Hour(row.waktu_keluar) || '-';
-                    let in24 = formatTo24Hour(row.waktu_kembali) || '-';
-                    let tglK = row.tanggal_keluar || row.tanggal || '-';
-                    let tglKm = row.tanggal_kembali || row.tanggal || '-';
+                    let out24 = (row.status === 'Keluar' || row.status === 'Selesai') && row.waktu_keluar && row.waktu_keluar !== '-' ? formatTo24Hour(row.waktu_keluar) : '-';
+                    let in24 = row.status === 'Selesai' && row.waktu_kembali && row.waktu_kembali !== '-' ? formatTo24Hour(row.waktu_kembali) : '-';
+                    let tglK = (row.status === 'Keluar' || row.status === 'Selesai') ? (row.tanggal_keluar || row.tanggal || '-') : '-';
+                    let tglKm = row.status === 'Selesai' ? (row.tanggal_kembali || row.tanggal || '-') : '-';
                     let durasi = "-";
 
                     if (out24 !== '-' && in24 !== '-') {
@@ -1759,16 +1791,23 @@
                     }
 
                     const isLate = isTerlambat(row);
-                    const keterangan = isLate ? "MELEBIHI BATAS IZIN" : "TEPAT WAKTU";
-                    const approvalStaff = row.petugas_piket || '-';
+                    let keterangan = "TEPAT WAKTU";
+                    if (row.status === 'Menunggu') keterangan = "MENUNGGU PERSETUJUAN";
+                    else if (row.status === 'Keluar') keterangan = isLate ? "BELUM KEMBALI (TERLAMBAT)" : "SEDANG KELUAR";
+                    else if (row.status === 'Selesai') keterangan = isLate ? "MELEBIHI BATAS IZIN" : "TEPAT WAKTU";
+
+                    const approvalStaff = (row.status === 'Keluar' || row.status === 'Selesai') && row.petugas_piket ? row.petugas_piket : '-';
+                    
+                    let displayKeluar = out24 !== '-' ? `${tglK}\n${out24}` : '-';
+                    let displayKembali = in24 !== '-' ? `${tglKm}\n${in24}` : '-';
 
                     detailRows.push([
                         row.id_izin || '', 
                         row.nama || '', 
                         row.keperluan || '-', 
                         row.tujuan || '-', 
-                        `${tglK}\n${out24}`, 
-                        `${tglKm}\n${in24}`, 
+                        displayKeluar, 
+                        displayKembali, 
                         durasi, 
                         approvalStaff,
                         keterangan
