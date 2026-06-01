@@ -6,14 +6,14 @@
     <title>LinkPermit Pro</title>
     
     <link class="manifest" href="./manifest.json">
-    <link class="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1162/1162456.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     
-    <link class="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
@@ -32,9 +32,16 @@
         
         /* Responsive Khusus Admin Dashboard Mobile (Maks. 768px) */
         @media screen and (max-width: 768px) {
-            #desktopAdminView { flex-direction: column !important; }
-            #desktopAdminView main { height: 100vh !important; display: flex !important; flex-direction: column !important; }
-            #desktopAdminContent { padding: 16px !important; }
+            #desktopAdminView { flex-direction: column !important; overflow-y: auto !important; }
+            #desktopAdminView aside { width: 100% !important; height: auto !important; flex-shrink: 0 !important; }
+            #desktopAdminView aside nav { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; padding: 16px !important; }
+            #desktopAdminView aside nav button { padding: 12px !important; flex-direction: column !important; justify-content: center !important; text-align: center !important; gap: 6px !important; }
+            #desktopAdminView aside nav button i { margin-right: 0 !important; font-size: 1.25rem !important; }
+            #desktopAdminView main { height: auto !important; min-height: 100vh !important; overflow-y: visible !important; }
+            #desktopAdminView header { flex-direction: column !important; align-items: flex-start !important; height: auto !important; padding: 20px !important; gap: 15px !important; }
+            #desktopAdminView header > div:last-child { width: 100% !important; justify-content: space-between !important; }
+            #desktopAdminContent { padding: 16px !important; overflow-y: visible !important; height: auto !important; }
+            #desktopAdminContent > div { height: auto !important; min-height: max-content !important; }
             
             /* Responsive Utilities untuk Konten Admin */
             #desktopAdminContent .flex.justify-between.items-end { flex-direction: column !important; align-items: stretch !important; gap: 15px !important; }
@@ -249,14 +256,11 @@
     <!-- ========================================== -->
     <!-- TAMPILAN DESKTOP ADMIN (Dashboard)         -->
     <!-- ========================================== -->
-    <div id="desktopAdminView" class="hidden h-full w-full bg-slate-50 flex flex-row overflow-hidden animate-slide-up relative">
+    <div id="desktopAdminView" class="hidden h-full w-full bg-slate-50 flex flex-row overflow-hidden animate-slide-up">
         
-        <!-- BACKDROP COVER UNTUK MENU HAMBURGER (MOBILE ONLY) -->
-        <div id="mobileSidebarBackdrop" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-[4400] hidden md:hidden"></div>
-
         <!-- SIDEBAR -->
-        <aside id="adminSidebar" class="w-72 bg-slate-900 text-white flex flex-col shadow-2xl z-[4500] shrink-0 fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:relative transition-transform duration-300 ease-in-out">
-            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+        <aside class="w-72 bg-slate-900 text-white flex flex-col shadow-2xl z-20 shrink-0">
+            <div class="p-8 border-b border-white/5">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-red-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-red-700/20">
                         <i class="fas fa-id-card text-sm"></i>
@@ -266,10 +270,6 @@
                         <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Admin Dashboard</p>
                     </div>
                 </div>
-                <!-- Tombol Close Sidebar (Hanya Muncul di Mobile) -->
-                <button type="button" onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-400 hover:text-white rounded-lg">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
             </div>
             
             <nav class="flex-1 p-6 space-y-2 overflow-y-auto hide-scroll">
@@ -298,16 +298,10 @@
         <!-- MAIN CONTENT AREA -->
         <main class="flex-1 flex flex-col min-w-0 bg-slate-50 relative h-screen">
             <!-- Desktop Header -->
-            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-10 shrink-0 z-10 shadow-sm">
-                <div class="flex items-center gap-4">
-                    <!-- Tombol Hamburger (Hanya muncul di Mobile) -->
-                    <button type="button" onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl transition-all">
-                        <i class="fas fa-bars text-lg"></i>
-                    </button>
-                    <div>
-                        <h1 id="adminPageTitle" class="text-lg md:text-2xl font-black text-slate-800 tracking-tight">Manajemen Pegawai</h1>
-                        <p class="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Kelola data master sistem</p>
-                    </div>
+            <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shrink-0 z-10 shadow-sm">
+                <div>
+                    <h1 id="adminPageTitle" class="text-2xl font-black text-slate-800 tracking-tight">Manajemen Pegawai</h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Kelola data master sistem</p>
                 </div>
                 <div class="flex items-center gap-4 bg-slate-50 p-2 pl-4 pr-2 rounded-2xl border border-slate-100">
                     <div class="text-right mr-2">
@@ -332,6 +326,7 @@
     <!-- Modal Input Master Data (Pegawai, Petugas, Shift) -->
     <div id="modalForm" class="fixed inset-0 z-[5000] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-6">
         <div class="bg-white w-full max-w-md rounded-[2rem] p-8 scale-95 animate-slide-up shadow-2xl">
+            <!-- Menggunakan fungsi terpisah handleMasterDataSubmit untuk menghindari stale closure -->
             <form id="masterDataForm" onsubmit="handleMasterDataSubmit(event)" class="space-y-6">
                 <h3 id="modalTitle" class="text-xl font-black uppercase tracking-tight text-slate-900">Tambah Data</h3>
                 <div class="space-y-5">
@@ -523,19 +518,6 @@
                     }
                 }).catch((err) => console.log('SW Error:', err));
             });
-        }
-
-        // --- 2A. UTILITIES UNTUK TOGGLE SIDEBAR MOBILE (HAMBURGER) ---
-        function toggleMobileMenu() {
-            const sidebar = document.getElementById('adminSidebar');
-            const backdrop = document.getElementById('mobileSidebarBackdrop');
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                backdrop.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
-            }
         }
 
         setInterval(checkNotificationSchedules, 60000);
@@ -838,8 +820,30 @@
                 list.innerHTML = `<div class="text-center py-5"><i class="fas fa-moon text-slate-300 text-2xl mb-2"></i><p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Tidak ada petugas yang sedang<br>berjaga pada jam ini.</p></div>`;
             }
         }
+        setInterval(renderPetugasHariIni, 60000);
 
         // --- AUTH LOGIC (Admin & Petugas) ---
+        async function handleAdminLogin() {
+            const email = document.getElementById('adminEmail').value.trim(), password = document.getElementById('adminPass').value;
+            if (!email || !password) return showToast("Lengkapi email dan password terlebih dahulu.", "error");
+
+            showLoading("Memverifikasi Sesi...");
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+                if (error) showToast("Gagal Masuk: " + error.message, "error");
+                else { activateDesktopAdmin(); showToast("Sesi Master Admin Aktif!", "success"); }
+            } catch (err) { showToast("Kesalahan sistem: " + err.message, "error"); } finally { hideLoading(); }
+        }
+
+        async function handleAdminLogout() {
+            showLoading("Mengakhiri Sesi...");
+            try {
+                await supabaseClient.auth.signOut();
+                deactivateDesktopAdmin();
+                showToast("Logout Master Admin berhasil.", "success");
+            } catch (err) { showToast("Gagal melakukan logout.", "error"); } finally { hideLoading(); }
+        }
+
         function activateDesktopAdmin() {
             state.isAdmin = true;
             document.getElementById('mobileAppView').classList.add('hidden');
@@ -868,15 +872,31 @@
             const titles = { 'pegawai': 'Manajemen Pegawai', 'petugas': 'Petugas Piket', 'jadwal': 'Pengaturan Jadwal & Shift Piket', 'laporan': 'Rekap Laporan Izin' };
             document.getElementById('adminPageTitle').textContent = titles[tab];
 
-            // Menutup Menu Hamburger secara otomatis di HP setelah memilih menu
-            const sidebar = document.getElementById('adminSidebar');
-            const backdrop = document.getElementById('mobileSidebarBackdrop');
-            if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.add('-translate-x-full');
-                backdrop.classList.add('hidden');
-            }
-
             renderAdminContent();
+        }
+
+        // --- FITUR UNDUH TEMPLATE CSV ---
+        function downloadCSVTemplate(type) {
+            let csvContent = "\uFEFF"; 
+            if (type === 'pegawai') {
+                csvContent += "Nama Lengkap,Jabatan / Bidang,Nomor HP\n";
+                csvContent += "Andi Hermawan,Guru Kejuruan,081234567890\n";
+                csvContent += "Siti Aminah,Staff Tata Usaha,087788990011\n";
+            } else {
+                csvContent += "Nama Lengkap,PIN (4 Digit),Nomor HP\n";
+                csvContent += "Fajar Ramadhan,2580,085299887766\n";
+                csvContent += "Rendi Saputra,1470,089911223344\n";
+            }
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Template_Import_${type === 'pegawai' ? 'Pegawai' : 'Petugas'}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Template CSV ${type === 'pegawai' ? 'Pegawai' : 'Petugas'} berhasil diunduh!`, "success");
         }
 
         // --- RENDER DESKTOP ADMIN CONTENT (TABLES WITH SCROLL) ---
@@ -1296,10 +1316,8 @@
             showLoading("Mengonfirmasi...");
             const jam = formatTo24Hour(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }));
             const tgl = new Date().toLocaleDateString('id-ID');
-            
-            // Perbaikan pendefinisian variabel Supabase error
-            const { error: dbError } = await supabaseClient.from('izin').update({ status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl }).eq('id_izin', id);
-            if(!dbError) { await fetchIzin(); showToast("Izin keluar disetujui!", "success"); } else showToast("Gagal menyetujui.", "error");
+            const { error } = await supabaseClient.from('izin').update({ status: 'Keluar', petugas_piket: state.currentUser.nama, waktu_keluar: jam, tanggal_keluar: tgl }).eq('id_izin', id);
+            if(!error) { await fetchIzin(); showToast("Izin keluar disetujui!", "success"); } else showToast("Gagal menyetujui.", "error");
             hideLoading();
         }
         
@@ -1536,6 +1554,10 @@
             if (!startDate || !endDate) return showToast("Harap tentukan rentang tanggal laporan.", "error");
             showLoading("Menyiapkan PDF...");
             try {
+                const endDateFull = new Date(endDate); endDateFull.setHours(23, 59, 59, 999);
+                const { data, error } = await supabaseClient.from('izin').select('*').gte('created_at', new Date(startDate).toISOString()).lte('created_at', endDateFull.toISOString()).order('created_at', { ascending: false });
+                if (error || !data || data.length === 0) { showToast("Tidak ditemukan data pada periode ini.", "error"); hideLoading(); return; }
+
                 const { jsPDF } = window.jspdf; 
                 const doc = new jsPDF('l', 'mm', 'a4'); // Mode Landscape A4
                 
@@ -1554,7 +1576,7 @@
                 // Hitung statistik keterlambatan per pegawai secara dinamis
                 const rekapPribadi = {};
                 const rekapDinas = {};
-                state.tempLaporanData.forEach(i => {
+                data.forEach(i => {
                     if (isTerlambat(i)) {
                         const kategoriNorm = (i.keperluan || '').toLowerCase();
                         const targetRekap = (kategoriNorm.includes('dinas') || kategoriNorm.includes('sekolah')) ? rekapDinas : rekapPribadi;
@@ -1652,8 +1674,8 @@
                 const detailColumns = ["ID Izin", "Nama Pegawai", "Kategori", "Tujuan / Keperluan", "Waktu Keluar", "Waktu Kembali", "Durasi", "Petugas Approval", "Keterangan"];
                 const detailRows = [];
 
-                for (let i = 0; i < state.tempLaporanData.length; i++) {
-                    const row = state.tempLaporanData[i];
+                for (let i = 0; i < data.length; i++) {
+                    const row = data[i];
                     let out24 = formatTo24Hour(row.waktu_keluar) || '-';
                     let in24 = formatTo24Hour(row.waktu_kembali) || '-';
                     let tglK = row.tanggal_keluar || row.tanggal || '-';
@@ -1924,24 +1946,10 @@
         }
 
         async function init() {
-            try {
-                if(!supabaseClient && window.supabase) supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-                showLoading("Memuat data..."); 
-                await Promise.all([fetchPegawai(), fetchPetugas(), fetchShift(), fetchJadwal(), fetchIzin()]);
-                try { 
-                    const { data: { session } } = await supabaseClient.auth.getSession(); 
-                    if (session) activateDesktopAdmin(); 
-                } catch (e) { 
-                    console.log("Auth session check skipped or failed."); 
-                }
-            } catch (globalInitError) {
-                console.error("Initialization failed: ", globalInitError);
-                showToast("Sistem gagal memuat data. Mohon hubungi administrator.", "error");
-            } finally {
-                hideLoading(); 
-                updateTime(); 
-                setInterval(updateTime, 1000);
-            }
+            if(!supabaseClient && window.supabase) supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+            showLoading("Memuat data..."); await Promise.all([fetchPegawai(), fetchPetugas(), fetchShift(), fetchJadwal(), fetchIzin()]);
+            try { const { data: { session } } = await supabaseClient.auth.getSession(); if (session) activateDesktopAdmin(); } catch (e) { console.log(e); }
+            hideLoading(); updateTime(); setInterval(updateTime, 1000);
         }
         window.onload = init;
         
