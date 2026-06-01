@@ -789,7 +789,8 @@
         }
 
         async function fetchIzin() {
-            const { data, error } = await supabaseClient.from('izin').select('*').neq('status', 'Selesai').order('created_at', { ascending: false });
+            // Hanya fetch yang statusnya Menunggu atau Keluar agar tidak menumpuk status Dibatalkan di tampilan antrean
+            const { data, error } = await supabaseClient.from('izin').select('*').in('status', ['Menunggu', 'Keluar']).order('created_at', { ascending: false });
             if (!error) { state.dataIzin = data || []; renderUserList(); renderPiketAntrean(); }
         }
 
@@ -1005,6 +1006,8 @@
                             statusBadge = isLate 
                                 ? '<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Terlambat</span>'
                                 : '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Keluar</span>';
+                        } else if (i.status === 'Dibatalkan') {
+                            statusBadge = '<span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-[9px] font-black uppercase tracking-wider">Dibatalkan</span>';
                         } else {
                             statusBadge = isLate 
                                 ? '<span class="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Melebihi Waktu</span>' 
@@ -1015,13 +1018,15 @@
                         if (i.status === 'Selesai' && i.foto_url) {
                             imgHtml = `<img src="${i.foto_url}" class="w-10 h-10 rounded-lg object-cover border border-slate-200" onerror="this.src='https://via.placeholder.com/100?text=No+Img'"/>`;
                         } else {
-                            const iconClass = i.status === 'Menunggu' ? 'fa-hourglass-half' : 'fa-walking';
+                            let iconClass = 'fa-hourglass-half';
+                            if (i.status === 'Keluar') iconClass = 'fa-walking';
+                            else if (i.status === 'Dibatalkan') iconClass = 'fa-ban';
                             imgHtml = `<div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><i class="fas ${iconClass}"></i></div>`;
                         }
 
-                        let wKeluar = (i.status === 'Keluar' || i.status === 'Selesai') && i.waktu_keluar && i.waktu_keluar !== '-' ? formatTo24Hour(i.waktu_keluar) : '-';
+                        let wKeluar = (i.status === 'Keluar' || i.status === 'Selesai' || i.status === 'Dibatalkan') && i.waktu_keluar && i.waktu_keluar !== '-' ? formatTo24Hour(i.waktu_keluar) : '-';
                         let wKembali = i.status === 'Selesai' && i.waktu_kembali && i.waktu_kembali !== '-' ? formatTo24Hour(i.waktu_kembali) : '-';
-                        let petugasDisplay = (i.status === 'Keluar' || i.status === 'Selesai') && i.petugas_piket ? i.petugas_piket : '-';
+                        let petugasDisplay = (i.status === 'Keluar' || i.status === 'Selesai' || i.status === 'Dibatalkan') && i.petugas_piket ? i.petugas_piket : '-';
 
                         let btnImg = i.status === 'Selesai' && i.foto_url ? `<a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-all" title="Lihat Foto"><i class="fas fa-image text-xs"></i></a>` : `<div class="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-300 rounded-lg cursor-not-allowed"><i class="fas fa-image text-xs opacity-50"></i></div>`;
 
@@ -1381,6 +1386,20 @@
             if(!dbError) { await fetchIzin(); showToast("Izin keluar disetujui!", "success"); } else showToast("Gagal menyetujui.", "error");
             hideLoading();
         }
+
+        async function cancelIzin(id) {
+            showConfirm("Apakah Anda yakin ingin membatalkan permohonan izin ini?", async () => {
+                showLoading("Membatalkan...");
+                const { error: dbError } = await supabaseClient.from('izin').update({ status: 'Dibatalkan', petugas_piket: state.currentUser.nama }).eq('id_izin', id);
+                if(!dbError) { 
+                    await fetchIzin(); 
+                    showToast("Permohonan dibatalkan!", "success"); 
+                } else {
+                    showToast("Gagal membatalkan permohonan.", "error");
+                }
+                hideLoading();
+            });
+        }
         
         function syncSelects() {
             const sP = document.getElementById('inputNama'), sT = document.getElementById('piketUser'), sJ = document.getElementById('jadwalPetugasSelect'), sShift = document.getElementById('jadwalShiftSelect');
@@ -1471,14 +1490,43 @@
                 const pegawai = state.listPegawai.find(p => p.nama === item.nama);
                 const waBtnHtml = pegawai && pegawai.no_hp ? `<button type="button" onclick="hubungiPemohon('${item.id_izin}')" class="text-emerald-500 hover:text-emerald-600 transition-all ml-2 flex-shrink-0" title="Hubungi via WA"><i class="fab fa-whatsapp text-sm"></i></button>` : '';
 
-                container.innerHTML += `<div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-4 animate-slide-up shadow-sm"><div class="flex justify-between items-start"><div class="truncate pr-2"><div class="text-sm font-black uppercase truncate flex items-center">${item.nama}${waBtnHtml}</div><p class="text-[8px] font-bold text-slate-400 uppercase mt-1">Tujuan: ${item.tujuan}</p></div><span class="text-[9px] font-black text-red-700">${item.id_izin}</span></div><button type="button" onclick="approveIzin('${item.id_izin}')" class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase shadow-md">Izinkan Keluar</button></div>`; 
+                container.innerHTML += `<div class="p-5 bg-white border border-slate-200 rounded-3xl space-y-4 animate-slide-up shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div class="truncate pr-2">
+                            <div class="text-sm font-black uppercase truncate flex items-center">${item.nama}${waBtnHtml}</div>
+                            <p class="text-[8px] font-bold text-slate-400 uppercase mt-1">Tujuan: ${item.tujuan}</p>
+                        </div>
+                        <span class="text-[9px] font-black text-red-700">${item.id_izin}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="cancelIzin('${item.id_izin}')" class="w-1/3 py-3 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-[9px] font-black uppercase shadow-sm transition-all">Batalkan</button>
+                        <button type="button" onclick="approveIzin('${item.id_izin}')" class="flex-1 py-3 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-[9px] font-black uppercase shadow-md transition-all">Izinkan Keluar</button>
+                    </div>
+                </div>`; 
             });
         }
 
         // Kamera & Bukti Foto
         function openFinish(id) { state.currentFinishId = id; const modal = document.getElementById('modalFinish'); modal.classList.remove('hidden'); modal.classList.add('flex'); document.getElementById('step-camera').classList.remove('hidden'); document.getElementById('step-preview').classList.add('hidden'); startCamera(); }
         function closeFinishModal() { stopCamera(); const modal = document.getElementById('modalFinish'); if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } document.getElementById('step-camera').classList.remove('hidden'); document.getElementById('step-preview').classList.add('hidden'); }
-        async function startCamera() { try { state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }); document.getElementById('cameraVideo').srcObject = state.cameraStream; } catch (e) { showToast("Gagal mengakses kamera.", "error"); closeFinishModal(); } }
+        async function startCamera() { 
+            try { 
+                state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }); 
+            } catch (e1) { 
+                try {
+                    // Fallback jika kamera depan (user) tidak didukung oleh browser/HP tertentu
+                    state.cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                } catch (e2) {
+                    showToast("Gagal mengakses kamera.", "error"); 
+                    closeFinishModal(); 
+                    return;
+                }
+            }
+            
+            const videoEl = document.getElementById('cameraVideo');
+            videoEl.srcObject = state.cameraStream;
+            videoEl.play().catch(e => console.log("Autoplay dicegah oleh browser:", e));
+        }
         function stopCamera() { if (state.cameraStream) { state.cameraStream.getTracks().forEach(t => t.stop()); state.cameraStream = null; } }
         function takePhoto() {
             const v = document.getElementById('cameraVideo'), c = document.getElementById('photoCanvas'), ctx = c.getContext('2d');
@@ -1774,9 +1822,9 @@
 
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
-                    let out24 = (row.status === 'Keluar' || row.status === 'Selesai') && row.waktu_keluar && row.waktu_keluar !== '-' ? formatTo24Hour(row.waktu_keluar) : '-';
+                    let out24 = (row.status === 'Keluar' || row.status === 'Selesai' || row.status === 'Dibatalkan') && row.waktu_keluar && row.waktu_keluar !== '-' ? formatTo24Hour(row.waktu_keluar) : '-';
                     let in24 = row.status === 'Selesai' && row.waktu_kembali && row.waktu_kembali !== '-' ? formatTo24Hour(row.waktu_kembali) : '-';
-                    let tglK = (row.status === 'Keluar' || row.status === 'Selesai') ? (row.tanggal_keluar || row.tanggal || '-') : '-';
+                    let tglK = (row.status === 'Keluar' || row.status === 'Selesai' || row.status === 'Dibatalkan') ? (row.tanggal_keluar || row.tanggal || '-') : '-';
                     let tglKm = row.status === 'Selesai' ? (row.tanggal_kembali || row.tanggal || '-') : '-';
                     let durasi = "-";
 
@@ -1794,9 +1842,10 @@
                     let keterangan = "TEPAT WAKTU";
                     if (row.status === 'Menunggu') keterangan = "MENUNGGU PERSETUJUAN";
                     else if (row.status === 'Keluar') keterangan = isLate ? "BELUM KEMBALI (TERLAMBAT)" : "SEDANG KELUAR";
+                    else if (row.status === 'Dibatalkan') keterangan = "DIBATALKAN OLEH PETUGAS";
                     else if (row.status === 'Selesai') keterangan = isLate ? "MELEBIHI BATAS IZIN" : "TEPAT WAKTU";
 
-                    const approvalStaff = (row.status === 'Keluar' || row.status === 'Selesai') && row.petugas_piket ? row.petugas_piket : '-';
+                    const approvalStaff = (row.status === 'Keluar' || row.status === 'Selesai' || row.status === 'Dibatalkan') && row.petugas_piket ? row.petugas_piket : '-';
                     
                     let displayKeluar = out24 !== '-' ? `${tglK}\n${out24}` : '-';
                     let displayKembali = in24 !== '-' ? `${tglKm}\n${in24}` : '-';
