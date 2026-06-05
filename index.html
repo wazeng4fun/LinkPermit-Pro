@@ -224,7 +224,7 @@
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-sm"><i class="fas fa-shield-alt"></i></div>
                             <div>
-                                <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Petugas Aktif</p>
+                                <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Petugas Piket</p>
                                 <span id="petugasAktif" class="text-xs font-black uppercase tracking-wider">-</span>
                             </div>
                         </div>
@@ -730,6 +730,21 @@
             }
         }
 
+        // Fungsi khusus untuk menghitung total waktu berjalan semenjak keluar (dalam menit)
+        function getElapsedMinutes(item) {
+            if (!item.waktu_keluar || item.waktu_keluar === '-') return 0;
+            let parsedK = formatTo24Hour(item.waktu_keluar);
+            if (!parsedK.includes(':')) return 0;
+            let [kH, kM] = parsedK.split(':').map(Number);
+            if (isNaN(kH)) return 0;
+
+            let start = item.created_at ? new Date(item.created_at) : new Date();
+            start.setHours(kH, kM, 0, 0);
+            let end = new Date();
+            return (end - start) / 60000;
+        }
+
+        // Fungsi khusus untuk menghitung sisa waktu izin aktif (dalam menit) untuk pribadi
         function getSisaWaktuMenit(item) {
             if (!item.waktu_keluar || item.waktu_keluar === '-') return null;
             let parsedK = formatTo24Hour(item.waktu_keluar);
@@ -842,6 +857,7 @@
         }
 
         async function fetchIzin() {
+            // Memuat data Menunggu dan Keluar agar status real-time bisa dihitung lokal secara efisien
             const { data, error } = await supabaseClient.from('izin').select('*').in('status', ['Menunggu', 'Keluar']).order('created_at', { ascending: false });
             if (!error) { state.dataIzin = data || []; renderUserList(); renderPiketAntrean(); }
         }
@@ -1048,18 +1064,27 @@
                 if (data && data.length > 0) {
                     tbodyHtml = data.map(i => {
                         const isLate = isTerlambat(i);
+                        let elapsedMins = 0;
+                        if (i.status === 'Keluar') {
+                            elapsedMins = getElapsedMinutes(i);
+                        }
                         
                         let rowBg = '';
                         if (i.status === 'Selesai' && isLate) rowBg = 'bg-red-50/30';
                         else if (i.status === 'Keluar' && isLate) rowBg = 'bg-orange-50/30';
+                        else if (i.status === 'Keluar' && elapsedMins >= 1440) rowBg = 'bg-rose-50'; // Background Khas Tidak Lapor Balik
 
                         let statusBadge = '';
                         if (i.status === 'Menunggu') {
                             statusBadge = '<span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Menunggu</span>';
                         } else if (i.status === 'Keluar') {
-                            statusBadge = isLate 
-                                ? '<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Terlambat</span>'
-                                : '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Keluar</span>';
+                            if (elapsedMins >= 1440) {
+                                statusBadge = '<span class="px-3 py-1 bg-rose-200 text-rose-800 rounded-lg text-[9px] font-black uppercase tracking-wider">Tidak Kembali</span>';
+                            } else {
+                                statusBadge = isLate 
+                                    ? '<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Terlambat</span>'
+                                    : '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase tracking-wider">Keluar</span>';
+                            }
                         } else if (i.status === 'Dibatalkan') {
                             statusBadge = '<span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-[9px] font-black uppercase tracking-wider">Dibatalkan</span>';
                         } else {
@@ -1073,13 +1098,22 @@
                             imgHtml = `<img src="${i.foto_url}" class="w-10 h-10 rounded-lg object-cover border border-slate-200" onerror="this.src='https://via.placeholder.com/100?text=No+Img'"/>`;
                         } else {
                             let iconClass = 'fa-hourglass-half';
-                            if (i.status === 'Keluar') iconClass = 'fa-walking';
+                            if (i.status === 'Keluar') {
+                                iconClass = elapsedMins >= 1440 ? 'fa-ban text-rose-500' : 'fa-walking';
+                            }
                             else if (i.status === 'Dibatalkan') iconClass = 'fa-ban';
                             imgHtml = `<div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><i class="fas ${iconClass}"></i></div>`;
                         }
 
                         let wKeluar = (i.status === 'Keluar' || i.status === 'Selesai' || i.status === 'Dibatalkan') && i.waktu_keluar && i.waktu_keluar !== '-' ? formatTo24Hour(i.waktu_keluar) : '-';
-                        let wKembali = i.status === 'Selesai' && i.waktu_kembali && i.waktu_kembali !== '-' ? formatTo24Hour(i.waktu_kembali) : '-';
+                        
+                        let wKembali = '-';
+                        if (i.status === 'Selesai' && i.waktu_kembali && i.waktu_kembali !== '-') {
+                            wKembali = formatTo24Hour(i.waktu_kembali);
+                        } else if (i.status === 'Keluar' && elapsedMins >= 1440) {
+                            wKembali = '<span class="text-rose-600 font-bold">Tidak Lapor</span>';
+                        }
+
                         let petugasDisplay = (i.status === 'Keluar' || i.status === 'Selesai' || i.status === 'Dibatalkan') && i.petugas_piket ? i.petugas_piket : '-';
 
                         let btnImg = i.status === 'Selesai' && i.foto_url ? `<a href="${i.foto_url}" target="_blank" class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-all" title="Lihat Foto"><i class="fas fa-image text-xs"></i></a>` : `<div class="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-300 rounded-lg cursor-not-allowed"><i class="fas fa-image text-xs opacity-50"></i></div>`;
@@ -1492,9 +1526,25 @@
                 let wKHtml = ''; 
                 let isLate = item.status === 'Keluar' && isTerlambat(item);
                 let isWarning = false;
+                let isCritical24h = false; 
                 let sisaMnt = null;
+                let sisa24hMnt = null;
 
-                if (item.status === 'Keluar' && item.keperluan === 'Pribadi' && !isLate) {
+                // Perhitungan Batas Waktu 24 Jam secara Real-time & Lokal (Mencegah Write Server)
+                if (item.status === 'Keluar') {
+                    const elapsedMins = getElapsedMinutes(item);
+                    if (elapsedMins >= 1440) {
+                        // Otomatis hilang / disembunyikan total dari Status Pengajuan
+                        return; 
+                    }
+                    // Tepat 1 Jam sebelum limit 24 jam (Jam ke-23 s/d 24)
+                    if (elapsedMins >= 1380 && elapsedMins < 1440) {
+                        isCritical24h = true;
+                        sisa24hMnt = 1440 - Math.floor(elapsedMins);
+                    }
+                }
+
+                if (item.status === 'Keluar' && item.keperluan === 'Pribadi' && !isLate && !isCritical24h) {
                     sisaMnt = getSisaWaktuMenit(item);
                     if (sisaMnt !== null && sisaMnt >= 0 && sisaMnt <= 10) {
                         isWarning = true;
@@ -1507,13 +1557,22 @@
                 let timeClass = 'text-slate-500';
                 let warnBox = '';
 
-                if (isLate) {
+                if (isCritical24h) {
+                    // Peringatan Kritis 24 Jam (Tertinggi)
+                    cardClass = 'border-red-600 bg-red-100 shadow-red-200/60';
+                    textNameClass = 'text-red-950 font-black';
+                    badgeClass = 'bg-red-300 text-red-900';
+                    timeClass = 'text-red-700';
+                    warnBox = `<div class="mt-3 p-2.5 bg-red-600 border border-red-700 rounded-xl flex items-start gap-2 text-white animate-pulse"><i class="fas fa-exclamation-circle mt-0.5 text-xs"></i><div class="text-[8px] font-black leading-tight">PERINGATAN KRITIS: BATAS OPERASIONAL 24 JAM SEGERA HABIS!<br>Sisa: ${sisa24hMnt} menit sebelum status izin ditutup otomatis oleh sistem.</div></div>`;
+                } else if (isLate) {
+                    // Terlambat Izin Biasa
                     cardClass = 'border-red-400 bg-red-50 shadow-red-200/50';
                     textNameClass = 'text-red-800';
                     badgeClass = 'bg-red-200 text-red-800';
                     timeClass = 'text-red-500';
                     warnBox = `<div class="mt-3 p-2 bg-red-100 border border-red-200 rounded-xl flex items-start gap-2 animate-pulse"><i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i><p class="text-[8px] font-black text-red-700 leading-tight">WAKTU IZIN HABIS!</p></div>`;
                 } else if (isWarning) {
+                    // Warning 10 Menit Izin Pribadi
                     cardClass = 'border-orange-400 bg-orange-50 shadow-orange-200/50';
                     textNameClass = 'text-orange-800';
                     badgeClass = 'bg-orange-200 text-orange-800';
@@ -1885,13 +1944,26 @@
 
                 for (let i = 0; i < data.length; i++) {
                     const row = data[i];
+                    let elapsedMins = 0;
+                    if (row.status === 'Keluar') {
+                        elapsedMins = getElapsedMinutes(row);
+                    }
+
                     let out24 = (row.status === 'Keluar' || row.status === 'Selesai' || row.status === 'Dibatalkan') && row.waktu_keluar && row.waktu_keluar !== '-' ? formatTo24Hour(row.waktu_keluar) : '-';
                     let in24 = row.status === 'Selesai' && row.waktu_kembali && row.waktu_kembali !== '-' ? formatTo24Hour(row.waktu_kembali) : '-';
+                    
+                    if (row.status === 'Keluar' && elapsedMins >= 1440) {
+                        in24 = 'Tidak Kembali';
+                    }
+
                     let tglK = (row.status === 'Keluar' || row.status === 'Selesai' || row.status === 'Dibatalkan') ? (row.tanggal_keluar || row.tanggal || '-') : '-';
                     let tglKm = row.status === 'Selesai' ? (row.tanggal_kembali || row.tanggal || '-') : '-';
-                    let durasi = "-";
+                    if (row.status === 'Keluar' && elapsedMins >= 1440) {
+                        tglKm = '-';
+                    }
 
-                    if (out24 !== '-' && in24 !== '-') {
+                    let durasi = "-";
+                    if (out24 !== '-' && in24 !== '-' && in24 !== 'Tidak Kembali') {
                         const [kh, km] = out24.split(':').map(Number), [eh, em] = in24.split(':').map(Number);
                         if (!isNaN(kh) && !isNaN(km) && !isNaN(eh) && !isNaN(em)) {
                             let startMins = kh * 60 + km, endMins = eh * 60 + em;
@@ -1904,7 +1976,13 @@
                     const isLate = isTerlambat(row);
                     let keterangan = "TEPAT WAKTU";
                     if (row.status === 'Menunggu') keterangan = "MENUNGGU PERSETUJUAN";
-                    else if (row.status === 'Keluar') keterangan = isLate ? "BELUM KEMBALI (TERLAMBAT)" : "SEDANG KELUAR";
+                    else if (row.status === 'Keluar') {
+                        if (elapsedMins >= 1440) {
+                            keterangan = "Tidak lapor pulang setelah melebihi 24 jam";
+                        } else {
+                            keterangan = isLate ? "BELUM KEMBALI (TERLAMBAT)" : "SEDANG KELUAR";
+                        }
+                    }
                     else if (row.status === 'Dibatalkan') keterangan = "DIBATALKAN OLEH PETUGAS";
                     else if (row.status === 'Selesai') keterangan = isLate ? "MELEBIHI BATAS IZIN" : "TEPAT WAKTU";
 
@@ -1937,6 +2015,9 @@
                     didParseCell: function(cellData) {
                         if (cellData.column.index === 8 && cellData.cell.text[0] === 'MELEBIHI BATAS IZIN') {
                             cellData.cell.styles.textColor = [185, 28, 28]; 
+                            cellData.cell.styles.fontStyle = 'bold';
+                        } else if (cellData.column.index === 8 && cellData.cell.text[0] === 'Tidak lapor pulang setelah melebihi 24 jam') {
+                            cellData.cell.styles.textColor = [185, 28, 28];
                             cellData.cell.styles.fontStyle = 'bold';
                         }
                     }
